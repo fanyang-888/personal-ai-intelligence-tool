@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getClusterById } from "@/lib/mock-data/clusters";
+import { clusters, getClusterById } from "@/lib/mock-data/clusters";
 import { getSourceById } from "@/lib/mock-data/sources";
 import { ClusterHeader } from "@/components/cluster/cluster-header";
 import { TakeawayList } from "@/components/cluster/takeaway-list";
@@ -13,6 +13,12 @@ import { SectionTitle } from "@/components/shared/section-title";
 type ClusterPageProps = {
   params: Promise<{ id: string }>;
 };
+
+export const dynamicParams = false;
+
+export function generateStaticParams() {
+  return clusters.map((c) => ({ id: c.id }));
+}
 
 export default async function ClusterPage({ params }: ClusterPageProps) {
   const { id } = await params;

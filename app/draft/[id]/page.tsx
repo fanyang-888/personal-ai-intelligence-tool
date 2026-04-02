@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getDraftById, getDraftBodies } from "@/lib/mock-data/drafts";
+import { drafts, getDraftById, getDraftBodies } from "@/lib/mock-data/drafts";
 import { getClusterById } from "@/lib/mock-data/clusters";
 import { DraftHeader } from "@/components/draft/draft-header";
 import { DraftActions } from "@/components/draft/draft-actions";
@@ -9,6 +9,12 @@ import { SectionTitle } from "@/components/shared/section-title";
 type DraftPageProps = {
   params: Promise<{ id: string }>;
 };
+
+export const dynamicParams = false;
+
+export function generateStaticParams() {
+  return drafts.map((d) => ({ id: d.id }));
+}
 
 export default async function DraftPage({ params }: DraftPageProps) {
   const { id } = await params;
