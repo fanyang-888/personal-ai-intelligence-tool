@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { TopNavSearch } from "@/components/layout/top-nav-search";
 
@@ -29,7 +30,16 @@ export function TopNav() {
           </Link>
         </nav>
         <div className="flex min-w-0 flex-1 basis-full sm:basis-[min(100%,12rem)] sm:justify-end">
-          <TopNavSearch />
+          <Suspense
+            fallback={
+              <div
+                className="h-9 w-full max-w-xs rounded-md border border-zinc-200 bg-zinc-50"
+                aria-hidden
+              />
+            }
+          >
+            <TopNavSearch />
+          </Suspense>
         </div>
       </div>
     </header>

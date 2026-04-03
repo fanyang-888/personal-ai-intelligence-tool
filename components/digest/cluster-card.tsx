@@ -1,5 +1,9 @@
 import Link from "next/link";
 import { StoryBadge } from "@/components/digest/story-badge";
+import {
+  formatClusterSourcesLine,
+  formatRelevancePercent,
+} from "@/lib/utils/cluster-sources";
 import type { Cluster } from "@/types/cluster";
 
 type ClusterCardProps = {
@@ -9,8 +13,9 @@ type ClusterCardProps = {
 export function ClusterCard({ cluster }: ClusterCardProps) {
   const tags = cluster.tags?.length ? cluster.tags : [cluster.theme];
   const sourceCount = cluster.sourceIds.length;
-  const score = cluster.clusterScore ?? "—";
+  const relevance = formatRelevancePercent(cluster.clusterScore);
   const freshness = cluster.freshnessLabel ?? "—";
+  const sourcesLine = formatClusterSourcesLine(cluster);
 
   return (
     <li className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
@@ -18,6 +23,13 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
         {cluster.title}
       </h3>
       <p className="mt-2 line-clamp-1 text-sm text-zinc-600">{cluster.summary}</p>
+
+      {sourcesLine ? (
+        <p className="mt-2 text-xs text-zinc-500">
+          <span className="font-medium text-zinc-600">Sources: </span>
+          {sourcesLine}
+        </p>
+      ) : null}
 
       <div className="mt-3 flex flex-wrap gap-1.5">
         {tags.map((t) => (
@@ -39,8 +51,8 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
           <dd>{freshness}</dd>
         </div>
         <div>
-          <dt className="sr-only">Score</dt>
-          <dd>Score {score}</dd>
+          <dt className="sr-only">Relevance</dt>
+          <dd>{relevance}</dd>
         </div>
       </dl>
 

@@ -36,18 +36,25 @@ export function ArchivePageClient() {
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [spKey]);
 
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
   const latestFiltersRef = useRef({ theme: "", sourceId: "" });
 
   useEffect(() => {
     latestFiltersRef.current = { theme, sourceId };
   }, [theme, sourceId]);
 
-  useEffect(() => () => clearTimeout(debounceRef.current), []);
+  useEffect(
+    () => () => {
+      if (debounceRef.current !== undefined) clearTimeout(debounceRef.current);
+    },
+    [],
+  );
 
   const scheduleKeywordUrlSync = useCallback(
     (nextQ: string) => {
-      clearTimeout(debounceRef.current);
+      if (debounceRef.current !== undefined) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
         const { theme: t, sourceId: s } = latestFiltersRef.current;
         router.replace(archiveHref({ q: nextQ, theme: t, sourceId: s }));
@@ -62,13 +69,13 @@ export function ArchivePageClient() {
   }
 
   function handleThemeChange(t: string) {
-    clearTimeout(debounceRef.current);
+    if (debounceRef.current !== undefined) clearTimeout(debounceRef.current);
     setTheme(t);
     router.replace(archiveHref({ q: keyword, theme: t, sourceId }));
   }
 
   function handleSourceChange(id: string) {
-    clearTimeout(debounceRef.current);
+    if (debounceRef.current !== undefined) clearTimeout(debounceRef.current);
     setSourceId(id);
     router.replace(archiveHref({ q: keyword, theme, sourceId: id }));
   }

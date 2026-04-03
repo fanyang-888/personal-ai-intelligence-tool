@@ -2,13 +2,12 @@ import type { ReactNode } from "react";
 
 export type StoryBadgeVariant = "status" | "metric" | "tag";
 
+/** Neutral pills; only status gets a hint of accent so CTAs stay visually distinct. */
 const variantClass: Record<StoryBadgeVariant, string> = {
   status:
-    "border-emerald-600/40 bg-emerald-50 text-emerald-900",
-  metric:
-    "border-zinc-200 bg-zinc-50 text-zinc-600",
-  tag:
-    "border-emerald-200 bg-white text-emerald-800",
+    "border border-emerald-600/25 bg-emerald-50/60 text-zinc-800",
+  metric: "border border-zinc-200 bg-zinc-100 text-zinc-600",
+  tag: "border border-zinc-200 bg-zinc-50 text-zinc-600",
 };
 
 type StoryBadgeProps = {

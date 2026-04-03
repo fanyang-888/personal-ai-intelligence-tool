@@ -1,5 +1,9 @@
 import Link from "next/link";
 import { StoryBadge } from "@/components/digest/story-badge";
+import {
+  formatClusterSourcesLine,
+  formatRelevancePercent,
+} from "@/lib/utils/cluster-sources";
 import type { Cluster } from "@/types/cluster";
 
 type FeaturedStoryCardProps = {
@@ -7,10 +11,14 @@ type FeaturedStoryCardProps = {
   className?: string;
 };
 
-export function FeaturedStoryCard({ cluster, className = "" }: FeaturedStoryCardProps) {
+export function FeaturedStoryCard({
+  cluster,
+  className = "",
+}: FeaturedStoryCardProps) {
   const sourceCount = cluster.sourceIds.length;
-  const score = cluster.clusterScore ?? "—";
+  const relevance = formatRelevancePercent(cluster.clusterScore);
   const status = cluster.storyStatus ?? "Featured";
+  const sourcesLine = formatClusterSourcesLine(cluster);
 
   return (
     <section
@@ -27,12 +35,19 @@ export function FeaturedStoryCard({ cluster, className = "" }: FeaturedStoryCard
         <p className="mt-2 text-sm text-zinc-500">{cluster.subtitle}</p>
       ) : null}
 
+      {sourcesLine ? (
+        <p className="mt-3 text-xs text-zinc-500">
+          <span className="font-medium text-zinc-600">Sources: </span>
+          {sourcesLine}
+        </p>
+      ) : null}
+
       <div className="mt-4 flex flex-wrap gap-2">
         <StoryBadge variant="status">{status}</StoryBadge>
         <StoryBadge variant="metric">
           {sourceCount} source{sourceCount === 1 ? "" : "s"}
         </StoryBadge>
-        <StoryBadge variant="metric">Score {score}</StoryBadge>
+        <StoryBadge variant="metric">{relevance}</StoryBadge>
       </div>
 
       <p className="mt-5 text-base leading-relaxed text-foreground">{cluster.summary}</p>
