@@ -1,11 +1,5 @@
+import { SOURCE_CHANNEL_LABEL } from "@/lib/utils/cluster-sources";
 import type { SourceChannel } from "@/types/source";
-
-const CHANNEL_LABEL: Record<SourceChannel, string> = {
-  email: "Email",
-  chat: "Chat",
-  web: "Web",
-  feed: "Feed",
-};
 
 function ChannelIcon({ channel }: { channel: SourceChannel }) {
   const cls = "h-3.5 w-3.5 shrink-0 text-zinc-600";
@@ -91,7 +85,7 @@ type SourceChannelBadgeProps = {
  * Distinct from {@link StoryBadge}: icon + numeric count for ingest channel transparency.
  */
 export function SourceChannelBadge({ channel, count }: SourceChannelBadgeProps) {
-  const label = CHANNEL_LABEL[channel];
+  const label = SOURCE_CHANNEL_LABEL[channel];
   const aria = `${count} source${count === 1 ? "" : "s"} from ${label}`;
   return (
     <span

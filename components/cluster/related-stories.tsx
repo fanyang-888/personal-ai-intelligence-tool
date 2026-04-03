@@ -15,7 +15,10 @@ export function RelatedStories({ clusters }: RelatedStoriesProps) {
       <ul className="space-y-2 text-sm">
         {clusters.map((c) => (
           <li key={c.id}>
-            <Link href={`/cluster/${c.id}`} className="font-medium underline underline-offset-4">
+            <Link
+              href={`/cluster/${c.id}`}
+              className="block font-medium text-foreground underline underline-offset-4"
+            >
               {c.title}
             </Link>
           </li>
