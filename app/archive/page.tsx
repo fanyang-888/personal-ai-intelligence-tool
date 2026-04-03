@@ -43,7 +43,12 @@ export default function ArchivePage() {
         </p>
       </header>
 
-      <SearchBar value={keyword} onChange={setKeyword} />
+      <SearchBar
+        value={keyword}
+        onChange={setKeyword}
+        id="archive-search"
+        placeholder="Keyword in title or summary…"
+      />
       <FilterBar
         theme={theme}
         sourceId={sourceId}
