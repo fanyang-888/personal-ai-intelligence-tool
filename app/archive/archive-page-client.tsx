@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { clusters } from "@/lib/mock-data/clusters";
 import { sources } from "@/lib/mock-data/sources";
@@ -13,17 +13,14 @@ import { SectionTitle } from "@/components/shared/section-title";
 import { EmptyState } from "@/components/shared/empty-state";
 import { NotFoundState } from "@/components/shared/not-found-state";
 
-export function ArchivePageClient() {
-  const searchParams = useSearchParams();
-  const [keyword, setKeyword] = useState(
-    () => searchParams.get("q") ?? "",
-  );
+type ArchivePageInnerProps = {
+  initialKeyword: string;
+};
+
+function ArchivePageInner({ initialKeyword }: ArchivePageInnerProps) {
+  const [keyword, setKeyword] = useState(initialKeyword);
   const [theme, setTheme] = useState("");
   const [sourceId, setSourceId] = useState("");
-
-  useEffect(() => {
-    setKeyword(searchParams.get("q") ?? "");
-  }, [searchParams]);
 
   const themes = useMemo(() => uniqueThemes(clusters), []);
   const sourceOptions = useMemo(
@@ -84,4 +81,10 @@ export function ArchivePageClient() {
       )}
     </div>
   );
+}
+
+export function ArchivePageClient() {
+  const searchParams = useSearchParams();
+  const qFromUrl = searchParams.get("q") ?? "";
+  return <ArchivePageInner key={qFromUrl} initialKeyword={qFromUrl} />;
 }
