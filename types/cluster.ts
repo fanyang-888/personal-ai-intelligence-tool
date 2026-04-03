@@ -9,6 +9,14 @@ export type Cluster = {
   title: string;
   subtitle?: string;
   theme: string;
+  /** Short tags for digest cards (optional mock) */
+  tags?: string[];
+  /** e.g. Emerging, Breaking, Stable (optional mock) */
+  storyStatus?: string;
+  /** Display rank 0–100 (optional mock) */
+  clusterScore?: number;
+  /** e.g. "Updated 3h ago" (optional mock) */
+  freshnessLabel?: string;
   summary: string;
   takeaways: string[];
   whyItMatters: string;

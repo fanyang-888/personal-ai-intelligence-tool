@@ -25,6 +25,42 @@ export const sources: Source[] = [
     url: "https://example.com/ieee-edge-inference",
     publisher: "IEEE Spectrum",
   },
+  {
+    id: "src-5",
+    name: "Reuters Tech",
+    url: "https://example.com/reuters-enterprise-ai",
+    publisher: "Reuters",
+  },
+  {
+    id: "src-6",
+    name: "The Verge",
+    url: "https://example.com/verge-multimodal",
+    publisher: "The Verge",
+  },
+  {
+    id: "src-7",
+    name: "Hugging Face Blog",
+    url: "https://example.com/hf-open-models",
+    publisher: "Hugging Face",
+  },
+  {
+    id: "src-8",
+    name: "Lawfare",
+    url: "https://example.com/lawfare-ai-data",
+    publisher: "Lawfare",
+  },
+  {
+    id: "src-9",
+    name: "Distill",
+    url: "https://example.com/distill-synthetic",
+    publisher: "Distill",
+  },
+  {
+    id: "src-10",
+    name: "GitHub Blog",
+    url: "https://example.com/github-copilot-agents",
+    publisher: "GitHub",
+  },
 ];
 
 export function getSourceById(id: string): Source | undefined {

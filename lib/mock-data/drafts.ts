@@ -69,6 +69,111 @@ Risk: shipping a large on-device bundle hurts updates. Plan for modular download
     careerInterpretation:
       "Roles touching client ML value engineers who can reason about latency budgets and release mechanics, not only training loss curves.",
   },
+  {
+    id: "draft-4",
+    clusterId: "cluster-4",
+    title: "Enterprise multimodal rollout checklist",
+    topic: "Multimodal assistants",
+    body: `Bundling vision and documents into the same copilot surface sounds simple until procurement asks where pixels live and for how long.
+
+Start with data maps: which modalities cross regions, which stay on-device, and how redaction propagates. Then align UX to “show your work” for every non-text answer.`,
+    takeaways: [
+      "Residency questions spike when images enter the thread.",
+      "Latency SLAs need end-to-end budgets, not model-only numbers.",
+    ],
+    careerInterpretation:
+      "Practice explaining multimodal risk in one slide: data flow, retention, and human review hooks.",
+  },
+  {
+    id: "draft-5",
+    clusterId: "cluster-5",
+    title: "Open weights: when to fine-tune vs. prompt",
+    topic: "Open models",
+    body: `Cheaper bases mean more teams try custom weights. The winning pattern is tight task scope, clean eval harness, and license discipline—not the biggest download.
+
+Pick five tasks, measure regressions weekly, and keep a paper trail of training data rights.`,
+    takeaways: [
+      "Narrow tasks reward adapters; broad ones need stronger bases.",
+      "License audits belong in CI, not the night before launch.",
+    ],
+    careerInterpretation:
+      "Be ready to compare LoRA vs full fine-tune with dollars and latency, not vibes.",
+  },
+  {
+    id: "draft-6",
+    clusterId: "cluster-6",
+    title: "Provenance memo for legal and product",
+    topic: "Training data policy",
+    body: `Regulators and customers want receipts: what was ingested, with what consent, and how removals propagate.
+
+Ship a living data register, not a one-pager. Tie it to embeddings, caches, and fine-tune artifacts so “delete” is operational, not aspirational.`,
+    takeaways: [
+      "Lineage is a cross-functional workflow, not a compliance checkbox.",
+      "Retrofits cost more than designing hooks at ingest.",
+    ],
+    careerInterpretation:
+      "Interviewers notice when you connect policy language to engineering artifacts.",
+  },
+  {
+    id: "draft-7",
+    clusterId: "cluster-7",
+    title: "Synthetic data without self-deception",
+    topic: "Synthetic data",
+    body: `Synthetic sets can fill long tails fast. Without fidelity checks, they teach models confident nonsense.
+
+Pair generation with spot audits, domain constraints, and diff tools that flag distribution shift week over week.`,
+    takeaways: [
+      "Measure diversity and failure modes, not just row counts.",
+      "Label synthetic clearly downstream to avoid silent priors.",
+    ],
+    careerInterpretation:
+      "Show you can design a validation rubric, not just a generation pipeline.",
+  },
+  {
+    id: "draft-8",
+    clusterId: "cluster-8",
+    title: "IDE agents: design for review, not chat volume",
+    topic: "Coding agents",
+    body: `Developers trust diffs and tests more than eloquent explanations. Agentic IDEs should foreground plans, patches, and rollback—not endless threads.
+
+Instrument each step: intent, files touched, commands run, and verification results.`,
+    takeaways: [
+      "Plan-then-act beats opaque end-to-end runs.",
+      "Security review must hug the patch, not the prompt.",
+    ],
+    careerInterpretation:
+      "Be ready to whiteboard an agent loop with human gates and observability.",
+  },
+  {
+    id: "draft-9",
+    clusterId: "cluster-9",
+    title: "Voice UX: latency is the feature",
+    topic: "Voice interfaces",
+    body: `Natural turn-taking depends on VAD, ASR, and model streaming playing nicely. OS permissions and hardware mics still decide whether the demo ships.
+
+Prototype on real devices early; lab metrics lie about echo and overlap.`,
+    takeaways: [
+      "Measure mouth-to-ear latency, not token latency alone.",
+      "Accessibility use cases often define the quality bar.",
+    ],
+    careerInterpretation:
+      "Voice roles reward systems thinking across audio stacks and UX.",
+  },
+  {
+    id: "draft-10",
+    clusterId: "cluster-10",
+    title: "RAG chunking as a product craft",
+    topic: "Retrieval",
+    body: `Swapping embeddings helps at the margin; restructuring knowledge wins trust. Dynamic chunking and metadata routing beat one-size splits for mixed corpora.
+
+Version chunks and cite stable anchors so users can verify answers.`,
+    takeaways: [
+      "Content ops is half the retrieval battle.",
+      "Eval must include adversarial misses, not only happy paths.",
+    ],
+    careerInterpretation:
+      "Strong candidates explain a retrieval failure taxonomy in plain language.",
+  },
 ];
 
 export function getDraftById(id: string): Draft | undefined {
