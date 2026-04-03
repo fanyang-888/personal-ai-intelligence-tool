@@ -4,14 +4,6 @@ import type { SourceChannel } from "@/types/source";
 
 const MAX_VISIBLE = 4;
 
-/** Human-readable ingest channel (digest badges + cluster detail). */
-export const SOURCE_CHANNEL_LABEL: Record<SourceChannel, string> = {
-  email: "Email",
-  chat: "Chat",
-  web: "Web",
-  feed: "Feed",
-};
-
 const DEFAULT_CHANNEL: SourceChannel = "web";
 
 const CHANNEL_SORT: Record<SourceChannel, number> = {

@@ -1,5 +1,4 @@
 import { SectionTitle } from "@/components/shared/section-title";
-import { SOURCE_CHANNEL_LABEL } from "@/lib/utils/cluster-sources";
 import type { Source } from "@/types/source";
 
 type CoveredSourcesListProps = {
@@ -21,15 +20,9 @@ export function CoveredSourcesList({ sources }: CoveredSourcesListProps) {
             >
               {s.name}
             </a>
-            <span className="text-zinc-600">
-              {s.publisher ? ` — ${s.publisher}` : ""}
-              {s.channel ? (
-                <span className="text-zinc-500">
-                  {" "}
-                  · {SOURCE_CHANNEL_LABEL[s.channel]}
-                </span>
-              ) : null}
-            </span>
+            {s.publisher ? (
+              <span className="text-zinc-600"> — {s.publisher}</span>
+            ) : null}
           </li>
         ))}
       </ul>
