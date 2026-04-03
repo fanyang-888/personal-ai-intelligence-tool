@@ -4,16 +4,17 @@ import type { Cluster } from "@/types/cluster";
 
 type FeaturedStoryCardProps = {
   cluster: Cluster;
+  className?: string;
 };
 
-export function FeaturedStoryCard({ cluster }: FeaturedStoryCardProps) {
+export function FeaturedStoryCard({ cluster, className = "" }: FeaturedStoryCardProps) {
   const sourceCount = cluster.sourceIds.length;
   const score = cluster.clusterScore ?? "—";
   const status = cluster.storyStatus ?? "Featured";
 
   return (
     <section
-      className="mb-12 rounded-lg border border-zinc-200 border-l-4 border-l-emerald-600 bg-white p-6 shadow-sm sm:p-8"
+      className={`rounded-lg border border-zinc-200 border-l-4 border-l-emerald-600 bg-white p-6 shadow-sm sm:p-8 ${className}`}
       aria-labelledby="featured-story-title"
     >
       <h2

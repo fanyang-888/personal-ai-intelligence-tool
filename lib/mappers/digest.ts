@@ -12,7 +12,7 @@ export type DigestView = {
 
 export function buildDigestView(): DigestView {
   const featured = getFeaturedCluster();
-  const topClusters = getTopClusters(8);
+  const topClusters = getTopClusters(4);
   const draftOfDay = getDraftOfTheDay();
   const featuredDraft = featured ? getDraftById(featured.draftId) : undefined;
 
