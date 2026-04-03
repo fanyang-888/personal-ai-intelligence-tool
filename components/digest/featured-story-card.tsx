@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { SourceChannelBadge } from "@/components/digest/source-channel-badge";
 import { StoryBadge } from "@/components/digest/story-badge";
 import {
   formatClusterSourcesLine,
   formatRelevancePercent,
+  getClusterSourceChannelCounts,
 } from "@/lib/utils/cluster-sources";
 import type { Cluster } from "@/types/cluster";
 
@@ -19,6 +21,7 @@ export function FeaturedStoryCard({
   const relevance = formatRelevancePercent(cluster.clusterScore);
   const status = cluster.storyStatus ?? "Featured";
   const sourcesLine = formatClusterSourcesLine(cluster);
+  const channelCounts = getClusterSourceChannelCounts(cluster);
 
   return (
     <section
@@ -33,6 +36,19 @@ export function FeaturedStoryCard({
       </h2>
       {cluster.subtitle ? (
         <p className="mt-2 text-sm text-zinc-500">{cluster.subtitle}</p>
+      ) : null}
+
+      {channelCounts.length > 0 ? (
+        <ul
+          className="mt-3 flex list-none flex-wrap gap-2 p-0"
+          aria-label="Ingest channels"
+        >
+          {channelCounts.map(({ channel, count }) => (
+            <li key={channel}>
+              <SourceChannelBadge channel={channel} count={count} />
+            </li>
+          ))}
+        </ul>
       ) : null}
 
       {sourcesLine ? (
