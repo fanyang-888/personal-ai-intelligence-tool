@@ -1,20 +1,29 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { SearchBar } from "@/components/shared/search-bar";
+import { archiveHref, parseArchiveQuery } from "@/lib/utils/archive-url";
 
 export function TopNavSearch() {
   const [q, setQ] = useState("");
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const trimmed = q.trim();
-    const url = trimmed
-      ? `/archive?q=${encodeURIComponent(trimmed)}`
-      : "/archive";
-    router.push(url);
+    if (pathname === "/archive") {
+      const { theme, sourceId } = parseArchiveQuery(searchParams);
+      router.push(archiveHref({ q: trimmed, theme, sourceId }));
+      return;
+    }
+    router.push(
+      trimmed
+        ? `/archive?q=${encodeURIComponent(trimmed)}`
+        : "/archive",
+    );
   }
 
   return (

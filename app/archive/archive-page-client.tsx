@@ -1,11 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { clusters } from "@/lib/mock-data/clusters";
 import { sources } from "@/lib/mock-data/sources";
 import { filterClusters, uniqueThemes } from "@/lib/utils/search";
 import { mapClustersToArchiveRows } from "@/lib/mappers/archive";
+import {
+  archiveHref,
+  parseArchiveQuery,
+} from "@/lib/utils/archive-url";
 import { SearchBar } from "@/components/archive/search-bar";
 import { FilterBar } from "@/components/archive/filter-bar";
 import { ResultCard } from "@/components/archive/result-card";
@@ -13,14 +17,61 @@ import { SectionTitle } from "@/components/shared/section-title";
 import { EmptyState } from "@/components/shared/empty-state";
 import { NotFoundState } from "@/components/shared/not-found-state";
 
-type ArchivePageInnerProps = {
-  initialKeyword: string;
-};
+const KEYWORD_URL_DEBOUNCE_MS = 350;
 
-function ArchivePageInner({ initialKeyword }: ArchivePageInnerProps) {
-  const [keyword, setKeyword] = useState(initialKeyword);
+export function ArchivePageClient() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [keyword, setKeyword] = useState("");
   const [theme, setTheme] = useState("");
   const [sourceId, setSourceId] = useState("");
+
+  const spKey = searchParams.toString();
+  useEffect(() => {
+    const p = parseArchiveQuery(new URLSearchParams(spKey));
+    /* eslint-disable react-hooks/set-state-in-effect -- sync controlled fields from URL (back/forward, shared links) */
+    setKeyword(p.q);
+    setTheme(p.theme);
+    setSourceId(p.sourceId);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [spKey]);
+
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const latestFiltersRef = useRef({ theme: "", sourceId: "" });
+
+  useEffect(() => {
+    latestFiltersRef.current = { theme, sourceId };
+  }, [theme, sourceId]);
+
+  useEffect(() => () => clearTimeout(debounceRef.current), []);
+
+  const scheduleKeywordUrlSync = useCallback(
+    (nextQ: string) => {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        const { theme: t, sourceId: s } = latestFiltersRef.current;
+        router.replace(archiveHref({ q: nextQ, theme: t, sourceId: s }));
+      }, KEYWORD_URL_DEBOUNCE_MS);
+    },
+    [router],
+  );
+
+  function handleKeywordChange(value: string) {
+    setKeyword(value);
+    scheduleKeywordUrlSync(value);
+  }
+
+  function handleThemeChange(t: string) {
+    clearTimeout(debounceRef.current);
+    setTheme(t);
+    router.replace(archiveHref({ q: keyword, theme: t, sourceId }));
+  }
+
+  function handleSourceChange(id: string) {
+    clearTimeout(debounceRef.current);
+    setSourceId(id);
+    router.replace(archiveHref({ q: keyword, theme, sourceId: id }));
+  }
 
   const themes = useMemo(() => uniqueThemes(clusters), []);
   const sourceOptions = useMemo(
@@ -50,7 +101,7 @@ function ArchivePageInner({ initialKeyword }: ArchivePageInnerProps) {
 
       <SearchBar
         value={keyword}
-        onChange={setKeyword}
+        onChange={handleKeywordChange}
         id="archive-search"
         placeholder="Keyword in title or summary…"
       />
@@ -59,8 +110,8 @@ function ArchivePageInner({ initialKeyword }: ArchivePageInnerProps) {
         sourceId={sourceId}
         themes={themes}
         sources={sourceOptions}
-        onThemeChange={setTheme}
-        onSourceChange={setSourceId}
+        onThemeChange={handleThemeChange}
+        onSourceChange={handleSourceChange}
       />
 
       <SectionTitle>Results</SectionTitle>
@@ -81,10 +132,4 @@ function ArchivePageInner({ initialKeyword }: ArchivePageInnerProps) {
       )}
     </div>
   );
-}
-
-export function ArchivePageClient() {
-  const searchParams = useSearchParams();
-  const qFromUrl = searchParams.get("q") ?? "";
-  return <ArchivePageInner key={qFromUrl} initialKeyword={qFromUrl} />;
 }
