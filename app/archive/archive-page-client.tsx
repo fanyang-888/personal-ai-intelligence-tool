@@ -25,6 +25,7 @@ export function ArchivePageClient() {
   const [keyword, setKeyword] = useState("");
   const [theme, setTheme] = useState("");
   const [sourceId, setSourceId] = useState("");
+  const [channel, setChannel] = useState("");
 
   const spKey = searchParams.toString();
   useEffect(() => {
@@ -33,15 +34,16 @@ export function ArchivePageClient() {
     setKeyword(p.q);
     setTheme(p.theme);
     setSourceId(p.sourceId);
+    setChannel(p.channel);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [spKey]);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const latestFiltersRef = useRef({ theme: "", sourceId: "" });
+  const latestFiltersRef = useRef({ theme: "", sourceId: "", channel: "" });
 
   useEffect(() => {
-    latestFiltersRef.current = { theme, sourceId };
-  }, [theme, sourceId]);
+    latestFiltersRef.current = { theme, sourceId, channel };
+  }, [theme, sourceId, channel]);
 
   useEffect(
     () => () => {
@@ -54,8 +56,8 @@ export function ArchivePageClient() {
     (nextQ: string) => {
       if (debounceRef.current !== null) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
-        const { theme: t, sourceId: s } = latestFiltersRef.current;
-        router.replace(archiveHref({ q: nextQ, theme: t, sourceId: s }));
+        const { theme: t, sourceId: s, channel: ch } = latestFiltersRef.current;
+        router.replace(archiveHref({ q: nextQ, theme: t, sourceId: s, channel: ch }));
       }, KEYWORD_URL_DEBOUNCE_MS);
     },
     [router],
@@ -69,13 +71,19 @@ export function ArchivePageClient() {
   function handleThemeChange(t: string) {
     if (debounceRef.current !== null) clearTimeout(debounceRef.current);
     setTheme(t);
-    router.replace(archiveHref({ q: keyword, theme: t, sourceId }));
+    router.replace(archiveHref({ q: keyword, theme: t, sourceId, channel }));
   }
 
   function handleSourceChange(id: string) {
     if (debounceRef.current !== null) clearTimeout(debounceRef.current);
     setSourceId(id);
-    router.replace(archiveHref({ q: keyword, theme, sourceId: id }));
+    router.replace(archiveHref({ q: keyword, theme, sourceId: id, channel }));
+  }
+
+  function handleChannelChange(ch: string) {
+    if (debounceRef.current !== null) clearTimeout(debounceRef.current);
+    setChannel(ch);
+    router.replace(archiveHref({ q: keyword, theme, sourceId, channel: ch }));
   }
 
   const themes = useMemo(() => uniqueThemes(clusters), []);
@@ -85,13 +93,21 @@ export function ArchivePageClient() {
   );
 
   const filtered = useMemo(
-    () => filterClusters(clusters, { keyword, theme, sourceId }),
-    [keyword, theme, sourceId],
+    () =>
+      filterClusters(clusters, {
+        keyword,
+        theme,
+        sourceId,
+        channel,
+      }),
+    [keyword, theme, sourceId, channel],
   );
 
   const rows = useMemo(() => mapClustersToArchiveRows(filtered), [filtered]);
 
-  const hasActiveFilters = Boolean(keyword.trim() || theme || sourceId);
+  const hasActiveFilters = Boolean(
+    keyword.trim() || theme || sourceId || channel,
+  );
   const showNoResults = rows.length === 0 && hasActiveFilters;
   const showAllEmpty = rows.length === 0 && !hasActiveFilters;
 
@@ -113,10 +129,12 @@ export function ArchivePageClient() {
       <FilterBar
         theme={theme}
         sourceId={sourceId}
+        channel={channel}
         themes={themes}
         sources={sourceOptions}
         onThemeChange={handleThemeChange}
         onSourceChange={handleSourceChange}
+        onChannelChange={handleChannelChange}
       />
 
       <SectionTitle>Results</SectionTitle>
@@ -126,7 +144,7 @@ export function ArchivePageClient() {
       ) : showNoResults ? (
         <NotFoundState
           title="No results"
-          message="Try a different keyword, theme, or source."
+          message="Try a different keyword, theme, source, or channel."
         />
       ) : (
         <ul className="space-y-3">

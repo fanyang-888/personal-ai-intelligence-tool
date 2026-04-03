@@ -13,7 +13,36 @@ const CHANNEL_SORT: Record<SourceChannel, number> = {
   feed: 3,
 };
 
+/** UI labels for filters and badges (single source of truth). */
+export const SOURCE_CHANNEL_LABEL: Record<SourceChannel, string> = {
+  email: "Email",
+  chat: "Chat",
+  web: "Web",
+  feed: "Feed",
+};
+
+export const SOURCE_CHANNELS_ALL: SourceChannel[] = [
+  "email",
+  "chat",
+  "web",
+  "feed",
+];
+
 export type SourceChannelCount = { channel: SourceChannel; count: number };
+
+/** When more than `maxTypes` distinct channels, show first N + "+M" overflow. */
+export function partitionChannelCountsForDisplay(
+  counts: SourceChannelCount[],
+  maxTypes = 3,
+): { visible: SourceChannelCount[]; extraTypeCount: number } {
+  if (counts.length <= maxTypes) {
+    return { visible: counts, extraTypeCount: 0 };
+  }
+  return {
+    visible: counts.slice(0, maxTypes),
+    extraTypeCount: counts.length - maxTypes,
+  };
+}
 
 /** Counts mock ingest channels per cluster (for scannable “where it came from”). */
 export function getClusterSourceChannelCounts(

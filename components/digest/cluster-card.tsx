@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { SourceChannelBadge } from "@/components/digest/source-channel-badge";
 import { StoryBadge } from "@/components/digest/story-badge";
+import { archiveChannelHref } from "@/lib/utils/archive-url";
 import {
   formatClusterSourcesLine,
   formatRelevancePercent,
   getClusterSourceChannelCounts,
+  partitionChannelCountsForDisplay,
 } from "@/lib/utils/cluster-sources";
 import type { Cluster } from "@/types/cluster";
 
@@ -19,6 +21,8 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
   const freshness = cluster.freshnessLabel ?? "—";
   const sourcesLine = formatClusterSourcesLine(cluster);
   const channelCounts = getClusterSourceChannelCounts(cluster);
+  const { visible: visibleChannels, extraTypeCount } =
+    partitionChannelCountsForDisplay(channelCounts, 3);
 
   return (
     <li className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
@@ -26,16 +30,30 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
         {cluster.title}
       </h3>
 
-      {channelCounts.length > 0 ? (
+      {visibleChannels.length > 0 ? (
         <ul
-          className="mt-2 flex list-none flex-wrap gap-2 p-0"
+          className="mt-2 flex list-none flex-wrap gap-1.5 p-0 sm:gap-2"
           aria-label="Ingest channels"
         >
-          {channelCounts.map(({ channel, count }) => (
+          {visibleChannels.map(({ channel, count }) => (
             <li key={channel}>
-              <SourceChannelBadge channel={channel} count={count} />
+              <SourceChannelBadge
+                channel={channel}
+                count={count}
+                href={archiveChannelHref(channel)}
+              />
             </li>
           ))}
+          {extraTypeCount > 0 ? (
+            <li>
+              <span
+                className="inline-flex items-center rounded-md border border-dashed border-zinc-300 bg-zinc-50 px-2 py-0.5 text-xs font-medium tabular-nums text-zinc-500"
+                title={`${extraTypeCount} more ingest channel types not shown`}
+              >
+                +{extraTypeCount}
+              </span>
+            </li>
+          ) : null}
         </ul>
       ) : null}
 

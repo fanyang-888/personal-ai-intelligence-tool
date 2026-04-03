@@ -1,11 +1,6 @@
+import Link from "next/link";
+import { SOURCE_CHANNEL_LABEL } from "@/lib/utils/cluster-sources";
 import type { SourceChannel } from "@/types/source";
-
-const CHANNEL_LABEL: Record<SourceChannel, string> = {
-  email: "Email",
-  chat: "Chat",
-  web: "Web",
-  feed: "Feed",
-};
 
 function ChannelIcon({ channel }: { channel: SourceChannel }) {
   const cls = "h-3.5 w-3.5 shrink-0 text-zinc-600";
@@ -82,24 +77,28 @@ function ChannelIcon({ channel }: { channel: SourceChannel }) {
   }
 }
 
+const badgeClass =
+  "inline-flex items-center gap-1 rounded-md border border-zinc-300 bg-white px-1.5 py-0.5 text-xs font-medium tabular-nums text-zinc-700 shadow-sm";
+
 type SourceChannelBadgeProps = {
   channel: SourceChannel;
   count: number;
+  /** When set, badge navigates to archive filtered by this channel (metadata affordance, not primary CTA). */
+  href?: string;
 };
 
 /**
  * Distinct from {@link StoryBadge}: icon + numeric count for ingest channel transparency.
  */
-export function SourceChannelBadge({ channel, count }: SourceChannelBadgeProps) {
-  const label = CHANNEL_LABEL[channel];
+export function SourceChannelBadge({
+  channel,
+  count,
+  href,
+}: SourceChannelBadgeProps) {
+  const label = SOURCE_CHANNEL_LABEL[channel];
   const aria = `${count} source${count === 1 ? "" : "s"} from ${label}`;
-  return (
-    <span
-      className="inline-flex items-center gap-1 rounded-md border border-zinc-300 bg-white px-1.5 py-0.5 text-xs font-medium tabular-nums text-zinc-700 shadow-sm"
-      title={aria}
-      role="img"
-      aria-label={aria}
-    >
+  const inner = (
+    <>
       <ChannelIcon channel={channel} />
       <span aria-hidden className="text-zinc-500">
         {label}
@@ -107,6 +106,30 @@ export function SourceChannelBadge({ channel, count }: SourceChannelBadgeProps) 
       <span aria-hidden className="min-w-[1ch] text-zinc-800">
         ×{count}
       </span>
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className={`${badgeClass} cursor-pointer transition-colors hover:border-zinc-400 hover:bg-zinc-50`}
+        aria-label={`${aria}. Open archive filtered by ${label}`}
+        title={`${aria} — filter archive`}
+      >
+        {inner}
+      </Link>
+    );
+  }
+
+  return (
+    <span
+      className={badgeClass}
+      title={aria}
+      role="img"
+      aria-label={aria}
+    >
+      {inner}
     </span>
   );
 }
