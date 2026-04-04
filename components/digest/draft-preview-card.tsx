@@ -18,8 +18,11 @@ export function DraftPreviewCard({
   variant = "default",
 }: DraftPreviewCardProps) {
   const { t } = useI18n();
-  const paragraphs = draft.body.split(/\n\n+/).filter(Boolean);
-  const previewLines = paragraphs.slice(0, 2).join("\n\n");
+  const summaryLead = draft.summaryBlock
+    .split(/\n\s*\n+/)
+    .map((p) => p.trim())
+    .filter(Boolean)[0];
+  const previewLines = [draft.hook, summaryLead].filter(Boolean).join("\n\n");
   const preview =
     previewLines.length > 320
       ? `${previewLines.slice(0, 320).trim()}…`

@@ -125,19 +125,33 @@ export const en: Translations = {
     draftStickyBadge: "Follow draft",
   },
   draft: {
-    topicLabel: "Topic:",
-    linkedClusterPrefix: "Linked story cluster:",
-    takeaways: "Takeaways",
-    careerInterpretation: "Career-oriented interpretation",
+    draftOfDayPageTitle: "Draft of the Day",
+    draftForStoryPageTitle: (storyTitle) => `Draft for ${storyTitle}`,
+    workingTitleLabel: "Working title",
+    linkedInDraftType: "LinkedIn-style draft",
+    generatedPrefix: "Generated",
+    relatedStorySection: "Related story",
+    viewSourceStory: "View source story",
+    backToStory: "Back to story",
+    clusterNotInCatalog:
+      "This story id is not in the local mock catalog. You can still open the cluster route or return to the digest.",
+    sectionHook: "Hook",
+    sectionSummary: "Concise update",
+    takeawaysIntro: "Three takeaways",
+    sectionCareerAngle: "Career angle",
+    sectionWhyItMatters: "Why this matters",
+    sectionClosing: "Closing",
+    copyDraft: "Copy draft",
+    copied: "Copied",
+    regenerate: "Regenerate draft",
+    formatVariantHint: (variant, total) =>
+      `Variant ${variant} of ${total} (local mock)`,
+    regenerateNoVariants:
+      "No alternate mock variant—content unchanged (local preview only).",
+    copyUnavailable: "Copy unavailable in this browser context.",
     notesTitle: "Notes",
     notesBody:
       "Editing in-app is out of scope for this sprint. Copy the draft and refine in your notes app or doc, then save pointers back in your own workflow.",
-    backToCluster: "Back to story cluster",
-    copy: "Copy",
-    copied: "Copied",
-    regenerate: "Regenerate",
-    formatVariantHint: (variant, total) =>
-      `Variant ${variant} of ${total} (local mock)`,
   },
   notFound: {
     clusterTitle: "Story cluster not found",

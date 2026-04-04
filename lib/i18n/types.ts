@@ -115,17 +115,29 @@ export type Translations = {
     draftStickyBadge: string;
   };
   draft: {
-    topicLabel: string;
-    linkedClusterPrefix: string;
-    takeaways: string;
-    careerInterpretation: string;
-    notesTitle: string;
-    notesBody: string;
-    backToCluster: string;
-    copy: string;
+    draftOfDayPageTitle: string;
+    draftForStoryPageTitle: (storyTitle: string) => string;
+    workingTitleLabel: string;
+    linkedInDraftType: string;
+    generatedPrefix: string;
+    relatedStorySection: string;
+    viewSourceStory: string;
+    backToStory: string;
+    clusterNotInCatalog: string;
+    sectionHook: string;
+    sectionSummary: string;
+    takeawaysIntro: string;
+    sectionCareerAngle: string;
+    sectionWhyItMatters: string;
+    sectionClosing: string;
+    copyDraft: string;
     copied: string;
     regenerate: string;
     formatVariantHint: (variant: number, total: number) => string;
+    regenerateNoVariants: string;
+    copyUnavailable: string;
+    notesTitle: string;
+    notesBody: string;
   };
   notFound: {
     clusterTitle: string;
