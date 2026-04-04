@@ -1,5 +1,7 @@
+"use client";
+
 import Link from "next/link";
-import { SOURCE_CHANNEL_LABEL } from "@/lib/utils/cluster-sources";
+import { useI18n } from "@/lib/i18n";
 import type { SourceChannel } from "@/types/source";
 
 function ChannelIcon({ channel }: { channel: SourceChannel }) {
@@ -95,8 +97,9 @@ export function SourceChannelBadge({
   count,
   href,
 }: SourceChannelBadgeProps) {
-  const label = SOURCE_CHANNEL_LABEL[channel];
-  const aria = `${count} source${count === 1 ? "" : "s"} from ${label}`;
+  const { t } = useI18n();
+  const label = t.channels[channel];
+  const aria = t.digest.formatChannelBadgeAria(count, label);
   const inner = (
     <>
       <ChannelIcon channel={channel} />
@@ -114,8 +117,8 @@ export function SourceChannelBadge({
       <Link
         href={href}
         className={`${badgeClass} cursor-pointer transition-colors hover:border-zinc-400 hover:bg-zinc-50`}
-        aria-label={`${aria}. Open archive filtered by ${label}`}
-        title={`${aria} — filter archive`}
+        aria-label={t.digest.formatChannelArchiveLinkAria(count, label)}
+        title={t.digest.formatChannelArchiveLinkTitle(count, label)}
       >
         {inner}
       </Link>

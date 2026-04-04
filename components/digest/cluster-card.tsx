@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { SourceChannelBadge } from "@/components/digest/source-channel-badge";
 import { StoryBadge } from "@/components/digest/story-badge";
+import { useI18n } from "@/lib/i18n";
 import { archiveChannelHref } from "@/lib/utils/archive-url";
 import {
   formatClusterSourcesLine,
@@ -15,6 +18,7 @@ type ClusterCardProps = {
 };
 
 export function ClusterCard({ cluster }: ClusterCardProps) {
+  const { t } = useI18n();
   const tags = cluster.tags?.length ? cluster.tags : [cluster.theme];
   const sourceCount = cluster.sourceIds.length;
   const relevance = formatRelevancePercent(cluster.clusterScore);
@@ -33,7 +37,7 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
       {visibleChannels.length > 0 ? (
         <ul
           className="mt-2 flex list-none flex-wrap gap-1.5 p-0 sm:gap-2"
-          aria-label="Ingest channels"
+          aria-label={t.digest.ingestChannelsAria}
         >
           {visibleChannels.map(({ channel, count }) => (
             <li key={channel}>
@@ -48,7 +52,7 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
             <li>
               <span
                 className="inline-flex items-center rounded-md border border-dashed border-zinc-300 bg-zinc-50 px-2 py-0.5 text-xs font-medium tabular-nums text-zinc-500"
-                title={`${extraTypeCount} more ingest channel types not shown`}
+                title={t.digest.formatMoreChannelTypesHidden(extraTypeCount)}
               >
                 +{extraTypeCount}
               </span>
@@ -61,32 +65,32 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
 
       {sourcesLine ? (
         <p className="mt-2 text-xs text-zinc-500">
-          <span className="font-medium text-zinc-600">Sources: </span>
+          <span className="font-medium text-zinc-600">
+            {t.digest.sourcesPrefix}{" "}
+          </span>
           {sourcesLine}
         </p>
       ) : null}
 
       <div className="mt-3 flex flex-wrap gap-1.5">
-        {tags.map((t) => (
-          <StoryBadge key={t} variant="tag">
-            {t}
+        {tags.map((tag) => (
+          <StoryBadge key={tag} variant="tag">
+            {tag}
           </StoryBadge>
         ))}
       </div>
 
       <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500">
         <div>
-          <dt className="sr-only">Sources</dt>
-          <dd>
-            {sourceCount} source{sourceCount === 1 ? "" : "s"}
-          </dd>
+          <dt className="sr-only">{t.digest.srOnlySources}</dt>
+          <dd>{t.formatSourceCount(sourceCount)}</dd>
         </div>
         <div>
-          <dt className="sr-only">Freshness</dt>
+          <dt className="sr-only">{t.digest.srOnlyFreshness}</dt>
           <dd>{freshness}</dd>
         </div>
         <div>
-          <dt className="sr-only">Relevance</dt>
+          <dt className="sr-only">{t.digest.srOnlyRelevance}</dt>
           <dd>{relevance}</dd>
         </div>
       </dl>
@@ -96,7 +100,7 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
           href={`/cluster/${cluster.id}`}
           className="text-sm font-semibold text-emerald-800 underline decoration-emerald-600/40 underline-offset-4 hover:text-emerald-950"
         >
-          View Story
+          {t.digest.viewStory}
         </Link>
       </div>
     </li>

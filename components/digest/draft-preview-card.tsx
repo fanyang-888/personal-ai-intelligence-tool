@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { SectionTitle } from "@/components/shared/section-title";
+import { useI18n } from "@/lib/i18n";
 import type { Draft } from "@/types/draft";
 
 type DraftPreviewCardProps = {
@@ -14,6 +17,7 @@ export function DraftPreviewCard({
   relatedStoryTitle,
   variant = "default",
 }: DraftPreviewCardProps) {
+  const { t } = useI18n();
   const paragraphs = draft.body.split(/\n\n+/).filter(Boolean);
   const previewLines = paragraphs.slice(0, 2).join("\n\n");
   const preview =
@@ -32,10 +36,12 @@ export function DraftPreviewCard({
       }`}
       aria-labelledby="draft-of-day-heading"
     >
-      <SectionTitle id="draft-of-day-heading">Draft of the Day</SectionTitle>
+      <SectionTitle id="draft-of-day-heading">
+        {t.draftPreview.sectionTitle}
+      </SectionTitle>
       {relatedStoryTitle ? (
         <p className="mt-1 text-sm text-zinc-500">
-          Related story:{" "}
+          {t.draftPreview.relatedStory}{" "}
           <span className="font-medium text-foreground">{relatedStoryTitle}</span>
         </p>
       ) : null}
@@ -55,7 +61,7 @@ export function DraftPreviewCard({
         href={`/draft/${draft.id}`}
         className="mt-5 inline-block text-sm font-semibold text-emerald-800 underline decoration-emerald-600/40 underline-offset-4 hover:text-emerald-950"
       >
-        Open Full Draft
+        {t.draftPreview.openFullDraft}
       </Link>
     </section>
   );

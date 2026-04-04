@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { SourceChannelBadge } from "@/components/digest/source-channel-badge";
 import { StoryBadge } from "@/components/digest/story-badge";
+import { useI18n } from "@/lib/i18n";
 import { archiveChannelHref } from "@/lib/utils/archive-url";
 import {
   formatClusterSourcesLine,
@@ -19,9 +22,10 @@ export function FeaturedStoryCard({
   cluster,
   className = "",
 }: FeaturedStoryCardProps) {
+  const { t } = useI18n();
   const sourceCount = cluster.sourceIds.length;
   const relevance = formatRelevancePercent(cluster.clusterScore);
-  const status = cluster.storyStatus ?? "Featured";
+  const status = cluster.storyStatus ?? t.digest.featuredFallback;
   const sourcesLine = formatClusterSourcesLine(cluster);
   const channelCounts = getClusterSourceChannelCounts(cluster);
   const { visible: visibleChannels, extraTypeCount } =
@@ -45,7 +49,7 @@ export function FeaturedStoryCard({
       {visibleChannels.length > 0 ? (
         <ul
           className="mt-3 flex list-none flex-wrap gap-1.5 p-0 sm:gap-2"
-          aria-label="Ingest channels"
+          aria-label={t.digest.ingestChannelsAria}
         >
           {visibleChannels.map(({ channel, count }) => (
             <li key={channel}>
@@ -60,7 +64,7 @@ export function FeaturedStoryCard({
             <li>
               <span
                 className="inline-flex items-center rounded-md border border-dashed border-zinc-300 bg-zinc-50 px-2 py-0.5 text-xs font-medium tabular-nums text-zinc-500"
-                title={`${extraTypeCount} more ingest channel types not shown`}
+                title={t.digest.formatMoreChannelTypesHidden(extraTypeCount)}
               >
                 +{extraTypeCount}
               </span>
@@ -71,7 +75,9 @@ export function FeaturedStoryCard({
 
       {sourcesLine ? (
         <p className="mt-3 text-xs text-zinc-500">
-          <span className="font-medium text-zinc-600">Sources: </span>
+          <span className="font-medium text-zinc-600">
+            {t.digest.sourcesPrefix}{" "}
+          </span>
           {sourcesLine}
         </p>
       ) : null}
@@ -79,7 +85,7 @@ export function FeaturedStoryCard({
       <div className="mt-4 flex flex-wrap gap-2">
         <StoryBadge variant="status">{status}</StoryBadge>
         <StoryBadge variant="metric">
-          {sourceCount} source{sourceCount === 1 ? "" : "s"}
+          {t.formatSourceCount(sourceCount)}
         </StoryBadge>
         <StoryBadge variant="metric">{relevance}</StoryBadge>
       </div>
@@ -87,7 +93,7 @@ export function FeaturedStoryCard({
       <p className="mt-5 text-base leading-relaxed text-foreground">{cluster.summary}</p>
 
       <p className="mt-4 text-sm font-medium text-zinc-600">
-        <span className="text-zinc-500">Why it matters: </span>
+        <span className="text-zinc-500">{t.digest.whyItMattersPrefix} </span>
         {cluster.whyItMatters}
       </p>
 
@@ -96,13 +102,13 @@ export function FeaturedStoryCard({
           href={`/cluster/${cluster.id}`}
           className="text-sm font-semibold text-emerald-800 underline decoration-emerald-600/40 underline-offset-4 hover:text-emerald-950"
         >
-          View Story
+          {t.digest.viewStory}
         </Link>
         <Link
           href={`/draft/${cluster.draftId}`}
           className="text-sm font-semibold text-emerald-800 underline decoration-emerald-600/40 underline-offset-4 hover:text-emerald-950"
         >
-          Open Draft
+          {t.digest.openDraft}
         </Link>
       </div>
     </section>
