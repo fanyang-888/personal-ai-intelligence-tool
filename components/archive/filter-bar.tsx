@@ -1,9 +1,7 @@
 "use client";
 
-import {
-  SOURCE_CHANNEL_LABEL,
-  SOURCE_CHANNELS_ALL,
-} from "@/lib/utils/cluster-sources";
+import { useI18n } from "@/lib/i18n";
+import { SOURCE_CHANNELS_ALL } from "@/lib/utils/cluster-sources";
 
 type FilterBarProps = {
   theme: string;
@@ -26,11 +24,13 @@ export function FilterBar({
   onSourceChange,
   onChannelChange,
 }: FilterBarProps) {
+  const { t } = useI18n();
+
   return (
     <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end">
       <div className="min-w-0 flex-1 lg:min-w-[10rem]">
         <label htmlFor="filter-theme" className="mb-1 block text-sm font-medium">
-          Theme
+          {t.archive.filterTheme}
         </label>
         <select
           id="filter-theme"
@@ -38,7 +38,7 @@ export function FilterBar({
           onChange={(e) => onThemeChange(e.target.value)}
           className="w-full rounded border border-zinc-300 px-3 py-2 text-sm"
         >
-          <option value="">All themes</option>
+          <option value="">{t.archive.allThemes}</option>
           {themes.map((t) => (
             <option key={t} value={t}>
               {t}
@@ -48,7 +48,7 @@ export function FilterBar({
       </div>
       <div className="min-w-0 flex-1 lg:min-w-[10rem]">
         <label htmlFor="filter-source" className="mb-1 block text-sm font-medium">
-          Source
+          {t.archive.filterSource}
         </label>
         <select
           id="filter-source"
@@ -56,7 +56,7 @@ export function FilterBar({
           onChange={(e) => onSourceChange(e.target.value)}
           className="w-full rounded border border-zinc-300 px-3 py-2 text-sm"
         >
-          <option value="">All sources</option>
+          <option value="">{t.archive.allSources}</option>
           {sources.map((s) => (
             <option key={s.id} value={s.id}>
               {s.name}
@@ -66,7 +66,7 @@ export function FilterBar({
       </div>
       <div className="min-w-0 flex-1 lg:min-w-[10rem]">
         <label htmlFor="filter-channel" className="mb-1 block text-sm font-medium">
-          Channel
+          {t.archive.filterChannel}
         </label>
         <select
           id="filter-channel"
@@ -74,10 +74,10 @@ export function FilterBar({
           onChange={(e) => onChannelChange(e.target.value)}
           className="w-full rounded border border-zinc-300 px-3 py-2 text-sm"
         >
-          <option value="">All channels</option>
+          <option value="">{t.archive.allChannels}</option>
           {SOURCE_CHANNELS_ALL.map((ch) => (
             <option key={ch} value={ch}>
-              {SOURCE_CHANNEL_LABEL[ch]}
+              {t.channels[ch]}
             </option>
           ))}
         </select>

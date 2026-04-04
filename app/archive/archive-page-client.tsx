@@ -10,6 +10,7 @@ import {
   archiveHref,
   parseArchiveQuery,
 } from "@/lib/utils/archive-url";
+import { useI18n } from "@/lib/i18n";
 import { SearchBar } from "@/components/archive/search-bar";
 import { FilterBar } from "@/components/archive/filter-bar";
 import { ResultCard } from "@/components/archive/result-card";
@@ -20,6 +21,7 @@ import { NotFoundState } from "@/components/shared/not-found-state";
 const KEYWORD_URL_DEBOUNCE_MS = 350;
 
 export function ArchivePageClient() {
+  const { t } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [keyword, setKeyword] = useState("");
@@ -114,17 +116,18 @@ export function ArchivePageClient() {
   return (
     <div>
       <header className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Archive</h1>
-        <p className="mt-2 text-sm text-zinc-600">
-          Search and filter mock clusters — memory / retrieval layer (local only).
-        </p>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          {t.archive.title}
+        </h1>
+        <p className="mt-2 text-sm text-zinc-600">{t.archive.description}</p>
       </header>
 
       <SearchBar
         value={keyword}
         onChange={handleKeywordChange}
         id="archive-search"
-        placeholder="Keyword in title or summary…"
+        label={t.archive.searchLabel}
+        placeholder={t.archive.searchPlaceholder}
       />
       <FilterBar
         theme={theme}
@@ -137,14 +140,14 @@ export function ArchivePageClient() {
         onChannelChange={handleChannelChange}
       />
 
-      <SectionTitle>Results</SectionTitle>
+      <SectionTitle>{t.archive.results}</SectionTitle>
 
       {showAllEmpty ? (
-        <EmptyState title="No clusters in catalog" />
+        <EmptyState title={t.archive.emptyCatalog} />
       ) : showNoResults ? (
         <NotFoundState
-          title="No results"
-          message="Try a different keyword, theme, source, or channel."
+          title={t.archive.noResultsTitle}
+          message={t.archive.noResultsMessage}
         />
       ) : (
         <ul className="space-y-3">
