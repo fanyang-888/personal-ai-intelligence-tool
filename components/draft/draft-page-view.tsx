@@ -87,6 +87,7 @@ export function DraftPageView({
 
       <DraftActions
         fullText={fullText}
+        characterCount={fullText.length}
         clusterId={clusterId}
         variantIndex={variantIndex}
         variantTotal={slices.length}

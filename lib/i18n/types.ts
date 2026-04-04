@@ -139,6 +139,8 @@ export type Translations = {
     formatVariantHint: (variant: number, total: number) => string;
     regenerateNoVariants: string;
     copyUnavailable: string;
+    formatDraftCharacterCount: (current: number, limit: number) => string;
+    characterCountOverSoftLimit: string;
     notesTitle: string;
     notesBody: string;
   };

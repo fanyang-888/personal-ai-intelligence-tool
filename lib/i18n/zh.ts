@@ -142,6 +142,9 @@ export const zh: Translations = {
       `版本 ${variant} / ${total}（本地 mock）`,
     regenerateNoVariants: "暂无其他 mock 版本—内容未变（仅本地预览）。",
     copyUnavailable: "当前环境无法使用剪贴板。",
+    formatDraftCharacterCount: (current, limit) =>
+      `${current.toLocaleString()} / ${limit.toLocaleString()} 字符`,
+    characterCountOverSoftLimit: "已超过多数平台单帖较舒适长度，可考虑精简。",
     notesTitle: "说明",
     notesBody:
       "本迭代不支持应用内编辑。请复制草稿后在笔记或文档中润色，再按你的工作流保存引用。",

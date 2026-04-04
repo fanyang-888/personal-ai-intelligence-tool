@@ -152,6 +152,10 @@ export const en: Translations = {
     regenerateNoVariants:
       "No alternate mock variant—content unchanged (local preview only).",
     copyUnavailable: "Copy unavailable in this browser context.",
+    formatDraftCharacterCount: (current, limit) =>
+      `${current.toLocaleString()} / ${limit.toLocaleString()} characters`,
+    characterCountOverSoftLimit:
+      "Above a comfortable single-post length for many networks—consider trimming.",
     notesTitle: "Notes",
     notesBody:
       "Editing in-app is out of scope for this sprint. Copy the draft and refine in your notes app or doc, then save pointers back in your own workflow.",

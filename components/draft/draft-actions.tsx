@@ -4,8 +4,11 @@ import Link from "next/link";
 import { useCallback, useState } from "react";
 import { useI18n } from "@/lib/i18n";
 
+const DRAFT_CHAR_SOFT_LIMIT = 3000;
+
 type DraftActionsProps = {
   fullText: string;
+  characterCount: number;
   clusterId: string;
   variantIndex: number;
   variantTotal: number;
@@ -15,6 +18,7 @@ type DraftActionsProps = {
 
 export function DraftActions({
   fullText,
+  characterCount,
   clusterId,
   variantIndex,
   variantTotal,
@@ -39,6 +43,7 @@ export function DraftActions({
   }, [fullText]);
 
   const variant = (variantIndex % variantTotal) + 1;
+  const overLimit = characterCount > DRAFT_CHAR_SOFT_LIMIT;
 
   return (
     <div className="mt-8 border-t border-zinc-100 pt-6">
@@ -63,6 +68,18 @@ export function DraftActions({
         >
           {t.draft.backToStory}
         </Link>
+        <span
+          className={`text-sm tabular-nums ${overLimit ? "font-medium text-red-600" : "text-zinc-500"}`}
+          title={
+            overLimit ? t.draft.characterCountOverSoftLimit : undefined
+          }
+          role="status"
+        >
+          {t.draft.formatDraftCharacterCount(
+            characterCount,
+            DRAFT_CHAR_SOFT_LIMIT,
+          )}
+        </span>
       </div>
       {variantTotal > 1 ? (
         <p className="mt-2 text-xs text-zinc-500">
