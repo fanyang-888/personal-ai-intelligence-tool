@@ -19,6 +19,7 @@ type DraftPageViewProps = {
   clusterTitle: string;
   clusterExists: boolean;
   clusterSummaryExcerpt: string;
+  clusterTags: string[];
 };
 
 export function DraftPageView({
@@ -28,6 +29,7 @@ export function DraftPageView({
   clusterTitle,
   clusterExists,
   clusterSummaryExcerpt,
+  clusterTags,
 }: DraftPageViewProps) {
   const { t } = useI18n();
   const [variantIndex, setVariantIndex] = useState(0);
@@ -63,6 +65,7 @@ export function DraftPageView({
         clusterTitle={clusterTitle}
         clusterSummaryExcerpt={clusterSummaryExcerpt}
         clusterExists={clusterExists}
+        clusterTags={clusterTags}
       />
 
       <LinkedInDraftBody content={activeContent} />

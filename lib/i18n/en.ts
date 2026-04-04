@@ -135,6 +135,8 @@ export const en: Translations = {
     backToStory: "Back to story",
     clusterNotInCatalog:
       "This story id is not in the local mock catalog. You can still open the cluster route or return to the digest.",
+    expandRelatedStory: "Show story summary",
+    collapseRelatedStory: "Hide story summary",
     sectionHook: "Hook",
     sectionSummary: "Concise update",
     takeawaysIntro: "Three takeaways",

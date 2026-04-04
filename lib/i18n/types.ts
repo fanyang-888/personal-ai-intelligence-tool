@@ -124,6 +124,8 @@ export type Translations = {
     viewSourceStory: string;
     backToStory: string;
     clusterNotInCatalog: string;
+    expandRelatedStory: string;
+    collapseRelatedStory: string;
     sectionHook: string;
     sectionSummary: string;
     takeawaysIntro: string;

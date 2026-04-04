@@ -126,6 +126,8 @@ export const zh: Translations = {
     backToStory: "返回故事",
     clusterNotInCatalog:
       "本地 mock 目录中没有该故事 id。你仍可打开集群路由或返回每日摘要。",
+    expandRelatedStory: "展开故事摘要",
+    collapseRelatedStory: "收起故事摘要",
     sectionHook: "开头钩子",
     sectionSummary: "简明更新",
     takeawaysIntro: "三条要点",

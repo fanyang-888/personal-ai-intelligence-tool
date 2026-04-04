@@ -36,6 +36,7 @@ export default async function DraftPage({ params }: DraftPageProps) {
   const featured = getFeaturedCluster();
   const isDraftOfDay = featured?.draftId === draft.id;
   const clusterTitle = cluster?.title ?? draft.clusterId;
+  const clusterTags = cluster?.tags ?? cluster?.themes ?? [];
 
   return (
     <DraftPageView
@@ -45,6 +46,7 @@ export default async function DraftPage({ params }: DraftPageProps) {
       clusterTitle={clusterTitle}
       clusterExists={!!cluster}
       clusterSummaryExcerpt={excerptClusterSummary(cluster)}
+      clusterTags={clusterTags}
     />
   );
 }
