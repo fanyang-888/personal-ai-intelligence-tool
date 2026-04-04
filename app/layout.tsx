@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { AppProviders } from "@/components/app-providers";
 import { TopNav } from "@/components/layout/top-nav";
 import { PageShell } from "@/components/layout/page-shell";
 import "./globals.css";
@@ -30,8 +31,10 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col font-sans">
-        <TopNav />
-        <PageShell>{children}</PageShell>
+        <AppProviders>
+          <TopNav />
+          <PageShell>{children}</PageShell>
+        </AppProviders>
       </body>
     </html>
   );

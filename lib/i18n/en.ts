@@ -1,0 +1,121 @@
+import type { Translations } from "./types";
+
+export const en: Translations = {
+  nav: {
+    dailyDigest: "Daily Digest",
+    archive: "Archive",
+    draftOfDay: "Draft of the Day",
+    searchPlaceholder: "Search archive…",
+    searchAria: "Site search",
+    mainAria: "Main",
+  },
+  home: {
+    title: "Daily AI Digest",
+    subtitle:
+      "Top ranked AI updates with cross-source synthesis and practical context",
+    emptyFeaturedTitle: "No featured story",
+    emptyFeaturedDesc: "Add a featured cluster in mock data.",
+    emptyDraftTitle: "No draft of the day",
+    emptyDraftDesc: "Mock digest has no draft entry.",
+    topClusters: "Top Story Clusters",
+    viewAllInsights: "View all daily insights",
+    emptyClustersTitle: "Waiting for more data",
+    emptyClustersDesc:
+      "We need a bit more signal to synthesize today's clusters. Check back soon or browse the archive.",
+    goToArchive: "Go to Archive",
+  },
+  formatSourceCount: (n) => (n === 1 ? `${n} source` : `${n} sources`),
+  digest: {
+    ingestChannelsAria: "Ingest channels",
+    sourcesPrefix: "Sources:",
+    whyItMattersPrefix: "Why it matters:",
+    viewStory: "View Story",
+    openDraft: "Open Draft",
+    featuredFallback: "Featured",
+    formatMoreChannelTypesHidden: (n) =>
+      `${n} more ingest channel types not shown`,
+    srOnlySources: "Sources",
+    srOnlyFreshness: "Freshness",
+    srOnlyRelevance: "Relevance",
+    formatChannelBadgeAria: (c, label) =>
+      `${c === 1 ? "1 source" : `${c} sources`} from ${label}`,
+    formatChannelArchiveLinkAria: (c, label) =>
+      `${c === 1 ? "1 source" : `${c} sources`} from ${label}. Open archive filtered by ${label}`,
+    formatChannelArchiveLinkTitle: (c, label) =>
+      `${c === 1 ? "1 source" : `${c} sources`} from ${label} — filter archive`,
+  },
+  draftPreview: {
+    sectionTitle: "Draft of the Day",
+    relatedStory: "Related story:",
+    openFullDraft: "Open Full Draft",
+  },
+  discover: {
+    title: "Discover in the Archive",
+    bodyBeforeEmphasis:
+      "Browse the full catalog of synthesized clusters and sources. Use the ",
+    bodyEmphasis: "search field in the header",
+    bodyAfterEmphasis: " to find companies, models, themes, or keywords.",
+    cta: "Go to Archive",
+  },
+  archive: {
+    title: "Archive",
+    description:
+      "Search and filter mock clusters — memory / retrieval layer (local only).",
+    searchPlaceholder: "Keyword in title or summary…",
+    searchLabel: "Search",
+    results: "Results",
+    emptyCatalog: "No clusters in catalog",
+    noResultsTitle: "No results",
+    noResultsMessage:
+      "Try a different keyword, theme, source, or channel.",
+    filterTheme: "Theme",
+    filterSource: "Source",
+    filterChannel: "Channel",
+    allThemes: "All themes",
+    allSources: "All sources",
+    allChannels: "All channels",
+    loading: "Loading archive…",
+  },
+  channels: {
+    email: "Email",
+    chat: "Chat",
+    web: "Web",
+    feed: "Feed",
+  },
+  cluster: {
+    summary: "Summary",
+    takeaways: "Takeaways",
+    whyItMatters: "Why it matters",
+    whyItMattersForYou: "Why it matters for you",
+    audiencePm: "PMs",
+    audienceDeveloper: "Developers",
+    audienceStudent: "Students & job seekers",
+    coveredSources: "Covered sources",
+    relatedStories: "Related stories",
+    draftSectionTitle: "Draft",
+    draftSectionLead:
+      "Open the linked draft for a shareable brief and career-oriented notes.",
+    openDraft: "Open draft",
+  },
+  draft: {
+    topicLabel: "Topic:",
+    linkedClusterPrefix: "Linked story cluster:",
+    takeaways: "Takeaways",
+    careerInterpretation: "Career-oriented interpretation",
+    notesTitle: "Notes",
+    notesBody:
+      "Editing in-app is out of scope for this sprint. Copy the draft and refine in your notes app or doc, then save pointers back in your own workflow.",
+    backToCluster: "Back to story cluster",
+    copy: "Copy",
+    copied: "Copied",
+    regenerate: "Regenerate",
+    formatVariantHint: (variant, total) =>
+      `Variant ${variant} of ${total} (local mock)`,
+  },
+  notFound: {
+    clusterTitle: "Story cluster not found",
+    clusterMessage: "That cluster id is not in the local mock catalog.",
+    draftTitle: "Draft not found",
+    draftMessage: "That draft id is not in the local mock catalog.",
+  },
+};
