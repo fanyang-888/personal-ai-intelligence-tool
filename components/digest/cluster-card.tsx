@@ -20,7 +20,8 @@ type ClusterCardProps = {
 export function ClusterCard({ cluster }: ClusterCardProps) {
   const { t } = useI18n();
   const tags = cluster.tags?.length ? cluster.tags : [cluster.theme];
-  const sourceCount = cluster.sourceIds.length;
+  const sourceCount = cluster.articleIds.length;
+  const status = cluster.storyStatus ?? t.digest.featuredFallback;
   const relevance = formatRelevancePercent(cluster.clusterScore);
   const freshness = cluster.freshnessLabel ?? "—";
   const sourcesLine = formatClusterSourcesLine(cluster);
@@ -73,6 +74,7 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
       ) : null}
 
       <div className="mt-3 flex flex-wrap gap-1.5">
+        <StoryBadge variant="status">{status}</StoryBadge>
         {tags.map((tag) => (
           <StoryBadge key={tag} variant="tag">
             {tag}

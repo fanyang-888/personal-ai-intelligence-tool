@@ -23,7 +23,7 @@ export function FeaturedStoryCard({
   className = "",
 }: FeaturedStoryCardProps) {
   const { t } = useI18n();
-  const sourceCount = cluster.sourceIds.length;
+  const sourceCount = cluster.articleIds.length;
   const relevance = formatRelevancePercent(cluster.clusterScore);
   const status = cluster.storyStatus ?? t.digest.featuredFallback;
   const sourcesLine = formatClusterSourcesLine(cluster);
@@ -97,19 +97,23 @@ export function FeaturedStoryCard({
         {cluster.whyItMatters}
       </p>
 
-      <div className="mt-6 flex flex-wrap gap-4">
+      <div className="mt-6 flex flex-wrap items-center gap-4">
         <Link
           href={`/cluster/${cluster.id}`}
           className="text-sm font-semibold text-emerald-800 underline decoration-emerald-600/40 underline-offset-4 hover:text-emerald-950"
         >
           {t.digest.viewStory}
         </Link>
-        <Link
-          href={`/draft/${cluster.draftId}`}
-          className="text-sm font-semibold text-emerald-800 underline decoration-emerald-600/40 underline-offset-4 hover:text-emerald-950"
-        >
-          {t.digest.openDraft}
-        </Link>
+        {cluster.draftId ? (
+          <Link
+            href={`/draft/${cluster.draftId}`}
+            className="text-sm font-semibold text-emerald-800 underline decoration-emerald-600/40 underline-offset-4 hover:text-emerald-950"
+          >
+            {t.digest.openDraft}
+          </Link>
+        ) : (
+          <span className="text-sm text-zinc-500">{t.digest.noDraftLinked}</span>
+        )}
       </div>
     </section>
   );
