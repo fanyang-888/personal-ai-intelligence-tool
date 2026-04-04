@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { clusters, getClusterById } from "@/lib/mock-data/clusters";
-import { getSourceById } from "@/lib/mock-data/sources";
+import { getArticleById } from "@/lib/mock-data/articles";
 import { ClusterPageView } from "@/components/cluster/cluster-page-view";
 
 type ClusterPageProps = {
@@ -18,15 +18,18 @@ export default async function ClusterPage({ params }: ClusterPageProps) {
   const cluster = getClusterById(id);
   if (!cluster) notFound();
 
-  const sources = cluster.sourceIds
-    .map((sid) => getSourceById(sid))
-    .filter(Boolean) as NonNullable<ReturnType<typeof getSourceById>>[];
+  const articles = cluster.articleIds
+    .map((aid) => getArticleById(aid))
+    .filter(Boolean) as NonNullable<ReturnType<typeof getArticleById>>[];
 
-  const related = cluster.relatedClusterIds
-    .map((rid) => getClusterById(rid))
-    .filter(Boolean) as NonNullable<ReturnType<typeof getClusterById>>[];
+  const related =
+    cluster.relatedClusterIds.length > 0
+      ? (cluster.relatedClusterIds
+          .map((rid) => getClusterById(rid))
+          .filter(Boolean) as NonNullable<ReturnType<typeof getClusterById>>[])
+      : [];
 
   return (
-    <ClusterPageView cluster={cluster} sources={sources} related={related} />
+    <ClusterPageView cluster={cluster} articles={articles} related={related} />
   );
 }

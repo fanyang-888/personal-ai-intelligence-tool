@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
 import { ClusterHeader } from "@/components/cluster/cluster-header";
 import { TakeawayList } from "@/components/cluster/takeaway-list";
@@ -8,22 +7,27 @@ import { WhyItMattersBlock } from "@/components/cluster/why-it-matters-block";
 import { AudienceBlocksSection } from "@/components/cluster/audience-blocks";
 import { CoveredSourcesList } from "@/components/cluster/covered-sources-list";
 import { RelatedStories } from "@/components/cluster/related-stories";
+import { DraftAction } from "@/components/cluster/draft-action";
 import { SectionTitle } from "@/components/shared/section-title";
 import type { Cluster } from "@/types/cluster";
-import type { Source } from "@/types/source";
+import type { Article } from "@/types/article";
 
 type ClusterPageViewProps = {
   cluster: Cluster;
-  sources: Source[];
+  articles: Article[];
   related: Cluster[];
 };
 
 export function ClusterPageView({
   cluster,
-  sources,
+  articles,
   related,
 }: ClusterPageViewProps) {
   const { t } = useI18n();
+  const summaryParagraphs = cluster.summary
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean);
 
   return (
     <article>
@@ -38,25 +42,19 @@ export function ClusterPageView({
 
       <section className="mb-6">
         <SectionTitle>{t.cluster.summary}</SectionTitle>
-        <p className="text-sm leading-relaxed text-foreground">{cluster.summary}</p>
+        <div className="space-y-3 text-sm leading-relaxed text-foreground">
+          {summaryParagraphs.map((para, i) => (
+            <p key={i}>{para}</p>
+          ))}
+        </div>
       </section>
 
       <TakeawayList items={cluster.takeaways} />
       <WhyItMattersBlock text={cluster.whyItMatters} />
       <AudienceBlocksSection audience={cluster.audience} />
-      <CoveredSourcesList sources={sources} />
+      <CoveredSourcesList articles={articles} />
       <RelatedStories clusters={related} />
-
-      <section className="rounded border border-zinc-200 p-4">
-        <SectionTitle>{t.cluster.draftSectionTitle}</SectionTitle>
-        <p className="mb-3 text-sm text-zinc-600">{t.cluster.draftSectionLead}</p>
-        <Link
-          href={`/draft/${cluster.draftId}`}
-          className="text-sm font-medium underline underline-offset-4"
-        >
-          {t.cluster.openDraft}
-        </Link>
-      </section>
+      <DraftAction draftId={cluster.draftId} />
     </article>
   );
 }

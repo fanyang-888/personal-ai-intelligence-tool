@@ -16,3 +16,11 @@ export function formatDigestDate(
     day: "numeric",
   }).format(date);
 }
+
+export function formatShortDateTime(iso: string, lang: Lang = "en"): string {
+  const date = new Date(iso);
+  return new Intl.DateTimeFormat(localeForLang[lang], {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+}
