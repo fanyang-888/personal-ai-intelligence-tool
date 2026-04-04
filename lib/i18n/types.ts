@@ -102,6 +102,14 @@ export type Translations = {
     emptyCoveredSources: string;
     credibilityPrefix: string;
     noDraftLinked: string;
+    draftProminentLead: string;
+    draftCompactLead: string;
+    breadcrumbAria: string;
+    backToDigest: string;
+    nextStory: string;
+    formatReadTimeMinutes: (minutes: number) => string;
+    formatSourceDiversityBroad: (outlets: number, articles: number) => string;
+    formatSourceDiversityNarrow: (outlets: number, articles: number) => string;
   };
   draft: {
     topicLabel: string;

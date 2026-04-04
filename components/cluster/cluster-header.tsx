@@ -4,17 +4,33 @@ import { Badge } from "@/components/shared/badge";
 import { useI18n } from "@/lib/i18n";
 import { formatShortDateTime } from "@/lib/utils/format-date";
 import { formatRelevancePercent } from "@/lib/utils/cluster-sources";
+import {
+  estimateClusterReadMinutes,
+  getOutletDiversityFromArticles,
+} from "@/lib/utils/cluster-meta";
 import type { Cluster } from "@/types/cluster";
+import type { Article } from "@/types/article";
 
 type ClusterHeaderProps = {
   cluster: Cluster;
+  articles: Article[];
 };
 
-export function ClusterHeader({ cluster }: ClusterHeaderProps) {
+export function ClusterHeader({ cluster, articles }: ClusterHeaderProps) {
   const { t, lang } = useI18n();
   const sourceCount = cluster.articleIds.length;
   const scoreLabel = formatRelevancePercent(cluster.clusterScore);
   const status = cluster.storyStatus ?? "—";
+  const readMinutes = estimateClusterReadMinutes(cluster);
+  const { uniqueOutletCount, articleCount } =
+    getOutletDiversityFromArticles(articles);
+
+  const diversityLine =
+    articleCount === 0
+      ? null
+      : uniqueOutletCount >= 2
+        ? t.cluster.formatSourceDiversityBroad(uniqueOutletCount, articleCount)
+        : t.cluster.formatSourceDiversityNarrow(uniqueOutletCount, articleCount);
 
   return (
     <header className="mb-6">
@@ -26,7 +42,21 @@ export function ClusterHeader({ cluster }: ClusterHeaderProps) {
         <p className="mt-2 text-sm text-zinc-600">{cluster.subtitle}</p>
       ) : null}
 
+      <p className="mt-3 text-sm font-medium text-zinc-700">
+        {t.cluster.formatReadTimeMinutes(readMinutes)}
+      </p>
+
+      {diversityLine ? (
+        <p className="mt-2 text-sm leading-snug text-zinc-600">{diversityLine}</p>
+      ) : null}
+
       <dl className="mt-4 grid gap-2 text-sm text-zinc-700 sm:grid-cols-2">
+        <div className="flex flex-wrap gap-x-2 sm:col-span-2">
+          <dt className="font-medium text-zinc-500">{t.cluster.headerLastUpdated}</dt>
+          <dd className="font-medium text-foreground">
+            {formatShortDateTime(cluster.lastSeenAt, lang)}
+          </dd>
+        </div>
         <div className="flex flex-wrap gap-x-2">
           <dt className="font-medium text-zinc-500">{t.cluster.headerStoryStatus}</dt>
           <dd>{status}</dd>
@@ -39,13 +69,9 @@ export function ClusterHeader({ cluster }: ClusterHeaderProps) {
           <dt className="font-medium text-zinc-500">{t.cluster.headerScore}</dt>
           <dd>{scoreLabel}</dd>
         </div>
-        <div className="flex flex-wrap gap-x-2">
-          <dt className="font-medium text-zinc-500">{t.cluster.headerFirstSeen}</dt>
+        <div className="flex flex-wrap gap-x-2 sm:col-span-2 text-xs text-zinc-500">
+          <dt className="font-medium">{t.cluster.headerFirstSeen}</dt>
           <dd>{formatShortDateTime(cluster.firstSeenAt, lang)}</dd>
-        </div>
-        <div className="flex flex-wrap gap-x-2 sm:col-span-2">
-          <dt className="font-medium text-zinc-500">{t.cluster.headerLastUpdated}</dt>
-          <dd>{formatShortDateTime(cluster.lastSeenAt, lang)}</dd>
         </div>
       </dl>
     </header>

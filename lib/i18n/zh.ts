@@ -100,6 +100,17 @@ export const zh: Translations = {
     emptyCoveredSources: "该集群在 mock 目录中没有关联文章。",
     credibilityPrefix: "可信度：",
     noDraftLinked: "该集群尚未关联草稿。你仍可使用上方的摘要与要点。",
+    draftProminentLead:
+      "本集群已有草稿——打开即可把信号整理成可分享的简报或帖子。",
+    draftCompactLead: "阅读时可随时继续编辑草稿。",
+    breadcrumbAria: "面包屑导航",
+    backToDigest: "返回每日摘要",
+    nextStory: "下一则",
+    formatReadTimeMinutes: (minutes) => `约 ${minutes} 分钟阅读`,
+    formatSourceDiversityBroad: (outlets, articles) =>
+      `${outlets} 家来源 · ${articles} 篇报道 — 跨源交叉验证`,
+    formatSourceDiversityNarrow: (outlets, articles) =>
+      `${outlets} 家来源 · ${articles} 篇报道 — 来源较集中（请仔细核对）`,
   },
   draft: {
     topicLabel: "主题：",

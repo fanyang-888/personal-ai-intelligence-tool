@@ -108,6 +108,18 @@ export const en: Translations = {
     credibilityPrefix: "Credibility:",
     noDraftLinked:
       "There is no linked draft for this cluster yet. You can still use the summary and takeaways above.",
+    draftProminentLead:
+      "You have a draft for this cluster—open it to turn this signal into a shareable brief or post.",
+    draftCompactLead: "Continue your draft while you read.",
+    breadcrumbAria: "Breadcrumb",
+    backToDigest: "Back to Daily Digest",
+    nextStory: "Next story",
+    formatReadTimeMinutes: (minutes) =>
+      `${minutes} min read`,
+    formatSourceDiversityBroad: (outlets, articles) =>
+      `${outlets} outlet${outlets === 1 ? "" : "s"} · ${articles} article${articles === 1 ? "" : "s"} — broad cross-source check`,
+    formatSourceDiversityNarrow: (outlets, articles) =>
+      `${outlets} outlet${outlets === 1 ? "" : "s"} · ${articles} article${articles === 1 ? "" : "s"} — narrow sourcing (verify claims carefully)`,
   },
   draft: {
     topicLabel: "Topic:",
