@@ -1,10 +1,5 @@
-import { NotFoundState } from "@/components/shared/not-found-state";
+import { LocalizedNotFound } from "@/components/shared/localized-not-found";
 
 export default function DraftNotFound() {
-  return (
-    <NotFoundState
-      title="Draft not found"
-      message="That draft id is not in the local mock catalog."
-    />
-  );
+  return <LocalizedNotFound variant="draft" />;
 }

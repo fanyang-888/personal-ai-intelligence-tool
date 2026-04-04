@@ -1,10 +1,5 @@
-import { NotFoundState } from "@/components/shared/not-found-state";
+import { LocalizedNotFound } from "@/components/shared/localized-not-found";
 
 export default function ClusterNotFound() {
-  return (
-    <NotFoundState
-      title="Story cluster not found"
-      message="That cluster id is not in the local mock catalog."
-    />
-  );
+  return <LocalizedNotFound variant="cluster" />;
 }
