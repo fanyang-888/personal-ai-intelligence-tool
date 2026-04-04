@@ -57,12 +57,20 @@ export function DraftAction({
         className={`rounded-lg border border-zinc-200 bg-white p-4 shadow-sm ${className}`}
         aria-labelledby="cluster-draft-compact-heading"
       >
-        <h2
-          id="cluster-draft-compact-heading"
-          className="text-sm font-semibold text-foreground"
-        >
-          {t.cluster.draftSectionTitle}
-        </h2>
+        <div className="flex flex-wrap items-center gap-2">
+          <h2
+            id="cluster-draft-compact-heading"
+            className="text-sm font-semibold text-foreground"
+          >
+            {t.cluster.draftSectionTitle}
+          </h2>
+          <span
+            className="rounded border border-emerald-200 bg-emerald-50/90 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-900"
+            title={t.cluster.draftCompactLead}
+          >
+            {t.cluster.draftStickyBadge}
+          </span>
+        </div>
         <p className="mt-1 text-xs text-zinc-600">{t.cluster.draftCompactLead}</p>
         <Link
           href={`/draft/${draftId}`}

@@ -110,6 +110,9 @@ export type Translations = {
     formatReadTimeMinutes: (minutes: number) => string;
     formatSourceDiversityBroad: (outlets: number, articles: number) => string;
     formatSourceDiversityNarrow: (outlets: number, articles: number) => string;
+    allCaughtUpToday: string;
+    caughtUpViewArchive: string;
+    draftStickyBadge: string;
   };
   draft: {
     topicLabel: string;

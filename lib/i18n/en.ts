@@ -120,6 +120,9 @@ export const en: Translations = {
       `${outlets} outlet${outlets === 1 ? "" : "s"} · ${articles} article${articles === 1 ? "" : "s"} — broad cross-source check`,
     formatSourceDiversityNarrow: (outlets, articles) =>
       `${outlets} outlet${outlets === 1 ? "" : "s"} · ${articles} article${articles === 1 ? "" : "s"} — narrow sourcing (verify claims carefully)`,
+    allCaughtUpToday: "You're all caught up for today.",
+    caughtUpViewArchive: "View Archive",
+    draftStickyBadge: "Follow draft",
   },
   draft: {
     topicLabel: "Topic:",
