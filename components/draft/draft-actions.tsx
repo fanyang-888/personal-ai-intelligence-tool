@@ -2,13 +2,14 @@
 
 import { useCallback, useState } from "react";
 import { DraftBody } from "@/components/draft/draft-body";
+import { useI18n } from "@/lib/i18n";
 
 type DraftActionsProps = {
   bodies: string[];
-  copyLabel?: string;
 };
 
-export function DraftActions({ bodies, copyLabel = "Copy" }: DraftActionsProps) {
+export function DraftActions({ bodies }: DraftActionsProps) {
+  const { t } = useI18n();
   const [index, setIndex] = useState(0);
   const [copied, setCopied] = useState(false);
 
@@ -30,6 +31,8 @@ export function DraftActions({ bodies, copyLabel = "Copy" }: DraftActionsProps) 
     setCopied(false);
   }, [bodies.length]);
 
+  const variant = (index % bodies.length) + 1;
+
   return (
     <div className="mb-6">
       <DraftBody text={text} />
@@ -39,7 +42,7 @@ export function DraftActions({ bodies, copyLabel = "Copy" }: DraftActionsProps) 
           onClick={handleCopy}
           className="rounded border border-zinc-300 bg-background px-3 py-1.5 text-sm font-medium"
         >
-          {copied ? "Copied" : copyLabel}
+          {copied ? t.draft.copied : t.draft.copy}
         </button>
         <button
           type="button"
@@ -47,11 +50,11 @@ export function DraftActions({ bodies, copyLabel = "Copy" }: DraftActionsProps) 
           disabled={bodies.length <= 1}
           className="rounded border border-zinc-300 bg-background px-3 py-1.5 text-sm font-medium disabled:opacity-50"
         >
-          Regenerate
+          {t.draft.regenerate}
         </button>
         {bodies.length > 1 ? (
           <span className="text-xs text-zinc-500">
-            Variant {(index % bodies.length) + 1} of {bodies.length} (local mock)
+            {t.draft.formatVariantHint(variant, bodies.length)}
           </span>
         ) : null}
       </div>

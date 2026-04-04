@@ -1,4 +1,7 @@
+"use client";
+
 import { SectionTitle } from "@/components/shared/section-title";
+import { useI18n } from "@/lib/i18n";
 import type { Source } from "@/types/source";
 
 type CoveredSourcesListProps = {
@@ -6,9 +9,11 @@ type CoveredSourcesListProps = {
 };
 
 export function CoveredSourcesList({ sources }: CoveredSourcesListProps) {
+  const { t } = useI18n();
+
   return (
     <section className="mb-6">
-      <SectionTitle>Covered sources</SectionTitle>
+      <SectionTitle>{t.cluster.coveredSources}</SectionTitle>
       <ul className="space-y-2 text-sm">
         {sources.map((s) => (
           <li key={s.id}>
