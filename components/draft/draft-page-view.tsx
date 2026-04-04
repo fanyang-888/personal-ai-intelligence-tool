@@ -7,6 +7,10 @@ import { DraftRelatedStory } from "@/components/draft/draft-related-story";
 import { LinkedInDraftBody } from "@/components/draft/linkedin-draft-body";
 import { DraftActions } from "@/components/draft/draft-actions";
 import {
+  collectHashtagLabelsFromClusterArticles,
+  formatHashtagLine,
+} from "@/lib/utils/draft-hashtags";
+import {
   buildFullDraftText,
   getDraftContentSlices,
 } from "@/lib/utils/format-linkedin-draft";
@@ -37,9 +41,17 @@ export function DraftPageView({
 
   const slices = useMemo(() => getDraftContentSlices(draft), [draft]);
   const activeContent = slices[variantIndex % slices.length]!;
+  const hashtagLabels = useMemo(
+    () => collectHashtagLabelsFromClusterArticles(draft.clusterId),
+    [draft.clusterId],
+  );
+  const hashtagLine = useMemo(
+    () => formatHashtagLine(hashtagLabels),
+    [hashtagLabels],
+  );
   const fullText = useMemo(
-    () => buildFullDraftText(activeContent),
-    [activeContent],
+    () => buildFullDraftText(activeContent, hashtagLabels),
+    [activeContent, hashtagLabels],
   );
 
   const handleRegenerate = useCallback(() => {
@@ -68,7 +80,10 @@ export function DraftPageView({
         clusterTags={clusterTags}
       />
 
-      <LinkedInDraftBody content={activeContent} />
+      <LinkedInDraftBody
+        content={activeContent}
+        hashtagLine={hashtagLine || undefined}
+      />
 
       <DraftActions
         fullText={fullText}

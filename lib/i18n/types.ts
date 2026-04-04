@@ -132,6 +132,7 @@ export type Translations = {
     sectionCareerAngle: string;
     sectionWhyItMatters: string;
     sectionClosing: string;
+    suggestedHashtags: string;
     copyDraft: string;
     copied: string;
     regenerate: string;

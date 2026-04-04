@@ -4,9 +4,11 @@ import type { LinkedInDraftContent } from "@/types/draft";
 
 type LinkedInDraftBodyProps = {
   content: LinkedInDraftContent;
+  /** Same string appended to copied full draft (hashtag tokens). */
+  hashtagLine?: string;
 };
 
-export function LinkedInDraftBody({ content }: LinkedInDraftBodyProps) {
+export function LinkedInDraftBody({ content, hashtagLine }: LinkedInDraftBodyProps) {
   const { t } = useI18n();
   const summaryParagraphs = content.summaryBlock
     .split(/\n\s*\n/)
@@ -62,6 +64,15 @@ export function LinkedInDraftBody({ content }: LinkedInDraftBodyProps) {
           <p className="mt-3 text-sm leading-relaxed text-foreground">
             {content.closingBlock}
           </p>
+        </section>
+      ) : null}
+
+      {hashtagLine ? (
+        <section className="mt-8 border-t border-zinc-100 pt-6">
+          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+            {t.draft.suggestedHashtags}
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-zinc-700">{hashtagLine}</p>
         </section>
       ) : null}
     </div>

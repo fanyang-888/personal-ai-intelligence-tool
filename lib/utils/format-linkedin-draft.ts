@@ -1,4 +1,5 @@
 import type { Draft, LinkedInDraftContent } from "@/types/draft";
+import { formatHashtagLine } from "@/lib/utils/draft-hashtags";
 
 function toPrimaryContent(draft: Draft): LinkedInDraftContent {
   return {
@@ -16,7 +17,10 @@ export function getDraftContentSlices(draft: Draft): LinkedInDraftContent[] {
 }
 
 /** Plain text for clipboard; single v1 template, English labels. */
-export function buildFullDraftText(content: LinkedInDraftContent): string {
+export function buildFullDraftText(
+  content: LinkedInDraftContent,
+  hashtagLabels?: string[],
+): string {
   const summaryParas = content.summaryBlock
     .split(/\n\s*\n/)
     .map((p) => p.trim())
@@ -43,5 +47,10 @@ export function buildFullDraftText(content: LinkedInDraftContent): string {
     lines.push("", content.closingBlock.trim());
   }
 
-  return lines.join("\n");
+  let text = lines.join("\n");
+  if (hashtagLabels?.length) {
+    const tagLine = formatHashtagLine(hashtagLabels);
+    if (tagLine) text += `\n\n${tagLine}`;
+  }
+  return text;
 }

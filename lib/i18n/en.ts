@@ -143,6 +143,7 @@ export const en: Translations = {
     sectionCareerAngle: "Career angle",
     sectionWhyItMatters: "Why this matters",
     sectionClosing: "Closing",
+    suggestedHashtags: "Suggested hashtags",
     copyDraft: "Copy draft",
     copied: "Copied",
     regenerate: "Regenerate draft",

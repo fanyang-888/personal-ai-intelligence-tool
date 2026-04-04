@@ -134,6 +134,7 @@ export const zh: Translations = {
     sectionCareerAngle: "职业角度",
     sectionWhyItMatters: "为何重要",
     sectionClosing: "结尾",
+    suggestedHashtags: "建议话题标签",
     copyDraft: "复制全文草稿",
     copied: "已复制",
     regenerate: "换一版草稿",
