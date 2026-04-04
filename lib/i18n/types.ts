@@ -91,6 +91,8 @@ export type Translations = {
     draftSectionTitle: string;
     draftSectionLead: string;
     openDraft: string;
+    /** Shown above story body when UI is localized but mock content stays in English. */
+    contentOriginalLanguageHint: string;
   };
   draft: {
     topicLabel: string;

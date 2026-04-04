@@ -13,9 +13,9 @@ import { SectionTitle } from "@/components/shared/section-title";
 import { EmptyState } from "@/components/shared/empty-state";
 
 export default function HomePage() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { featured, topClusters, draftOfDay } = buildDigestView();
-  const dateLabel = formatDigestDate();
+  const dateLabel = formatDigestDate(new Date(), lang);
   const relatedStoryTitle = draftOfDay
     ? getClusterById(draftOfDay.clusterId)?.title
     : undefined;

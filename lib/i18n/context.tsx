@@ -23,6 +23,8 @@ type I18nContextValue = {
   lang: Lang;
   setLang: (lang: Lang) => void;
   t: Translations;
+  /** True after localStorage language has been read on the client (avoids hydration flicker when gating UI). */
+  i18nReady: boolean;
 };
 
 const I18nContext = createContext<I18nContextValue | null>(null);
@@ -60,8 +62,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const t = useMemo(() => (lang === "zh" ? zh : en), [lang]);
 
   const value = useMemo(
-    () => ({ lang, setLang, t }),
-    [lang, setLang, t],
+    () => ({ lang, setLang, t, i18nReady: hydrated }),
+    [lang, setLang, t, hydrated],
   );
 
   return (

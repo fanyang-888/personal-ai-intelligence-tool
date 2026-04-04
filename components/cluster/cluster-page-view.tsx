@@ -29,6 +29,13 @@ export function ClusterPageView({
     <article>
       <ClusterHeader cluster={cluster} />
 
+      <p
+        className="mb-4 rounded-md border border-dashed border-zinc-200 bg-zinc-50/80 px-3 py-2 text-xs leading-relaxed text-zinc-600"
+        role="note"
+      >
+        {t.cluster.contentOriginalLanguageHint}
+      </p>
+
       <section className="mb-6">
         <SectionTitle>{t.cluster.summary}</SectionTitle>
         <p className="text-sm leading-relaxed text-foreground">{cluster.summary}</p>

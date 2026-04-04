@@ -96,6 +96,8 @@ export const en: Translations = {
     draftSectionLead:
       "Open the linked draft for a shareable brief and career-oriented notes.",
     openDraft: "Open draft",
+    contentOriginalLanguageHint:
+      "Content below is shown in its original language.",
   },
   draft: {
     topicLabel: "Topic:",

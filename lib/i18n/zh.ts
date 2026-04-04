@@ -90,6 +90,7 @@ export const zh: Translations = {
     draftSectionTitle: "草稿",
     draftSectionLead: "打开关联草稿，获取可分享的简报与职业向笔记。",
     openDraft: "打开草稿",
+    contentOriginalLanguageHint: "以下内容以原始语言展示。",
   },
   draft: {
     topicLabel: "主题：",
