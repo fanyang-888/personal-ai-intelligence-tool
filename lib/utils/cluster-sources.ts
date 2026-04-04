@@ -1,3 +1,4 @@
+import { getArticleById } from "@/lib/mock-data/articles";
 import { getSourceById } from "@/lib/mock-data/sources";
 import type { Cluster } from "@/types/cluster";
 import type { SourceChannel } from "@/types/source";
@@ -44,14 +45,16 @@ export function partitionChannelCountsForDisplay(
   };
 }
 
-/** Counts mock ingest channels per cluster (for scannable “where it came from”). */
+/** Counts mock ingest channels per cluster (per linked article). */
 export function getClusterSourceChannelCounts(
   cluster: Cluster,
 ): SourceChannelCount[] {
   const map = new Map<SourceChannel, number>();
-  for (const id of cluster.sourceIds) {
-    const s = getSourceById(id);
-    const ch = s?.channel ?? DEFAULT_CHANNEL;
+  for (const id of cluster.articleIds) {
+    const art = getArticleById(id);
+    if (!art) continue;
+    const s = getSourceById(art.sourceId);
+    const ch = art.channel ?? s?.channel ?? DEFAULT_CHANNEL;
     map.set(ch, (map.get(ch) ?? 0) + 1);
   }
   return [...map.entries()]
@@ -62,15 +65,21 @@ export function getClusterSourceChannelCounts(
     );
 }
 
-/** Short labels for trust/transparency on digest cards (publisher preferred). */
+/** Unique outlet labels in article order (publisher preferred). */
 export function getClusterSourceLabels(cluster: Cluster): string[] {
-  return cluster.sourceIds
-    .map((id) => {
-      const s = getSourceById(id);
-      if (!s) return null;
-      return s.publisher ?? s.name;
-    })
-    .filter((x): x is string => Boolean(x));
+  const labels: string[] = [];
+  const seen = new Set<string>();
+  for (const id of cluster.articleIds) {
+    const art = getArticleById(id);
+    if (!art) continue;
+    const s = getSourceById(art.sourceId);
+    if (!s) continue;
+    const label = s.publisher ?? s.name;
+    if (seen.has(label)) continue;
+    seen.add(label);
+    labels.push(label);
+  }
+  return labels;
 }
 
 /** e.g. "The Register · Ars Technica" or "A · B · C +2" */

@@ -1,4 +1,4 @@
-import { getDraftOfTheDay, getDraftById } from "@/lib/mock-data/drafts";
+import { getDraftById } from "@/lib/mock-data/drafts";
 import { getFeaturedCluster, getTopClusters } from "@/lib/mock-data/clusters";
 import type { Cluster } from "@/types/cluster";
 import type { Draft } from "@/types/draft";
@@ -12,9 +12,10 @@ export type DigestView = {
 
 export function buildDigestView(): DigestView {
   const featured = getFeaturedCluster();
-  const topClusters = getTopClusters(4);
-  const draftOfDay = getDraftOfTheDay();
-  const featuredDraft = featured ? getDraftById(featured.draftId) : undefined;
+  const topClusters = getTopClusters(3);
+  const featuredDraft =
+    featured?.draftId != null ? getDraftById(featured.draftId) : undefined;
+  const draftOfDay = featuredDraft;
 
   return {
     featured,
