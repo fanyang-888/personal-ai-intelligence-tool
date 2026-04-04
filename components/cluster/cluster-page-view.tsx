@@ -37,7 +37,7 @@ export function ClusterPageView({
       <ClusterBreadcrumbs clusterTitle={cluster.title} />
       <DraftAction draftId={cluster.draftId} variant="prominent" className="mb-6" />
 
-      <div className="lg:grid lg:grid-cols-[1fr_min(17rem,34%)] lg:items-start lg:gap-8">
+      <div className="lg:grid lg:grid-cols-[1fr_min(17rem,34%)] lg:gap-8 lg:items-stretch">
         <div className="min-w-0">
           <ClusterHeader cluster={cluster} articles={articles} />
 
