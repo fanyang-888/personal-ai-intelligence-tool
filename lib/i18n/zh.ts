@@ -111,7 +111,7 @@ export const zh: Translations = {
       `${outlets} 家来源 · ${articles} 篇报道 — 跨源交叉验证`,
     formatSourceDiversityNarrow: (outlets, articles) =>
       `${outlets} 家来源 · ${articles} 篇报道 — 来源较集中（请仔细核对）`,
-    allCaughtUpToday: "今日推荐已读完。",
+    allCaughtUpToday: "今日要闻已读完。",
     caughtUpViewArchive: "查看资料库",
     draftStickyBadge: "随页草稿",
   },
