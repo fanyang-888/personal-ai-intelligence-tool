@@ -31,6 +31,7 @@ export const en: Translations = {
     whyItMattersPrefix: "Why it matters:",
     viewStory: "View Story",
     openDraft: "Open Draft",
+    noDraftLinked: "No draft linked for this cluster.",
     featuredFallback: "Featured",
     formatMoreChannelTypesHidden: (n) =>
       `${n} more ingest channel types not shown`,
@@ -98,6 +99,15 @@ export const en: Translations = {
     openDraft: "Open draft",
     contentOriginalLanguageHint:
       "Content below is shown in its original language.",
+    headerStoryStatus: "Status",
+    headerSourceCount: "Coverage",
+    headerScore: "Cluster score",
+    headerFirstSeen: "First seen",
+    headerLastUpdated: "Last updated",
+    emptyCoveredSources: "No linked articles in the mock catalog for this cluster.",
+    credibilityPrefix: "Credibility:",
+    noDraftLinked:
+      "There is no linked draft for this cluster yet. You can still use the summary and takeaways above.",
   },
   draft: {
     topicLabel: "Topic:",

@@ -32,6 +32,7 @@ export type Translations = {
     whyItMattersPrefix: string;
     viewStory: string;
     openDraft: string;
+    noDraftLinked: string;
     featuredFallback: string;
     formatMoreChannelTypesHidden: (extraTypeCount: number) => string;
     srOnlySources: string;
@@ -93,6 +94,14 @@ export type Translations = {
     openDraft: string;
     /** Shown above story body when UI is localized but mock content stays in English. */
     contentOriginalLanguageHint: string;
+    headerStoryStatus: string;
+    headerSourceCount: string;
+    headerScore: string;
+    headerFirstSeen: string;
+    headerLastUpdated: string;
+    emptyCoveredSources: string;
+    credibilityPrefix: string;
+    noDraftLinked: string;
   };
   draft: {
     topicLabel: string;

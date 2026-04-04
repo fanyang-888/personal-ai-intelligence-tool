@@ -12,7 +12,7 @@ Examples:
 
 - [Daily Digest](https://fanyang-888.github.io/personal-ai-intelligence-tool/)
 - [Cluster](https://fanyang-888.github.io/personal-ai-intelligence-tool/cluster/cluster-1)
-- [Draft](https://fanyang-888.github.io/personal-ai-intelligence-tool/draft/draft-1)
+- [Draft](https://fanyang-888.github.io/personal-ai-intelligence-tool/draft/draft-1) (see also `/draft/draft-2`)
 - [Archive](https://fanyang-888.github.io/personal-ai-intelligence-tool/archive)
 
 If you **rename the GitHub repository**, set the same path in the workflow and in `PAGES_BASE_PATH` (see below).
@@ -53,7 +53,7 @@ Then open the URL `serve` prints (paths will include `/personal-ai-intelligence-
 | Daily Digest | `/` | `/personal-ai-intelligence-tool/` |
 | Cluster | `/cluster/cluster-1` | `.../cluster/cluster-1` |
 | Archive | `/archive` | `.../archive` |
-| Draft | `/draft/draft-1` | `.../draft/draft-1` |
+| Draft | `/draft/draft-1`, `/draft/draft-2` | `.../draft/draft-1` |
 
 On a draft page, **Regenerate** cycles through 2–3 local text variants (no model call).
 
@@ -61,10 +61,10 @@ On a draft page, **Regenerate** cycles through 2–3 local text variants (no mod
 
 - `app/` — App Router pages and layouts
 - `components/` — UI by area (`layout`, `digest`, `cluster`, `archive`, `draft`, `shared`)
-- `lib/mock-data/` — `sources`, `clusters`, `drafts`
+- `lib/mock-data/` — `sources`, `articles`, `clusters`, `drafts`
 - `lib/mappers/` — `digest`, `archive` view shaping
 - `lib/utils/` — `format-date`, `search`, `score`
-- `types/` — `source`, `cluster`, `draft`
+- `types/` — `source`, `article`, `cluster`, `draft`
 - `public/` — static assets (includes `.nojekyll` for GitHub Pages)
 - `.github/workflows/` — deploy to GitHub Pages on push to `main`
 
