@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { SectionTitle } from "@/components/shared/section-title";
 import { useI18n } from "@/lib/i18n";
+import { firstParagraphExcerpt, pickLocalized } from "@/lib/utils/localized-string";
+import type { LocalizedString } from "@/types/localized";
 
 type DraftRelatedStoryProps = {
   clusterId: string;
-  clusterTitle: string;
-  clusterSummaryExcerpt: string;
+  clusterTitle: LocalizedString;
+  clusterSummary: LocalizedString;
   clusterExists: boolean;
   clusterTags: string[];
 };
@@ -16,14 +18,18 @@ type DraftRelatedStoryProps = {
 export function DraftRelatedStory({
   clusterId,
   clusterTitle,
-  clusterSummaryExcerpt,
+  clusterSummary,
   clusterExists,
   clusterTags,
 }: DraftRelatedStoryProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [expanded, setExpanded] = useState(false);
   const panelId = useId();
   const href = `/cluster/${clusterId}`;
+  const clusterSummaryExcerpt = useMemo(
+    () => firstParagraphExcerpt(clusterSummary, lang),
+    [clusterSummary, lang],
+  );
   const canExpand = Boolean(clusterSummaryExcerpt) || !clusterExists;
 
   return (
@@ -34,7 +40,7 @@ export function DraftRelatedStory({
           href={href}
           className="text-emerald-900 underline decoration-emerald-600/40 underline-offset-4 hover:text-emerald-950"
         >
-          {clusterTitle}
+          {pickLocalized(clusterTitle, lang)}
         </Link>
       </h3>
 

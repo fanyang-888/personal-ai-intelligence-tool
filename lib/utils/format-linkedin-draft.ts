@@ -1,4 +1,6 @@
+import type { Lang } from "@/lib/i18n/types";
 import type { Draft, LinkedInDraftContent } from "@/types/draft";
+import { pickLocalized } from "@/lib/utils/localized-string";
 import { formatHashtagLine } from "@/lib/utils/draft-hashtags";
 
 function toPrimaryContent(draft: Draft): LinkedInDraftContent {
@@ -16,35 +18,43 @@ export function getDraftContentSlices(draft: Draft): LinkedInDraftContent[] {
   return [toPrimaryContent(draft), ...(draft.variants ?? [])];
 }
 
-/** Plain text for clipboard; single v1 template, English labels. */
+export type DraftClipboardLabels = {
+  careerAngle: string;
+  whyThisMatters: string;
+};
+
+/** Plain text for clipboard; labels follow current UI language. */
 export function buildFullDraftText(
   content: LinkedInDraftContent,
-  hashtagLabels?: string[],
+  hashtagLabels: string[] | undefined,
+  lang: Lang,
+  labels: DraftClipboardLabels,
 ): string {
-  const summaryParas = content.summaryBlock
+  const summaryParas = pickLocalized(content.summaryBlock, lang)
     .split(/\n\s*\n/)
     .map((p) => p.trim())
     .filter(Boolean)
     .join("\n\n");
 
   const lines = [
-    content.hook.trim(),
+    pickLocalized(content.hook, lang).trim(),
     "",
     summaryParas,
     "",
-    `1. ${content.takeaways[0].trim()}`,
-    `2. ${content.takeaways[1].trim()}`,
-    `3. ${content.takeaways[2].trim()}`,
+    `1. ${pickLocalized(content.takeaways[0], lang).trim()}`,
+    `2. ${pickLocalized(content.takeaways[1], lang).trim()}`,
+    `3. ${pickLocalized(content.takeaways[2], lang).trim()}`,
     "",
-    "Career angle:",
-    content.careerInterpretationBlock.trim(),
+    `${labels.careerAngle}:`,
+    pickLocalized(content.careerInterpretationBlock, lang).trim(),
     "",
-    "Why this matters:",
-    content.audienceWhyItMattersBlock.trim(),
+    `${labels.whyThisMatters}:`,
+    pickLocalized(content.audienceWhyItMattersBlock, lang).trim(),
   ];
 
-  if (content.closingBlock?.trim()) {
-    lines.push("", content.closingBlock.trim());
+  if (content.closingBlock != null) {
+    const closing = pickLocalized(content.closingBlock, lang).trim();
+    if (closing) lines.push("", closing);
   }
 
   let text = lines.join("\n");

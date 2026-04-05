@@ -15,14 +15,15 @@ import {
   getDraftContentSlices,
 } from "@/lib/utils/format-linkedin-draft";
 import type { Draft } from "@/types/draft";
+import type { LocalizedString } from "@/types/localized";
 
 type DraftPageViewProps = {
   draft: Draft;
   isDraftOfDay: boolean;
   clusterId: string;
-  clusterTitle: string;
+  clusterTitle: LocalizedString;
   clusterExists: boolean;
-  clusterSummaryExcerpt: string;
+  clusterSummary: LocalizedString;
   clusterTags: string[];
 };
 
@@ -32,10 +33,10 @@ export function DraftPageView({
   clusterId,
   clusterTitle,
   clusterExists,
-  clusterSummaryExcerpt,
+  clusterSummary,
   clusterTags,
 }: DraftPageViewProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [variantIndex, setVariantIndex] = useState(0);
   const [showRegenerateNoop, setShowRegenerateNoop] = useState(false);
 
@@ -50,8 +51,12 @@ export function DraftPageView({
     [hashtagLabels],
   );
   const fullText = useMemo(
-    () => buildFullDraftText(activeContent, hashtagLabels),
-    [activeContent, hashtagLabels],
+    () =>
+      buildFullDraftText(activeContent, hashtagLabels, lang, {
+        careerAngle: t.draft.sectionCareerAngle,
+        whyThisMatters: t.draft.sectionWhyItMatters,
+      }),
+    [activeContent, hashtagLabels, lang, t],
   );
 
   const handleRegenerate = useCallback(() => {
@@ -75,10 +80,19 @@ export function DraftPageView({
       <DraftRelatedStory
         clusterId={clusterId}
         clusterTitle={clusterTitle}
-        clusterSummaryExcerpt={clusterSummaryExcerpt}
+        clusterSummary={clusterSummary}
         clusterExists={clusterExists}
         clusterTags={clusterTags}
       />
+
+      {lang === "zh" ? (
+        <p
+          className="mb-4 rounded-md border border-dashed border-zinc-200 bg-zinc-50/80 px-3 py-2 text-xs leading-relaxed text-zinc-600"
+          role="note"
+        >
+          {t.draft.bilingualAssistTrustNote}
+        </p>
+      ) : null}
 
       <LinkedInDraftBody
         content={activeContent}

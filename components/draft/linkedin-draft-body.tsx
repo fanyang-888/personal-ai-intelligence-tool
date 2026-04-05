@@ -1,5 +1,13 @@
+"use client";
+
+import {
+  BilingualAssistBody,
+  BilingualAssistLead,
+  BilingualAssistTakeawayItem,
+} from "@/components/shared/bilingual-assist-text";
 import { SectionTitle } from "@/components/shared/section-title";
 import { useI18n } from "@/lib/i18n";
+import { pickLocalized } from "@/lib/utils/localized-string";
 import type { LinkedInDraftContent } from "@/types/draft";
 
 type LinkedInDraftBodyProps = {
@@ -9,11 +17,12 @@ type LinkedInDraftBodyProps = {
 };
 
 export function LinkedInDraftBody({ content, hashtagLine }: LinkedInDraftBodyProps) {
-  const { t } = useI18n();
-  const summaryParagraphs = content.summaryBlock
-    .split(/\n\s*\n/)
-    .map((p) => p.trim())
-    .filter(Boolean);
+  const { t, lang } = useI18n();
+
+  const closingText =
+    content.closingBlock != null
+      ? pickLocalized(content.closingBlock, lang).trim()
+      : "";
 
   return (
     <div className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
@@ -21,49 +30,58 @@ export function LinkedInDraftBody({ content, hashtagLine }: LinkedInDraftBodyPro
         <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
           {t.draft.sectionHook}
         </p>
-        <p className="mt-2 text-lg font-medium leading-snug text-foreground">
-          {content.hook}
-        </p>
+        <div className="mt-2">
+          <BilingualAssistLead value={content.hook} lang={lang} />
+        </div>
       </section>
 
       <section className="mb-8">
         <SectionTitle>{t.draft.sectionSummary}</SectionTitle>
-        <div className="mt-3 space-y-3 text-sm leading-relaxed text-foreground">
-          {summaryParagraphs.map((para, i) => (
-            <p key={i}>{para}</p>
-          ))}
+        <div className="mt-3">
+          <BilingualAssistBody value={content.summaryBlock} lang={lang} />
         </div>
       </section>
 
       <section className="mb-8">
         <SectionTitle>{t.draft.takeawaysIntro}</SectionTitle>
-        <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-relaxed text-foreground">
+        <ol className="mt-3 list-decimal space-y-3 pl-5 text-sm leading-relaxed text-foreground">
           {content.takeaways.map((item, i) => (
-            <li key={i}>{item}</li>
+            <li key={i}>
+              <BilingualAssistTakeawayItem value={item} lang={lang} />
+            </li>
           ))}
         </ol>
       </section>
 
       <section className="mb-8">
         <SectionTitle>{t.draft.sectionCareerAngle}</SectionTitle>
-        <p className="mt-3 text-sm leading-relaxed text-foreground">
-          {content.careerInterpretationBlock}
-        </p>
+        <div className="mt-3">
+          <BilingualAssistBody
+            value={content.careerInterpretationBlock}
+            lang={lang}
+          />
+        </div>
       </section>
 
       <section className="mb-8">
         <SectionTitle>{t.draft.sectionWhyItMatters}</SectionTitle>
-        <p className="mt-3 text-sm leading-relaxed text-foreground">
-          {content.audienceWhyItMattersBlock}
-        </p>
+        <div className="mt-3">
+          <BilingualAssistBody
+            value={content.audienceWhyItMattersBlock}
+            lang={lang}
+          />
+        </div>
       </section>
 
-      {content.closingBlock?.trim() ? (
+      {closingText ? (
         <section>
           <SectionTitle>{t.draft.sectionClosing}</SectionTitle>
-          <p className="mt-3 text-sm leading-relaxed text-foreground">
-            {content.closingBlock}
-          </p>
+          <div className="mt-3">
+            <BilingualAssistBody
+              value={content.closingBlock!}
+              lang={lang}
+            />
+          </div>
         </section>
       ) : null}
 
