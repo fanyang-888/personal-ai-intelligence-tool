@@ -1,16 +1,18 @@
+import type { LocalizedString } from "@/types/localized";
+
 export type AudienceBlocks = {
-  pm: string;
-  developer: string;
-  studentJobSeeker: string;
+  pm: LocalizedString;
+  developer: LocalizedString;
+  studentJobSeeker: LocalizedString;
 };
 
 export type Cluster = {
   id: string;
   /** Display label for cluster detail header (often mirrors theme). */
   clusterType: string;
-  title: string;
-  subtitle?: string;
-  description?: string;
+  title: LocalizedString;
+  subtitle?: LocalizedString;
+  description?: LocalizedString;
   /** Archive / filter theme key */
   theme: string;
   themes?: string[];
@@ -20,9 +22,9 @@ export type Cluster = {
   freshnessLabel?: string;
   firstSeenAt: string;
   lastSeenAt: string;
-  summary: string;
-  takeaways: string[];
-  whyItMatters: string;
+  summary: LocalizedString;
+  takeaways: LocalizedString[];
+  whyItMatters: LocalizedString;
   audience: AudienceBlocks;
   articleIds: string[];
   relatedClusterIds: string[];

@@ -1,6 +1,7 @@
 import type { Article } from "@/types/article";
 import type { Cluster } from "@/types/cluster";
 import { clusters } from "@/lib/mock-data/clusters";
+import { flattenLocalized } from "@/lib/utils/localized-string";
 
 const WORDS_PER_MINUTE = 200;
 
@@ -18,7 +19,9 @@ export function estimateClusterReadMinutes(cluster: Cluster): number {
     cluster.audience.pm,
     cluster.audience.developer,
     cluster.audience.studentJobSeeker,
-  ].join(" ");
+  ]
+    .map(flattenLocalized)
+    .join(" ");
   const words = wordCount(blob);
   return Math.max(1, Math.round(words / WORDS_PER_MINUTE));
 }

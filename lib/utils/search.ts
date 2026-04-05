@@ -1,6 +1,7 @@
 import type { Cluster } from "@/types/cluster";
 import { getArticleById } from "@/lib/mock-data/articles";
 import { getSourceById } from "@/lib/mock-data/sources";
+import { clusterSearchText } from "@/lib/utils/localized-string";
 import { sortByKeywordRelevance } from "@/lib/utils/score";
 
 export type ArchiveFilters = {
@@ -42,18 +43,14 @@ export function filterClusters(clusters: Cluster[], filters: ArchiveFilters): Cl
     if (!clusterTouchesSource(c, sourceId)) return false;
     if (!clusterTouchesChannel(c, channel)) return false;
     if (kw) {
-      const blob = `${c.title} ${c.subtitle ?? ""} ${c.summary}`.toLowerCase();
+      const blob = clusterSearchText(c);
       if (!blob.includes(kw)) return false;
     }
     return true;
   });
 
   if (kw) {
-    out = sortByKeywordRelevance(
-      out,
-      (c) => `${c.title} ${c.subtitle ?? ""} ${c.summary}`,
-      kw,
-    );
+    out = sortByKeywordRelevance(out, clusterSearchText, kw);
   }
 
   return out;

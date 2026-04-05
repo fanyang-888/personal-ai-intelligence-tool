@@ -1,11 +1,13 @@
+import type { LocalizedString } from "@/types/localized";
+
 /** Blocks for one LinkedIn-style draft snapshot (primary or a mock variant). */
 export type LinkedInDraftContent = {
-  hook: string;
-  summaryBlock: string;
-  takeaways: [string, string, string];
-  careerInterpretationBlock: string;
-  audienceWhyItMattersBlock: string;
-  closingBlock?: string;
+  hook: LocalizedString;
+  summaryBlock: LocalizedString;
+  takeaways: [LocalizedString, LocalizedString, LocalizedString];
+  careerInterpretationBlock: LocalizedString;
+  audienceWhyItMattersBlock: LocalizedString;
+  closingBlock?: LocalizedString;
 };
 
 export type Draft = {
@@ -13,14 +15,14 @@ export type Draft = {
   clusterId: string;
   draftType: "linkedin";
   /** Short working label (shown under the page title). */
-  title: string;
+  title: LocalizedString;
   generatedAt?: string;
-  hook: string;
-  summaryBlock: string;
-  takeaways: [string, string, string];
-  careerInterpretationBlock: string;
-  audienceWhyItMattersBlock: string;
-  closingBlock?: string;
+  hook: LocalizedString;
+  summaryBlock: LocalizedString;
+  takeaways: [LocalizedString, LocalizedString, LocalizedString];
+  careerInterpretationBlock: LocalizedString;
+  audienceWhyItMattersBlock: LocalizedString;
+  closingBlock?: LocalizedString;
   /** Additional content snapshots for local “regenerate” (2–3 total with primary). */
   variants?: LinkedInDraftContent[];
 };
