@@ -4,6 +4,12 @@ import type { Lang } from "@/lib/i18n/types";
 import type { LocalizedString } from "@/types/localized";
 import { isBilingual, pickLocalized } from "@/lib/utils/localized-string";
 
+/** In 中文 bilingual mode: EN is reference (lower contrast); ZH is reading focus. */
+const enMuted = "text-zinc-600";
+const zhPrimary = "text-zinc-900";
+/** Subtle left rule on the ZH block for long bilingual passages. */
+const zhBlockContinuity = "border-l border-zinc-200/80 pl-3 sm:pl-3.5";
+
 function splitParas(text: string): string[] {
   return text
     .split(/\n\s*\n/)
@@ -48,12 +54,14 @@ export function BilingualAssistBody({
   const zhParas = splitParas(value.zh);
   return (
     <div className={className}>
-      <div className="space-y-3">
+      <div className={`space-y-3 ${enMuted}`}>
         {enParas.map((p, i) => (
           <p key={`en-${i}`}>{p}</p>
         ))}
       </div>
-      <div className="mt-3 space-y-3 border-t border-zinc-100 pt-3 text-zinc-800">
+      <div
+        className={`mt-3 space-y-3 border-t border-zinc-100 pt-3 ${zhPrimary} ${zhBlockContinuity}`}
+      >
         {zhParas.map((p, i) => (
           <p key={`zh-${i}`}>{p}</p>
         ))}
@@ -73,8 +81,12 @@ export function BilingualAssistTakeawayItem({ value, lang }: TakeawayProps) {
   }
   return (
     <div className="space-y-2">
-      <p>{value.en}</p>
-      <p className="border-t border-zinc-100 pt-2 text-zinc-800">{value.zh}</p>
+      <p className={enMuted}>{value.en}</p>
+      <p
+        className={`border-t border-zinc-100 pt-2 ${zhPrimary} ${zhBlockContinuity}`}
+      >
+        {value.zh}
+      </p>
     </div>
   );
 }
@@ -94,8 +106,10 @@ export function BilingualAssistLead({
   }
   return (
     <div className={className}>
-      <p className="leading-snug">{value.en}</p>
-      <p className="mt-2 border-t border-zinc-100 pt-2 leading-snug text-zinc-800">
+      <p className={`leading-snug ${enMuted}`}>{value.en}</p>
+      <p
+        className={`mt-2 border-t border-zinc-100 pt-2 leading-snug ${zhPrimary} ${zhBlockContinuity}`}
+      >
         {value.zh}
       </p>
     </div>
@@ -115,8 +129,10 @@ export function BilingualAssistHeading({
   }
   return (
     <>
-      <span className="block">{value.en}</span>
-      <span className="mt-2 block border-t border-zinc-100 pt-2 text-xl font-semibold tracking-tight text-zinc-800 sm:text-2xl">
+      <span className={`block ${enMuted}`}>{value.en}</span>
+      <span
+        className={`mt-2 block border-t border-zinc-100 pt-2 text-xl font-semibold tracking-tight sm:text-2xl ${zhPrimary} ${zhBlockContinuity}`}
+      >
         {value.zh}
       </span>
     </>
@@ -136,8 +152,10 @@ export function BilingualAssistSubline({
   }
   return (
     <>
-      <span className="block">{value.en}</span>
-      <span className="mt-1 block border-t border-dashed border-zinc-200 pt-1 text-zinc-700">
+      <span className={`block ${enMuted}`}>{value.en}</span>
+      <span
+        className={`mt-1 block border-t border-dashed border-zinc-200 pt-1 text-sm ${zhPrimary} ${zhBlockContinuity}`}
+      >
         {value.zh}
       </span>
     </>
@@ -157,8 +175,12 @@ export function BilingualAssistBreadcrumbTitle({
   }
   return (
     <span className="line-clamp-4">
-      <span className="block">{value.en}</span>
-      <span className="mt-1 block text-zinc-700">{value.zh}</span>
+      <span className={`block ${enMuted}`}>{value.en}</span>
+      <span
+        className={`mt-1 block border-l border-zinc-200/80 pl-2 text-sm sm:pl-3 ${zhPrimary}`}
+      >
+        {value.zh}
+      </span>
     </span>
   );
 }
