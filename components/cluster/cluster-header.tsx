@@ -1,6 +1,10 @@
 "use client";
 
 import { Badge } from "@/components/shared/badge";
+import {
+  BilingualAssistHeading,
+  BilingualAssistSubline,
+} from "@/components/shared/bilingual-assist-text";
 import { useI18n } from "@/lib/i18n";
 import { formatShortDateTime } from "@/lib/utils/format-date";
 import { formatRelevancePercent } from "@/lib/utils/cluster-sources";
@@ -36,10 +40,12 @@ export function ClusterHeader({ cluster, articles }: ClusterHeaderProps) {
     <header className="mb-6">
       <Badge>{cluster.clusterType}</Badge>
       <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-        {cluster.title}
+        <BilingualAssistHeading value={cluster.title} lang={lang} />
       </h1>
       {cluster.subtitle ? (
-        <p className="mt-2 text-sm text-zinc-600">{cluster.subtitle}</p>
+        <p className="mt-2 text-sm text-zinc-600">
+          <BilingualAssistSubline value={cluster.subtitle} lang={lang} />
+        </p>
       ) : null}
 
       <p className="mt-3 text-sm font-medium text-zinc-700">

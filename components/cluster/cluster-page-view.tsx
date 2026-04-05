@@ -9,6 +9,7 @@ import { CoveredSourcesList } from "@/components/cluster/covered-sources-list";
 import { RelatedStories } from "@/components/cluster/related-stories";
 import { DraftAction } from "@/components/cluster/draft-action";
 import { ClusterStoryFooter } from "@/components/cluster/cluster-story-footer";
+import { BilingualAssistBody } from "@/components/shared/bilingual-assist-text";
 import { SectionTitle } from "@/components/shared/section-title";
 import { getNextClusterInRankOrder } from "@/lib/utils/cluster-meta";
 import type { Cluster } from "@/types/cluster";
@@ -25,11 +26,7 @@ export function ClusterPageView({
   articles,
   related,
 }: ClusterPageViewProps) {
-  const { t } = useI18n();
-  const summaryParagraphs = cluster.summary
-    .split(/\n\s*\n/)
-    .map((p) => p.trim())
-    .filter(Boolean);
+  const { t, lang } = useI18n();
   const nextCluster = getNextClusterInRankOrder(cluster.id);
 
   return (
@@ -41,20 +38,18 @@ export function ClusterPageView({
         <div className="min-w-0">
           <ClusterHeader cluster={cluster} articles={articles} />
 
-          <p
-            className="mb-4 rounded-md border border-dashed border-zinc-200 bg-zinc-50/80 px-3 py-2 text-xs leading-relaxed text-zinc-600"
-            role="note"
-          >
-            {t.cluster.contentOriginalLanguageHint}
-          </p>
+          {lang === "zh" ? (
+            <p
+              className="mb-4 rounded-md border border-dashed border-zinc-200 bg-zinc-50/80 px-3 py-2 text-xs leading-relaxed text-zinc-600"
+              role="note"
+            >
+              {t.cluster.bilingualAssistTrustNote}
+            </p>
+          ) : null}
 
           <section className="mb-6">
             <SectionTitle>{t.cluster.summary}</SectionTitle>
-            <div className="space-y-3 text-sm leading-relaxed text-foreground">
-              {summaryParagraphs.map((para, i) => (
-                <p key={i}>{para}</p>
-              ))}
-            </div>
+            <BilingualAssistBody value={cluster.summary} lang={lang} />
           </section>
 
           <TakeawayList items={cluster.takeaways} />

@@ -21,7 +21,7 @@ import { NotFoundState } from "@/components/shared/not-found-state";
 const KEYWORD_URL_DEBOUNCE_MS = 350;
 
 export function ArchivePageClient() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [keyword, setKeyword] = useState("");
@@ -105,7 +105,10 @@ export function ArchivePageClient() {
     [keyword, theme, sourceId, channel],
   );
 
-  const rows = useMemo(() => mapClustersToArchiveRows(filtered), [filtered]);
+  const rows = useMemo(
+    () => mapClustersToArchiveRows(filtered, lang),
+    [filtered, lang],
+  );
 
   const hasActiveFilters = Boolean(
     keyword.trim() || theme || sourceId || channel,

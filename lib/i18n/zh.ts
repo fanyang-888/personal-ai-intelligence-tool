@@ -91,7 +91,9 @@ export const zh: Translations = {
     draftSectionTitle: "草稿",
     draftSectionLead: "打开关联草稿，获取可分享的简报与职业向笔记。",
     openDraft: "打开草稿",
-    contentOriginalLanguageHint: "以下内容以原始语言展示。",
+    bilingualAssistTrustNote: "中文内容为辅助理解，请以原文为准。",
+    sourceOriginalPreservedNote:
+      "来源标题与摘录保留原文，以便核对与追溯。",
     headerStoryStatus: "状态",
     headerSourceCount: "覆盖",
     headerScore: "集群分数",
@@ -148,6 +150,7 @@ export const zh: Translations = {
     notesTitle: "说明",
     notesBody:
       "本迭代不支持应用内编辑。请复制草稿后在笔记或文档中润色，再按你的工作流保存引用。",
+    bilingualAssistTrustNote: "中文内容为辅助理解，请以原文为准。",
   },
   notFound: {
     clusterTitle: "未找到该故事集群",

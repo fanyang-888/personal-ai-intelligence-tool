@@ -1,6 +1,7 @@
 "use client";
 
 import { useI18n } from "@/lib/i18n";
+import { themeSelectLabel } from "@/lib/i18n/theme-display";
 import { SOURCE_CHANNELS_ALL } from "@/lib/utils/cluster-sources";
 
 type FilterBarProps = {
@@ -24,7 +25,7 @@ export function FilterBar({
   onSourceChange,
   onChannelChange,
 }: FilterBarProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
 
   return (
     <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end">
@@ -39,9 +40,9 @@ export function FilterBar({
           className="w-full rounded border border-zinc-300 px-3 py-2 text-sm"
         >
           <option value="">{t.archive.allThemes}</option>
-          {themes.map((t) => (
-            <option key={t} value={t}>
-              {t}
+          {themes.map((th) => (
+            <option key={th} value={th}>
+              {themeSelectLabel(th, lang)}
             </option>
           ))}
         </select>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
+import { pickLocalized } from "@/lib/utils/localized-string";
 import type { Cluster } from "@/types/cluster";
 
 type ClusterStoryFooterProps = {
@@ -9,7 +10,7 @@ type ClusterStoryFooterProps = {
 };
 
 export function ClusterStoryFooter({ nextCluster }: ClusterStoryFooterProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
 
   return (
     <footer className="mt-10 border-t border-zinc-200 pt-8">
@@ -26,7 +27,7 @@ export function ClusterStoryFooter({ nextCluster }: ClusterStoryFooterProps) {
               href={`/cluster/${nextCluster.id}`}
               className="text-sm font-semibold text-foreground underline decoration-zinc-300 underline-offset-4 hover:text-emerald-900"
             >
-              {t.cluster.nextStory}: {nextCluster.title}
+              {t.cluster.nextStory}: {pickLocalized(nextCluster.title, lang)}
             </Link>
           ) : null}
         </div>

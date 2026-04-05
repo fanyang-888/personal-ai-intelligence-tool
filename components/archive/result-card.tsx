@@ -15,7 +15,7 @@ export function ResultCard({ row }: ResultCardProps) {
   return (
     <li className="rounded border border-zinc-200 p-3">
       <div className="flex flex-wrap items-center gap-2">
-        <Badge>{row.theme}</Badge>
+        <Badge>{row.themeLabel}</Badge>
       </div>
       <h3 className="mt-2 text-sm font-semibold text-foreground">
         <Link href={`/cluster/${row.id}`} className="underline-offset-4 hover:underline">

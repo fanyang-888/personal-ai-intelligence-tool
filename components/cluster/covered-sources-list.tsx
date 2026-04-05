@@ -25,6 +25,9 @@ export function CoveredSourcesList({ articles }: CoveredSourcesListProps) {
   return (
     <section className="mb-6">
       <SectionTitle>{t.cluster.coveredSources}</SectionTitle>
+      <p className="mb-3 text-xs leading-relaxed text-zinc-500">
+        {t.cluster.sourceOriginalPreservedNote}
+      </p>
       <ul className="space-y-4 text-sm">
         {articles.map((art) => {
           const source = getSourceById(art.sourceId);

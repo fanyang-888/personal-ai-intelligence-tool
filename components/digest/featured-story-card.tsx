@@ -4,6 +4,7 @@ import Link from "next/link";
 import { SourceChannelBadge } from "@/components/digest/source-channel-badge";
 import { StoryBadge } from "@/components/digest/story-badge";
 import { useI18n } from "@/lib/i18n";
+import { pickLocalized } from "@/lib/utils/localized-string";
 import { archiveChannelHref } from "@/lib/utils/archive-url";
 import {
   formatClusterSourcesLine,
@@ -22,7 +23,7 @@ export function FeaturedStoryCard({
   cluster,
   className = "",
 }: FeaturedStoryCardProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const sourceCount = cluster.articleIds.length;
   const relevance = formatRelevancePercent(cluster.clusterScore);
   const status = cluster.storyStatus ?? t.digest.featuredFallback;
@@ -40,10 +41,12 @@ export function FeaturedStoryCard({
         id="featured-story-title"
         className="text-2xl font-semibold leading-tight tracking-tight text-foreground sm:text-[1.65rem]"
       >
-        {cluster.title}
+        {pickLocalized(cluster.title, lang)}
       </h2>
       {cluster.subtitle ? (
-        <p className="mt-2 text-sm text-zinc-500">{cluster.subtitle}</p>
+        <p className="mt-2 text-sm text-zinc-500">
+          {pickLocalized(cluster.subtitle, lang)}
+        </p>
       ) : null}
 
       {visibleChannels.length > 0 ? (
@@ -90,11 +93,13 @@ export function FeaturedStoryCard({
         <StoryBadge variant="metric">{relevance}</StoryBadge>
       </div>
 
-      <p className="mt-5 text-base leading-relaxed text-foreground">{cluster.summary}</p>
+      <p className="mt-5 text-base leading-relaxed text-foreground">
+        {pickLocalized(cluster.summary, lang)}
+      </p>
 
       <p className="mt-4 text-sm font-medium text-zinc-600">
         <span className="text-zinc-500">{t.digest.whyItMattersPrefix} </span>
-        {cluster.whyItMatters}
+        {pickLocalized(cluster.whyItMatters, lang)}
       </p>
 
       <div className="mt-6 flex flex-wrap items-center gap-4">

@@ -97,8 +97,10 @@ export const en: Translations = {
     draftSectionLead:
       "Open the linked draft for a shareable brief and career-oriented notes.",
     openDraft: "Open draft",
-    contentOriginalLanguageHint:
-      "Content below is shown in its original language.",
+    bilingualAssistTrustNote:
+      "Chinese text is provided as reading assistance. Refer to the original language for exact wording.",
+    sourceOriginalPreservedNote:
+      "Source titles and excerpts stay in their original language for accuracy and traceability.",
     headerStoryStatus: "Status",
     headerSourceCount: "Coverage",
     headerScore: "Cluster score",
@@ -159,6 +161,8 @@ export const en: Translations = {
     notesTitle: "Notes",
     notesBody:
       "Editing in-app is out of scope for this sprint. Copy the draft and refine in your notes app or doc, then save pointers back in your own workflow.",
+    bilingualAssistTrustNote:
+      "Chinese text is provided as reading assistance. Refer to the original language for exact wording.",
   },
   notFound: {
     clusterTitle: "Story cluster not found",

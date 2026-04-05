@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
+import { BilingualAssistBreadcrumbTitle } from "@/components/shared/bilingual-assist-text";
 import { useI18n } from "@/lib/i18n";
+import type { LocalizedString } from "@/types/localized";
 
 type ClusterBreadcrumbsProps = {
-  clusterTitle: string;
+  clusterTitle: LocalizedString;
 };
 
 export function ClusterBreadcrumbs({ clusterTitle }: ClusterBreadcrumbsProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
 
   return (
     <nav
@@ -28,7 +30,10 @@ export function ClusterBreadcrumbs({ clusterTitle }: ClusterBreadcrumbsProps) {
           /
         </li>
         <li className="min-w-0 font-medium text-foreground">
-          <span className="line-clamp-2">{clusterTitle}</span>
+          <BilingualAssistBreadcrumbTitle
+            value={clusterTitle}
+            lang={lang}
+          />
         </li>
       </ol>
     </nav>

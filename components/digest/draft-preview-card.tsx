@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { SectionTitle } from "@/components/shared/section-title";
 import { useI18n } from "@/lib/i18n";
+import { pickLocalized } from "@/lib/utils/localized-string";
 import type { Draft } from "@/types/draft";
 
 type DraftPreviewCardProps = {
@@ -17,12 +18,15 @@ export function DraftPreviewCard({
   relatedStoryTitle,
   variant = "default",
 }: DraftPreviewCardProps) {
-  const { t } = useI18n();
-  const summaryLead = draft.summaryBlock
+  const { t, lang } = useI18n();
+  const summaryText = pickLocalized(draft.summaryBlock, lang);
+  const summaryLead = summaryText
     .split(/\n\s*\n+/)
     .map((p) => p.trim())
     .filter(Boolean)[0];
-  const previewLines = [draft.hook, summaryLead].filter(Boolean).join("\n\n");
+  const previewLines = [pickLocalized(draft.hook, lang), summaryLead]
+    .filter(Boolean)
+    .join("\n\n");
   const preview =
     previewLines.length > 320
       ? `${previewLines.slice(0, 320).trim()}…`
@@ -53,7 +57,7 @@ export function DraftPreviewCard({
           isAside ? "text-base leading-snug" : "text-lg"
         }`}
       >
-        {draft.title}
+        {pickLocalized(draft.title, lang)}
       </h3>
       <p
         className={`mt-3 text-sm leading-relaxed text-zinc-700 ${clamp}`}

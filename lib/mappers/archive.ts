@@ -1,18 +1,27 @@
+import type { Lang } from "@/lib/i18n/types";
+import { themeSelectLabel } from "@/lib/i18n/theme-display";
 import { getArticleById } from "@/lib/mock-data/articles";
 import { getSourceById } from "@/lib/mock-data/sources";
+import { pickLocalized } from "@/lib/utils/localized-string";
 import type { Cluster } from "@/types/cluster";
 
 export type ArchiveResultRow = {
   id: string;
   title: string;
+  /** Filter key (English canonical). */
   theme: string;
+  /** Localized label for the theme badge. */
+  themeLabel: string;
   summarySnippet: string;
   sourceLabels: string;
 };
 
 const SNIPPET_LEN = 160;
 
-export function mapClusterToArchiveRow(cluster: Cluster): ArchiveResultRow {
+export function mapClusterToArchiveRow(
+  cluster: Cluster,
+  lang: Lang,
+): ArchiveResultRow {
   const names: string[] = [];
   const seen = new Set<string>();
   for (const aid of cluster.articleIds) {
@@ -26,20 +35,25 @@ export function mapClusterToArchiveRow(cluster: Cluster): ArchiveResultRow {
     }
   }
 
+  const summaryText = pickLocalized(cluster.summary, lang);
   const summarySnippet =
-    cluster.summary.length <= SNIPPET_LEN
-      ? cluster.summary
-      : `${cluster.summary.slice(0, SNIPPET_LEN).trim()}…`;
+    summaryText.length <= SNIPPET_LEN
+      ? summaryText
+      : `${summaryText.slice(0, SNIPPET_LEN).trim()}…`;
 
   return {
     id: cluster.id,
-    title: cluster.title,
+    title: pickLocalized(cluster.title, lang),
     theme: cluster.theme,
+    themeLabel: themeSelectLabel(cluster.theme, lang),
     summarySnippet,
     sourceLabels: names.join(", ") || "—",
   };
 }
 
-export function mapClustersToArchiveRows(clusters: Cluster[]): ArchiveResultRow[] {
-  return clusters.map(mapClusterToArchiveRow);
+export function mapClustersToArchiveRows(
+  clusters: Cluster[],
+  lang: Lang,
+): ArchiveResultRow[] {
+  return clusters.map((c) => mapClusterToArchiveRow(c, lang));
 }

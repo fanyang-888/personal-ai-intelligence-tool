@@ -5,6 +5,7 @@ import { buildDigestView } from "@/lib/mappers/digest";
 import { getClusterById } from "@/lib/mock-data/clusters";
 import { formatDigestDate } from "@/lib/utils/format-date";
 import { useI18n } from "@/lib/i18n";
+import { pickLocalized } from "@/lib/utils/localized-string";
 import { FeaturedStoryCard } from "@/components/digest/featured-story-card";
 import { ClusterCard } from "@/components/digest/cluster-card";
 import { DraftPreviewCard } from "@/components/digest/draft-preview-card";
@@ -16,8 +17,11 @@ export default function HomePage() {
   const { t, lang } = useI18n();
   const { featured, topClusters, draftOfDay } = buildDigestView();
   const dateLabel = formatDigestDate(new Date(), lang);
-  const relatedStoryTitle = draftOfDay
-    ? getClusterById(draftOfDay.clusterId)?.title
+  const relatedCluster = draftOfDay
+    ? getClusterById(draftOfDay.clusterId)
+    : undefined;
+  const relatedStoryTitle = relatedCluster
+    ? pickLocalized(relatedCluster.title, lang)
     : undefined;
 
   return (

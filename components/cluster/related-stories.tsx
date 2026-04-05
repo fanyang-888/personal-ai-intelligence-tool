@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { SectionTitle } from "@/components/shared/section-title";
 import { useI18n } from "@/lib/i18n";
+import { pickLocalized } from "@/lib/utils/localized-string";
 import type { Cluster } from "@/types/cluster";
 
 type RelatedStoriesProps = {
@@ -10,7 +11,7 @@ type RelatedStoriesProps = {
 };
 
 export function RelatedStories({ clusters }: RelatedStoriesProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
 
   if (clusters.length === 0) return null;
 
@@ -21,7 +22,7 @@ export function RelatedStories({ clusters }: RelatedStoriesProps) {
         {clusters.map((c) => (
           <li key={c.id}>
             <Link href={`/cluster/${c.id}`} className="font-medium underline underline-offset-4">
-              {c.title}
+              {pickLocalized(c.title, lang)}
             </Link>
           </li>
         ))}

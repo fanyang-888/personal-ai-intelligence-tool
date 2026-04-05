@@ -4,6 +4,7 @@ import Link from "next/link";
 import { SourceChannelBadge } from "@/components/digest/source-channel-badge";
 import { StoryBadge } from "@/components/digest/story-badge";
 import { useI18n } from "@/lib/i18n";
+import { pickLocalized } from "@/lib/utils/localized-string";
 import { archiveChannelHref } from "@/lib/utils/archive-url";
 import {
   formatClusterSourcesLine,
@@ -18,7 +19,7 @@ type ClusterCardProps = {
 };
 
 export function ClusterCard({ cluster }: ClusterCardProps) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const tags = cluster.tags?.length ? cluster.tags : [cluster.theme];
   const sourceCount = cluster.articleIds.length;
   const status = cluster.storyStatus ?? t.digest.featuredFallback;
@@ -32,7 +33,7 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
   return (
     <li className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
       <h3 className="text-base font-semibold leading-snug text-foreground">
-        {cluster.title}
+        {pickLocalized(cluster.title, lang)}
       </h3>
 
       {visibleChannels.length > 0 ? (
@@ -62,7 +63,9 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
         </ul>
       ) : null}
 
-      <p className="mt-2 line-clamp-1 text-sm text-zinc-600">{cluster.summary}</p>
+      <p className="mt-2 line-clamp-1 text-sm text-zinc-600">
+        {pickLocalized(cluster.summary, lang)}
+      </p>
 
       {sourcesLine ? (
         <p className="mt-2 text-xs text-zinc-500">

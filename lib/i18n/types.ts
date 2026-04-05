@@ -92,8 +92,10 @@ export type Translations = {
     draftSectionTitle: string;
     draftSectionLead: string;
     openDraft: string;
-    /** Shown above story body when UI is localized but mock content stays in English. */
-    contentOriginalLanguageHint: string;
+    /** Shown in Chinese mode above product-structured story body (bilingual assist disclaimer). */
+    bilingualAssistTrustNote: string;
+    /** Under covered sources: originals stay in source language. */
+    sourceOriginalPreservedNote: string;
     headerStoryStatus: string;
     headerSourceCount: string;
     headerScore: string;
@@ -143,6 +145,8 @@ export type Translations = {
     characterCountOverSoftLimit: string;
     notesTitle: string;
     notesBody: string;
+    /** Same trust line as cluster page when draft UI is in Chinese mode. */
+    bilingualAssistTrustNote: string;
   };
   notFound: {
     clusterTitle: string;
