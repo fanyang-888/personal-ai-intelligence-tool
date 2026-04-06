@@ -203,7 +203,7 @@ export function ArchivePageClient() {
           }
         >
           {rows.map((row) => (
-            <ArchiveResultCard key={row.id} row={row} />
+            <ArchiveResultCard key={row.id} row={row} highlightQuery={keyword} />
           ))}
         </ul>
       )}

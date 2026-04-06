@@ -4,12 +4,20 @@ import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
 import type { ArchiveResultRow } from "@/lib/mappers/archive";
 import { Badge } from "@/components/shared/badge";
+import { HighlightMatch } from "@/components/archive/highlight-match";
 
 type ArchiveResultCardProps = {
   row: ArchiveResultRow;
+  highlightQuery?: string;
 };
 
-function ClusterArchiveCard({ row }: { row: Extract<ArchiveResultRow, { kind: "cluster" }> }) {
+function ClusterArchiveCard({
+  row,
+  highlightQuery,
+}: {
+  row: Extract<ArchiveResultRow, { kind: "cluster" }>;
+  highlightQuery?: string;
+}) {
   const { t } = useI18n();
 
   return (
@@ -27,7 +35,9 @@ function ClusterArchiveCard({ row }: { row: Extract<ArchiveResultRow, { kind: "c
           {row.title}
         </Link>
       </h3>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-600">{row.summarySnippet}</p>
+      <p className="mt-2 text-sm leading-relaxed text-zinc-600">
+        <HighlightMatch text={row.summarySnippet} query={highlightQuery ?? ""} />
+      </p>
       <p className="mt-3 text-xs text-zinc-500">
         <span className="font-medium text-zinc-600">{t.digest.sourcesPrefix} </span>
         {row.sourceLabels}
@@ -36,7 +46,13 @@ function ClusterArchiveCard({ row }: { row: Extract<ArchiveResultRow, { kind: "c
   );
 }
 
-function ArticleArchiveCard({ row }: { row: Extract<ArchiveResultRow, { kind: "article" }> }) {
+function ArticleArchiveCard({
+  row,
+  highlightQuery,
+}: {
+  row: Extract<ArchiveResultRow, { kind: "article" }>;
+  highlightQuery?: string;
+}) {
   const { t } = useI18n();
 
   return (
@@ -61,7 +77,9 @@ function ArticleArchiveCard({ row }: { row: Extract<ArchiveResultRow, { kind: "a
           {row.title}
         </a>
       </h3>
-      <p className="mt-1.5 text-sm leading-relaxed text-zinc-600">{row.excerptSnippet}</p>
+      <p className="mt-1.5 text-sm leading-relaxed text-zinc-600">
+        <HighlightMatch text={row.excerptSnippet} query={highlightQuery ?? ""} />
+      </p>
       <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-zinc-600">
         <Badge>{row.themeLabel}</Badge>
         <span className="text-zinc-400">·</span>
@@ -76,9 +94,9 @@ function ArticleArchiveCard({ row }: { row: Extract<ArchiveResultRow, { kind: "a
   );
 }
 
-export function ArchiveResultCard({ row }: ArchiveResultCardProps) {
+export function ArchiveResultCard({ row, highlightQuery }: ArchiveResultCardProps) {
   if (row.kind === "cluster") {
-    return <ClusterArchiveCard row={row} />;
+    return <ClusterArchiveCard row={row} highlightQuery={highlightQuery} />;
   }
-  return <ArticleArchiveCard row={row} />;
+  return <ArticleArchiveCard row={row} highlightQuery={highlightQuery} />;
 }
