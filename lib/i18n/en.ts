@@ -61,7 +61,7 @@ export const en: Translations = {
   archive: {
     title: "Archive",
     description:
-      "Search and filter mock clusters — memory / retrieval layer (local only).",
+      "Retrieve intelligence you have already surfaced — search mock clusters and sources. Everything runs locally in this MVP.",
     searchPlaceholder: "Keyword in title or summary…",
     searchLabel: "Search",
     results: "Results",

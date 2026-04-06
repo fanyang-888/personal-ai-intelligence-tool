@@ -57,7 +57,8 @@ export const zh: Translations = {
   },
   archive: {
     title: "资料库",
-    description: "搜索并筛选 mock 集群 — 记忆 / 检索层（仅本地）。",
+    description:
+      "检索已呈现过的情报 — 在本地 MVP 中搜索 mock 集群与来源条目。",
     searchPlaceholder: "标题或摘要中的关键词…",
     searchLabel: "搜索",
     results: "结果",
