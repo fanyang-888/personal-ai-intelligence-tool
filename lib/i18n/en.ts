@@ -82,6 +82,7 @@ export const en: Translations = {
     resultModeGroupAria: "Result type",
     publishedLabel: "Published",
     relatedCluster: "Related cluster",
+    suggestThemesLead: "Try one of these themes from your catalog:",
   },
   channels: {
     email: "Email",

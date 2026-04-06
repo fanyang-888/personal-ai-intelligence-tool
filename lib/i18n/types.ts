@@ -83,6 +83,7 @@ export type Translations = {
     publishedLabel: string;
     relatedCluster: string;
     emptyCatalogArticles: string;
+    suggestThemesLead: string;
   };
   channels: ChannelLabels;
   cluster: {

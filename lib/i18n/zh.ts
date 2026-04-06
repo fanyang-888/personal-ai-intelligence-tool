@@ -78,6 +78,7 @@ export const zh: Translations = {
     resultModeGroupAria: "结果类型",
     publishedLabel: "发布",
     relatedCluster: "相关集群",
+    suggestThemesLead: "试试从目录里选一个主题：",
   },
   channels: {
     email: "邮件",

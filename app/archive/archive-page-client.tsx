@@ -21,6 +21,7 @@ import {
 } from "@/lib/utils/archive-url";
 import { useI18n } from "@/lib/i18n";
 import { ArchiveResultCard } from "@/components/archive/archive-result-card";
+import { ArchiveThemeSuggestions } from "@/components/archive/archive-theme-suggestions";
 import { SearchBar } from "@/components/archive/search-bar";
 import { FilterBar } from "@/components/archive/filter-bar";
 import {
@@ -190,12 +191,16 @@ export function ArchivePageClient() {
               ? t.archive.emptyCatalog
               : t.archive.emptyCatalogArticles
           }
-        />
+        >
+          <ArchiveThemeSuggestions themes={themes} onPickTheme={handleThemeChange} />
+        </EmptyState>
       ) : showNoResults ? (
         <NotFoundState
           title={t.archive.noResultsTitle}
           message={t.archive.noResultsMessage}
-        />
+        >
+          <ArchiveThemeSuggestions themes={themes} onPickTheme={handleThemeChange} />
+        </NotFoundState>
       ) : (
         <ul
           className={
