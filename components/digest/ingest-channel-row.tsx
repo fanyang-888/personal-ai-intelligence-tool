@@ -24,11 +24,11 @@ export function IngestChannelRow({
 
   return (
     <ul
-      className={`flex list-none flex-wrap gap-1.5 p-0 sm:gap-2 ${className}`.trim()}
+      className={`flex list-none flex-wrap gap-1.5 p-0 sm:gap-2 max-[380px]:-mx-0.5 max-[380px]:flex-nowrap max-[380px]:gap-1 max-[380px]:overflow-x-auto max-[380px]:pb-1 max-[380px]:[scrollbar-width:thin] ${className}`.trim()}
       aria-label={t.digest.ingestChannelsAria}
     >
       {visibleChannels.map(({ channel, count }) => (
-        <li key={channel}>
+        <li key={channel} className="shrink-0">
           <SourceChannelBadge
             channel={channel}
             count={count}
@@ -37,7 +37,7 @@ export function IngestChannelRow({
         </li>
       ))}
       {extraTypeCount > 0 ? (
-        <li>
+        <li className="shrink-0">
           <span
             className="inline-flex items-center rounded-md border border-dashed border-zinc-300 bg-zinc-50 px-2 py-0.5 text-xs font-medium tabular-nums text-zinc-500"
             title={t.digest.formatMoreChannelTypesHidden(extraTypeCount)}
