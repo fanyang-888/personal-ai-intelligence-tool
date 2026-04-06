@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import { ActionRow } from "@/components/shared/action-row";
 import {
+  uiTextLinkMuted,
   uiButtonGhostLink,
   uiButtonSecondary,
 } from "@/lib/ui/classes";
@@ -67,6 +68,9 @@ export function DraftActions({
         >
           {t.draft.regenerate}
         </button>
+        <Link href="/archive" className={uiTextLinkMuted}>
+          {t.nav.archive}
+        </Link>
         <Link
           href={`/cluster/${clusterId}`}
           className={uiButtonGhostLink}
