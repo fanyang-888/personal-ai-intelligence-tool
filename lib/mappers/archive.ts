@@ -14,6 +14,8 @@ export type ArchiveResultRow = {
   themeLabel: string;
   summarySnippet: string;
   sourceLabels: string;
+  /** From mock data when present (e.g. "Updated 2h ago"). */
+  freshnessLabel?: string;
 };
 
 const SNIPPET_LEN = 160;
@@ -48,6 +50,7 @@ export function mapClusterToArchiveRow(
     themeLabel: themeSelectLabel(cluster.theme, lang),
     summarySnippet,
     sourceLabels: names.join(", ") || "—",
+    freshnessLabel: cluster.freshnessLabel?.trim() || undefined,
   };
 }
 
