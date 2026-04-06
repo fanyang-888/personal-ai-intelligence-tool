@@ -56,14 +56,12 @@ export function ArchivePageClient() {
   const spKey = searchParams.toString();
   useEffect(() => {
     const p = parseArchiveQuery(new URLSearchParams(spKey));
-    /* eslint-disable react-hooks/set-state-in-effect -- sync controlled fields from URL (back/forward, shared links) */
     startTransition(() => {
       setKeyword(p.q);
       setTheme(p.theme);
       setSourceId(p.sourceId);
       setChannel(p.channel);
     });
-    /* eslint-enable react-hooks/set-state-in-effect */
   }, [spKey]);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
