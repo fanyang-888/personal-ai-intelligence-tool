@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { articles } from "@/lib/mock-data/articles";
 import { clusters } from "@/lib/mock-data/clusters";
@@ -50,10 +57,12 @@ export function ArchivePageClient() {
   useEffect(() => {
     const p = parseArchiveQuery(new URLSearchParams(spKey));
     /* eslint-disable react-hooks/set-state-in-effect -- sync controlled fields from URL (back/forward, shared links) */
-    setKeyword(p.q);
-    setTheme(p.theme);
-    setSourceId(p.sourceId);
-    setChannel(p.channel);
+    startTransition(() => {
+      setKeyword(p.q);
+      setTheme(p.theme);
+      setSourceId(p.sourceId);
+      setChannel(p.channel);
+    });
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [spKey]);
 
@@ -184,34 +193,36 @@ export function ArchivePageClient() {
       <SectionBlock>
         <SectionTitle>{t.archive.results}</SectionTitle>
 
-        {showAllEmpty ? (
-          <EmptyState
-            title={
-              resultMode === "clusters"
-                ? t.archive.emptyCatalog
-                : t.archive.emptyCatalogArticles
-            }
-          >
-            <ArchiveThemeSuggestions themes={themes} onPickTheme={handleThemeChange} />
-          </EmptyState>
-        ) : showNoResults ? (
-          <NoResultsState
-            title={t.archive.noResultsTitle}
-            message={t.archive.noResultsMessage}
-          >
-            <ArchiveThemeSuggestions themes={themes} onPickTheme={handleThemeChange} />
-          </NoResultsState>
-        ) : (
-          <ul
-            className={
-              resultMode === "clusters" ? "space-y-4" : "space-y-2.5"
-            }
-          >
-            {rows.map((row) => (
-              <ArchiveResultCard key={row.id} row={row} highlightQuery={keyword} />
-            ))}
-          </ul>
-        )}
+        <div className="min-h-[min(45vh,22rem)]">
+          {showAllEmpty ? (
+            <EmptyState
+              title={
+                resultMode === "clusters"
+                  ? t.archive.emptyCatalog
+                  : t.archive.emptyCatalogArticles
+              }
+            >
+              <ArchiveThemeSuggestions themes={themes} onPickTheme={handleThemeChange} />
+            </EmptyState>
+          ) : showNoResults ? (
+            <NoResultsState
+              title={t.archive.noResultsTitle}
+              message={t.archive.noResultsMessage}
+            >
+              <ArchiveThemeSuggestions themes={themes} onPickTheme={handleThemeChange} />
+            </NoResultsState>
+          ) : (
+            <ul
+              className={
+                resultMode === "clusters" ? "space-y-4" : "space-y-2.5"
+              }
+            >
+              {rows.map((row) => (
+                <ArchiveResultCard key={row.id} row={row} highlightQuery={keyword} />
+              ))}
+            </ul>
+          )}
+        </div>
       </SectionBlock>
     </div>
   );
