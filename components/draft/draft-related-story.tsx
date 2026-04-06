@@ -63,7 +63,7 @@ export function DraftRelatedStory({
         <div className="mt-3">
           <button
             type="button"
-            className={uiTextLinkPrimary}
+            className={`cursor-pointer ${uiTextLinkPrimary}`}
             aria-expanded={expanded}
             aria-controls={panelId}
             onClick={() => setExpanded((e) => !e)}
