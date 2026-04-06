@@ -11,6 +11,11 @@ const THEME_LABELS: Record<string, LocalizedString> = {
   Research: { en: "Research", zh: "研究" },
   Infrastructure: { en: "Infrastructure", zh: "基础设施" },
   "Enterprise AI": { en: "Enterprise AI", zh: "企业 AI" },
+  Trust: { en: "Trust", zh: "信任" },
+  Workflow: { en: "Workflow", zh: "工作流" },
+  Product: { en: "Product", zh: "产品" },
+  Mobile: { en: "Mobile", zh: "移动" },
+  Compliance: { en: "Compliance", zh: "合规" },
 };
 
 export function themeSelectLabel(themeKey: string, lang: Lang): string {

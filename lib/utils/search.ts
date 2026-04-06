@@ -62,7 +62,14 @@ export function filterClusters(clusters: Cluster[], filters: ArchiveFilters): Cl
 }
 
 export function uniqueThemes(clusters: Cluster[]): string[] {
-  return [...new Set(clusters.map((c) => c.theme))].sort();
+  const set = new Set<string>();
+  for (const c of clusters) {
+    set.add(c.theme);
+    for (const th of c.themes ?? []) {
+      set.add(th);
+    }
+  }
+  return [...set].sort((a, b) => a.localeCompare(b));
 }
 
 function articleIngestChannel(article: Article): string {
