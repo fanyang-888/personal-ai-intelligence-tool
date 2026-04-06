@@ -16,7 +16,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Personal AI Intelligence Tool",
+  title: {
+    default: "Personal AI Intelligence Tool",
+    template: "%s | Personal AI Intelligence",
+  },
   description: "Frontend-first local MVP — daily digest, clusters, archive, drafts",
 };
 

@@ -9,6 +9,13 @@ export const zh: Translations = {
     searchAria: "全站搜索",
     mainAria: "主导航",
   },
+  meta: {
+    titleBrand: "Personal AI Intelligence",
+    titleHome: "每日摘要",
+    titleArchive: "资料库",
+    titleStoryFallback: "故事",
+    titleDraftFallback: "草稿",
+  },
   home: {
     title: "每日 AI 摘要",
     subtitle: "跨来源整合的 AI 要闻与可落地解读",

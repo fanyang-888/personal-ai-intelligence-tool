@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { DocumentTitle } from "@/components/document-title";
 import { I18nProvider, useI18n } from "@/lib/i18n";
 
 function I18nVisualGate({ children }: { children: ReactNode }) {
@@ -15,6 +16,7 @@ function I18nVisualGate({ children }: { children: ReactNode }) {
       }
       aria-busy={!i18nReady}
     >
+      {i18nReady ? <DocumentTitle /> : null}
       {children}
     </div>
   );

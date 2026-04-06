@@ -9,6 +9,13 @@ export const en: Translations = {
     searchAria: "Site search",
     mainAria: "Main",
   },
+  meta: {
+    titleBrand: "Personal AI Intelligence",
+    titleHome: "Daily Digest",
+    titleArchive: "Archive",
+    titleStoryFallback: "Story",
+    titleDraftFallback: "Draft",
+  },
   home: {
     title: "Daily AI Digest",
     subtitle:

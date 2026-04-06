@@ -13,6 +13,14 @@ export type Translations = {
     searchAria: string;
     mainAria: string;
   };
+  /** Browser tab titles (client-updated; follows language toggle). */
+  meta: {
+    titleBrand: string;
+    titleHome: string;
+    titleArchive: string;
+    titleStoryFallback: string;
+    titleDraftFallback: string;
+  };
   home: {
     title: string;
     subtitle: string;
