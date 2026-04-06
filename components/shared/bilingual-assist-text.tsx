@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import type { Lang } from "@/lib/i18n/types";
 import type { LocalizedString } from "@/types/localized";
 import { isBilingual, pickLocalized } from "@/lib/utils/localized-string";
@@ -182,5 +183,21 @@ export function BilingualAssistBreadcrumbTitle({
         {value.zh}
       </span>
     </span>
+  );
+}
+
+type BilingualTrustNoteProps = {
+  children: ReactNode;
+};
+
+/** Dashed note shown in Chinese UI mode on story/draft pages (bilingual assist disclaimer). */
+export function BilingualTrustNote({ children }: BilingualTrustNoteProps) {
+  return (
+    <p
+      className="mb-4 rounded-md border border-dashed border-zinc-200 bg-zinc-50/80 px-3 py-2 text-xs leading-relaxed text-zinc-600"
+      role="note"
+    >
+      {children}
+    </p>
   );
 }

@@ -6,6 +6,7 @@ import {
   BilingualAssistSubline,
 } from "@/components/shared/bilingual-assist-text";
 import { useI18n } from "@/lib/i18n";
+import { uiPageTitle, uiMetaTextSm } from "@/lib/ui/classes";
 import { formatShortDateTime } from "@/lib/utils/format-date";
 import { formatRelevancePercent } from "@/lib/utils/cluster-sources";
 import {
@@ -39,11 +40,11 @@ export function ClusterHeader({ cluster, articles }: ClusterHeaderProps) {
   return (
     <header className="mb-6">
       <Badge>{cluster.clusterType}</Badge>
-      <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+      <h1 className={`mt-2 ${uiPageTitle}`}>
         <BilingualAssistHeading value={cluster.title} lang={lang} />
       </h1>
       {cluster.subtitle ? (
-        <p className="mt-2 text-sm text-zinc-600">
+        <p className={`mt-2 ${uiMetaTextSm}`}>
           <BilingualAssistSubline value={cluster.subtitle} lang={lang} />
         </p>
       ) : null}

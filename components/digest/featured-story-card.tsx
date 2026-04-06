@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { SourceChannelBadge } from "@/components/digest/source-channel-badge";
 import { StoryBadge } from "@/components/digest/story-badge";
+import { IngestChannelRow } from "@/components/digest/ingest-channel-row";
+import { ActionRow } from "@/components/shared/action-row";
+import { ResultCardFrame } from "@/components/shared/result-card-frame";
 import { useI18n } from "@/lib/i18n";
 import { pickLocalized } from "@/lib/utils/localized-string";
-import { archiveChannelHref } from "@/lib/utils/archive-url";
+import { uiMetaText, uiTextLinkPrimary } from "@/lib/ui/classes";
 import {
   formatClusterSourcesLine,
   formatRelevancePercent,
@@ -33,8 +35,10 @@ export function FeaturedStoryCard({
     partitionChannelCountsForDisplay(channelCounts, 3);
 
   return (
-    <section
-      className={`rounded-lg border border-zinc-200 border-l-4 border-l-emerald-600 bg-white p-6 shadow-sm sm:p-8 ${className}`}
+    <ResultCardFrame
+      as="section"
+      variant="digestFeatured"
+      className={className}
       aria-labelledby="featured-story-title"
     >
       <h2
@@ -50,34 +54,15 @@ export function FeaturedStoryCard({
       ) : null}
 
       {visibleChannels.length > 0 ? (
-        <ul
-          className="mt-3 flex list-none flex-wrap gap-1.5 p-0 sm:gap-2"
-          aria-label={t.digest.ingestChannelsAria}
-        >
-          {visibleChannels.map(({ channel, count }) => (
-            <li key={channel}>
-              <SourceChannelBadge
-                channel={channel}
-                count={count}
-                href={archiveChannelHref(channel)}
-              />
-            </li>
-          ))}
-          {extraTypeCount > 0 ? (
-            <li>
-              <span
-                className="inline-flex items-center rounded-md border border-dashed border-zinc-300 bg-zinc-50 px-2 py-0.5 text-xs font-medium tabular-nums text-zinc-500"
-                title={t.digest.formatMoreChannelTypesHidden(extraTypeCount)}
-              >
-                +{extraTypeCount}
-              </span>
-            </li>
-          ) : null}
-        </ul>
+        <IngestChannelRow
+          visibleChannels={visibleChannels}
+          extraTypeCount={extraTypeCount}
+          className="mt-3"
+        />
       ) : null}
 
       {sourcesLine ? (
-        <p className="mt-3 text-xs text-zinc-500">
+        <p className={`mt-3 ${uiMetaText}`}>
           <span className="font-medium text-zinc-600">
             {t.digest.sourcesPrefix}{" "}
           </span>
@@ -102,24 +87,18 @@ export function FeaturedStoryCard({
         {pickLocalized(cluster.whyItMatters, lang)}
       </p>
 
-      <div className="mt-6 flex flex-wrap items-center gap-4">
-        <Link
-          href={`/cluster/${cluster.id}`}
-          className="text-sm font-semibold text-emerald-800 underline decoration-emerald-600/40 underline-offset-4 hover:text-emerald-950"
-        >
+      <ActionRow className="mt-6">
+        <Link href={`/cluster/${cluster.id}`} className={uiTextLinkPrimary}>
           {t.digest.viewStory}
         </Link>
         {cluster.draftId ? (
-          <Link
-            href={`/draft/${cluster.draftId}`}
-            className="text-sm font-semibold text-emerald-800 underline decoration-emerald-600/40 underline-offset-4 hover:text-emerald-950"
-          >
+          <Link href={`/draft/${cluster.draftId}`} className={uiTextLinkPrimary}>
             {t.digest.openDraft}
           </Link>
         ) : (
           <span className="text-sm text-zinc-500">{t.digest.noDraftLinked}</span>
         )}
-      </div>
-    </section>
+      </ActionRow>
+    </ResultCardFrame>
   );
 }

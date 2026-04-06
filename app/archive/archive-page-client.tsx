@@ -23,14 +23,16 @@ import { useI18n } from "@/lib/i18n";
 import { ArchiveResultCard } from "@/components/archive/archive-result-card";
 import { ArchiveThemeSuggestions } from "@/components/archive/archive-theme-suggestions";
 import { SearchBar } from "@/components/archive/search-bar";
-import { FilterBar } from "@/components/archive/filter-bar";
+import { FilterRow } from "@/components/archive/filter-bar";
 import {
   ResultModeToggle,
   type ArchiveResultMode,
 } from "@/components/archive/result-mode-toggle";
+import { PageHeader } from "@/components/shared/page-header";
+import { SectionBlock } from "@/components/shared/section-block";
 import { SectionTitle } from "@/components/shared/section-title";
 import { EmptyState } from "@/components/shared/empty-state";
-import { NotFoundState } from "@/components/shared/not-found-state";
+import { NoResultsState } from "@/components/shared/no-results-state";
 
 const KEYWORD_URL_DEBOUNCE_MS = 350;
 
@@ -154,14 +156,11 @@ export function ArchivePageClient() {
 
   return (
     <div>
-      <header className="mb-2">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-          {t.archive.title}
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-600">
-          {t.archive.description}
-        </p>
-      </header>
+      <PageHeader
+        title={t.archive.title}
+        description={t.archive.description}
+        descriptionCompact
+      />
 
       <SearchBar
         value={keyword}
@@ -171,7 +170,7 @@ export function ArchivePageClient() {
         placeholder={t.archive.searchPlaceholder}
       />
       <ResultModeToggle value={resultMode} onChange={setResultMode} />
-      <FilterBar
+      <FilterRow
         theme={theme}
         sourceId={sourceId}
         channel={channel}
@@ -182,36 +181,38 @@ export function ArchivePageClient() {
         onChannelChange={handleChannelChange}
       />
 
-      <SectionTitle>{t.archive.results}</SectionTitle>
+      <SectionBlock>
+        <SectionTitle>{t.archive.results}</SectionTitle>
 
-      {showAllEmpty ? (
-        <EmptyState
-          title={
-            resultMode === "clusters"
-              ? t.archive.emptyCatalog
-              : t.archive.emptyCatalogArticles
-          }
-        >
-          <ArchiveThemeSuggestions themes={themes} onPickTheme={handleThemeChange} />
-        </EmptyState>
-      ) : showNoResults ? (
-        <NotFoundState
-          title={t.archive.noResultsTitle}
-          message={t.archive.noResultsMessage}
-        >
-          <ArchiveThemeSuggestions themes={themes} onPickTheme={handleThemeChange} />
-        </NotFoundState>
-      ) : (
-        <ul
-          className={
-            resultMode === "clusters" ? "space-y-4" : "space-y-2.5"
-          }
-        >
-          {rows.map((row) => (
-            <ArchiveResultCard key={row.id} row={row} highlightQuery={keyword} />
-          ))}
-        </ul>
-      )}
+        {showAllEmpty ? (
+          <EmptyState
+            title={
+              resultMode === "clusters"
+                ? t.archive.emptyCatalog
+                : t.archive.emptyCatalogArticles
+            }
+          >
+            <ArchiveThemeSuggestions themes={themes} onPickTheme={handleThemeChange} />
+          </EmptyState>
+        ) : showNoResults ? (
+          <NoResultsState
+            title={t.archive.noResultsTitle}
+            message={t.archive.noResultsMessage}
+          >
+            <ArchiveThemeSuggestions themes={themes} onPickTheme={handleThemeChange} />
+          </NoResultsState>
+        ) : (
+          <ul
+            className={
+              resultMode === "clusters" ? "space-y-4" : "space-y-2.5"
+            }
+          >
+            {rows.map((row) => (
+              <ArchiveResultCard key={row.id} row={row} highlightQuery={keyword} />
+            ))}
+          </ul>
+        )}
+      </SectionBlock>
     </div>
   );
 }

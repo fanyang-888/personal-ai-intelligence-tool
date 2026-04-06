@@ -6,10 +6,13 @@ import { getClusterById } from "@/lib/mock-data/clusters";
 import { formatDigestDate } from "@/lib/utils/format-date";
 import { useI18n } from "@/lib/i18n";
 import { pickLocalized } from "@/lib/utils/localized-string";
+import { uiTextLinkPrimary } from "@/lib/ui/classes";
 import { FeaturedStoryCard } from "@/components/digest/featured-story-card";
 import { ClusterCard } from "@/components/digest/cluster-card";
 import { DraftPreviewCard } from "@/components/digest/draft-preview-card";
 import { DiscoverArchiveCta } from "@/components/digest/quick-archive-entry";
+import { PageHeader } from "@/components/shared/page-header";
+import { SectionBlock } from "@/components/shared/section-block";
 import { SectionTitle } from "@/components/shared/section-title";
 import { EmptyState } from "@/components/shared/empty-state";
 
@@ -26,17 +29,15 @@ export default function HomePage() {
 
   return (
     <div>
-      <header className="mb-10 border-b border-zinc-100 pb-8">
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-[2rem]">
-          {t.home.title}
-        </h1>
-        <p className="mt-3 max-w-2xl text-base leading-relaxed text-zinc-600">
-          {t.home.subtitle}
-        </p>
-        <p className="mt-3 text-sm font-medium text-zinc-500">{dateLabel}</p>
-      </header>
+      <PageHeader
+        variant="home"
+        bordered
+        title={t.home.title}
+        description={t.home.subtitle}
+        meta={dateLabel}
+      />
 
-      <div className="mb-12 grid gap-8 lg:grid-cols-[1fr_min(18rem,34%)] lg:items-start">
+      <div className="mb-10 grid gap-8 lg:grid-cols-[1fr_min(18rem,34%)] lg:items-start">
         <div className="min-w-0">
           {featured ? (
             <FeaturedStoryCard cluster={featured} />
@@ -63,7 +64,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      <section className="mb-12">
+      <SectionBlock>
         <SectionTitle>{t.home.topClusters}</SectionTitle>
         {topClusters.length > 0 ? (
           <>
@@ -73,10 +74,7 @@ export default function HomePage() {
               ))}
             </ul>
             <div className="mt-6">
-              <Link
-                href="/archive"
-                className="text-sm font-semibold text-emerald-800 underline decoration-emerald-600/40 underline-offset-4 hover:text-emerald-950"
-              >
+              <Link href="/archive" className={uiTextLinkPrimary}>
                 {t.home.viewAllInsights}
               </Link>
             </div>
@@ -86,16 +84,13 @@ export default function HomePage() {
             title={t.home.emptyClustersTitle}
             description={t.home.emptyClustersDesc}
             action={
-              <Link
-                href="/archive"
-                className="text-sm font-semibold text-emerald-800 underline decoration-emerald-600/40 underline-offset-4"
-              >
+              <Link href="/archive" className={uiTextLinkPrimary}>
                 {t.home.goToArchive}
               </Link>
             }
           />
         )}
-      </section>
+      </SectionBlock>
 
       <DiscoverArchiveCta />
     </div>

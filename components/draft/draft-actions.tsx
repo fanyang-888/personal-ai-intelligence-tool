@@ -3,6 +3,11 @@
 import Link from "next/link";
 import { useCallback, useState } from "react";
 import { useI18n } from "@/lib/i18n";
+import { ActionRow } from "@/components/shared/action-row";
+import {
+  uiButtonGhostLink,
+  uiButtonSecondary,
+} from "@/lib/ui/classes";
 
 const DRAFT_CHAR_SOFT_LIMIT = 3000;
 
@@ -47,24 +52,24 @@ export function DraftActions({
 
   return (
     <div className="mt-8 border-t border-zinc-100 pt-6">
-      <div className="flex flex-wrap items-center gap-3">
+      <ActionRow>
         <button
           type="button"
           onClick={handleCopy}
-          className="rounded-md border border-zinc-300 bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-zinc-50"
+          className={uiButtonSecondary}
         >
           {copied ? t.draft.copied : t.draft.copyDraft}
         </button>
         <button
           type="button"
           onClick={onRegenerate}
-          className="rounded-md border border-zinc-300 bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-zinc-50"
+          className={uiButtonSecondary}
         >
           {t.draft.regenerate}
         </button>
         <Link
           href={`/cluster/${clusterId}`}
-          className="rounded-md border border-transparent px-3 py-2 text-sm font-medium text-emerald-800 underline decoration-emerald-600/40 underline-offset-4 hover:text-emerald-950"
+          className={uiButtonGhostLink}
         >
           {t.draft.backToStory}
         </Link>
@@ -80,7 +85,7 @@ export function DraftActions({
             DRAFT_CHAR_SOFT_LIMIT,
           )}
         </span>
-      </div>
+      </ActionRow>
       {variantTotal > 1 ? (
         <p className="mt-2 text-xs text-zinc-500">
           {t.draft.formatVariantHint(variant, variantTotal)}

@@ -15,7 +15,7 @@ type FilterBarProps = {
   onChannelChange: (channel: string) => void;
 };
 
-export function FilterBar({
+function FilterBar({
   theme,
   sourceId,
   channel,
@@ -86,3 +86,5 @@ export function FilterBar({
     </div>
   );
 }
+
+export { FilterBar, FilterBar as FilterRow };

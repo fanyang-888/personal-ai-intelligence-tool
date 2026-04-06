@@ -165,5 +165,15 @@ export const zh: Translations = {
     clusterMessage: "该集群 id 不在本地 mock 目录中。",
     draftTitle: "未找到该草稿",
     draftMessage: "该草稿 id 不在本地 mock 目录中。",
+    backToDigest: "返回每日摘要",
+  },
+  error: {
+    title: "出了点问题",
+    description: "请重试；若仍无法加载，可先返回摘要页。",
+    tryAgain: "重试",
+  },
+  loading: {
+    digest: "正在加载摘要…",
+    detail: "正在加载…",
   },
 };

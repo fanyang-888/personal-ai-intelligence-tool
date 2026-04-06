@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { SectionTitle } from "@/components/shared/section-title";
+import { ResultCardFrame } from "@/components/shared/result-card-frame";
 import { useI18n } from "@/lib/i18n";
 import { pickLocalized } from "@/lib/utils/localized-string";
+import { uiTextLinkPrimary } from "@/lib/ui/classes";
 import type { Draft } from "@/types/draft";
 
 type DraftPreviewCardProps = {
@@ -36,12 +38,14 @@ export function DraftPreviewCard({
   const clamp = isAside ? "line-clamp-3" : "line-clamp-4";
 
   return (
-    <section
+    <ResultCardFrame
+      as="section"
+      variant="digestMuted"
       id="draft-of-the-day"
-      className={`scroll-mt-24 rounded-lg border border-zinc-200 bg-zinc-50/50 ${
-        isAside ? "p-4 sm:p-5 lg:sticky lg:top-24" : "mb-12 p-5 sm:p-6"
-      }`}
       aria-labelledby="draft-of-day-heading"
+      className={`scroll-mt-24 ${
+        isAside ? "p-4 sm:p-5 lg:sticky lg:top-24" : "mb-10 p-5 sm:p-6"
+      }`}
     >
       <SectionTitle id="draft-of-day-heading">
         {t.draftPreview.sectionTitle}
@@ -66,10 +70,10 @@ export function DraftPreviewCard({
       </p>
       <Link
         href={`/draft/${draft.id}`}
-        className="mt-5 inline-block text-sm font-semibold text-emerald-800 underline decoration-emerald-600/40 underline-offset-4 hover:text-emerald-950"
+        className={`mt-5 inline-block ${uiTextLinkPrimary}`}
       >
         {t.draftPreview.openFullDraft}
       </Link>
-    </section>
+    </ResultCardFrame>
   );
 }

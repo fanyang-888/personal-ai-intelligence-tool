@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useId, useMemo, useState } from "react";
 import { SectionTitle } from "@/components/shared/section-title";
+import { ResultCardFrame } from "@/components/shared/result-card-frame";
 import { useI18n } from "@/lib/i18n";
 import { firstParagraphExcerpt, pickLocalized } from "@/lib/utils/localized-string";
+import { uiTextLinkMuted, uiTextLinkPrimary } from "@/lib/ui/classes";
 import type { LocalizedString } from "@/types/localized";
 
 type DraftRelatedStoryProps = {
@@ -33,13 +35,14 @@ export function DraftRelatedStory({
   const canExpand = Boolean(clusterSummaryExcerpt) || !clusterExists;
 
   return (
-    <section className="mb-8 rounded-lg border border-zinc-200 bg-zinc-50/60 p-5 sm:p-6">
+    <ResultCardFrame
+      as="section"
+      variant="digestMuted"
+      className="mb-8 p-5 sm:p-6"
+    >
       <SectionTitle>{t.draft.relatedStorySection}</SectionTitle>
       <h3 className="mt-1 text-base font-semibold text-foreground">
-        <Link
-          href={href}
-          className="text-emerald-900 underline decoration-emerald-600/40 underline-offset-4 hover:text-emerald-950"
-        >
+        <Link href={href} className={uiTextLinkPrimary}>
           {pickLocalized(clusterTitle, lang)}
         </Link>
       </h3>
@@ -60,7 +63,7 @@ export function DraftRelatedStory({
         <div className="mt-3">
           <button
             type="button"
-            className="text-sm font-medium text-emerald-800 underline decoration-emerald-600/40 underline-offset-4 hover:text-emerald-950"
+            className={uiTextLinkPrimary}
             aria-expanded={expanded}
             aria-controls={panelId}
             onClick={() => setExpanded((e) => !e)}
@@ -90,19 +93,13 @@ export function DraftRelatedStory({
       ) : null}
 
       <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2">
-        <Link
-          href={href}
-          className="text-sm font-semibold text-emerald-800 underline decoration-emerald-600/40 underline-offset-4 hover:text-emerald-950"
-        >
+        <Link href={href} className={uiTextLinkPrimary}>
           {t.draft.viewSourceStory}
         </Link>
-        <Link
-          href={href}
-          className="text-sm font-medium text-zinc-700 underline underline-offset-4 hover:text-foreground"
-        >
+        <Link href={href} className={uiTextLinkMuted}>
           {t.draft.backToStory}
         </Link>
       </div>
-    </section>
+    </ResultCardFrame>
   );
 }

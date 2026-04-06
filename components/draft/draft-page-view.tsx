@@ -6,6 +6,7 @@ import { DraftHeader } from "@/components/draft/draft-header";
 import { DraftRelatedStory } from "@/components/draft/draft-related-story";
 import { LinkedInDraftBody } from "@/components/draft/linkedin-draft-body";
 import { DraftActions } from "@/components/draft/draft-actions";
+import { BilingualTrustNote } from "@/components/shared/bilingual-assist-text";
 import {
   collectHashtagLabelsFromClusterArticles,
   formatHashtagLine,
@@ -86,12 +87,7 @@ export function DraftPageView({
       />
 
       {lang === "zh" ? (
-        <p
-          className="mb-4 rounded-md border border-dashed border-zinc-200 bg-zinc-50/80 px-3 py-2 text-xs leading-relaxed text-zinc-600"
-          role="note"
-        >
-          {t.draft.bilingualAssistTrustNote}
-        </p>
+        <BilingualTrustNote>{t.draft.bilingualAssistTrustNote}</BilingualTrustNote>
       ) : null}
 
       <LinkedInDraftBody

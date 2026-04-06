@@ -160,5 +160,15 @@ export type Translations = {
     clusterMessage: string;
     draftTitle: string;
     draftMessage: string;
+    backToDigest: string;
+  };
+  error: {
+    title: string;
+    description: string;
+    tryAgain: string;
+  };
+  loading: {
+    digest: string;
+    detail: string;
   };
 };

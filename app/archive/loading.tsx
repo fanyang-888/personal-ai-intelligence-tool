@@ -1,7 +1,5 @@
-"use client";
-
 import { LoadingState } from "@/components/shared/loading-state";
 
-export function ArchiveLoadingFallback() {
+export default function ArchiveLoading() {
   return <LoadingState layout="archive" />;
 }

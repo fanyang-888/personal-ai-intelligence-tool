@@ -5,6 +5,8 @@ import { useI18n } from "@/lib/i18n";
 import type { ArchiveResultRow } from "@/lib/mappers/archive";
 import { Badge } from "@/components/shared/badge";
 import { HighlightMatch } from "@/components/archive/highlight-match";
+import { ResultCardFrame } from "@/components/shared/result-card-frame";
+import { uiMetaText } from "@/lib/ui/classes";
 
 type ArchiveResultCardProps = {
   row: ArchiveResultRow;
@@ -21,13 +23,13 @@ function ClusterArchiveCard({
   const { t } = useI18n();
 
   return (
-    <li className="rounded-lg border border-zinc-300/90 bg-white p-4 shadow-sm">
+    <ResultCardFrame as="li" variant="archiveCluster">
       <div className="flex flex-wrap items-start justify-between gap-2 gap-y-1">
         <div className="flex flex-wrap items-center gap-2">
           <Badge>{row.themeLabel}</Badge>
         </div>
         {row.freshnessLabel ? (
-          <span className="shrink-0 text-xs text-zinc-500">{row.freshnessLabel}</span>
+          <span className={`shrink-0 ${uiMetaText}`}>{row.freshnessLabel}</span>
         ) : null}
       </div>
       <h3 className="mt-3 text-base font-semibold leading-snug tracking-tight text-foreground">
@@ -38,11 +40,11 @@ function ClusterArchiveCard({
       <p className="mt-2 text-sm leading-relaxed text-zinc-600">
         <HighlightMatch text={row.summarySnippet} query={highlightQuery ?? ""} />
       </p>
-      <p className="mt-3 text-xs text-zinc-500">
+      <p className={`mt-3 ${uiMetaText}`}>
         <span className="font-medium text-zinc-600">{t.digest.sourcesPrefix} </span>
         {row.sourceLabels}
       </p>
-    </li>
+    </ResultCardFrame>
   );
 }
 
@@ -56,13 +58,13 @@ function ArticleArchiveCard({
   const { t } = useI18n();
 
   return (
-    <li className="rounded-md border border-zinc-200 bg-zinc-50/50 py-3 pl-4 pr-3 border-l-[3px] border-l-emerald-600/35">
+    <ResultCardFrame as="li" variant="archiveArticle">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <span className="text-xs font-semibold uppercase tracking-wide text-zinc-600">
           {row.sourceName}
         </span>
         {row.publishedLabel ? (
-          <span className="text-xs text-zinc-500">
+          <span className={uiMetaText}>
             {t.archive.publishedLabel} · {row.publishedLabel}
           </span>
         ) : null}
@@ -90,7 +92,7 @@ function ArticleArchiveCard({
           {t.archive.relatedCluster}: {row.clusterTitle}
         </Link>
       </div>
-    </li>
+    </ResultCardFrame>
   );
 }
 

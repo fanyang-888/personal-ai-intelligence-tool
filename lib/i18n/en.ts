@@ -176,5 +176,15 @@ export const en: Translations = {
     clusterMessage: "That cluster id is not in the local mock catalog.",
     draftTitle: "Draft not found",
     draftMessage: "That draft id is not in the local mock catalog.",
+    backToDigest: "Back to Daily Digest",
+  },
+  error: {
+    title: "Something went wrong",
+    description: "Try again, or return to the digest if the problem persists.",
+    tryAgain: "Try again",
+  },
+  loading: {
+    digest: "Loading digest…",
+    detail: "Loading…",
   },
 };

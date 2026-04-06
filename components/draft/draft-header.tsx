@@ -2,6 +2,7 @@
 
 import { BilingualAssistSubline } from "@/components/shared/bilingual-assist-text";
 import { useI18n } from "@/lib/i18n";
+import { uiPageTitle, uiMetaTextSm } from "@/lib/ui/classes";
 import { pickLocalized } from "@/lib/utils/localized-string";
 import { formatShortDateTime } from "@/lib/utils/format-date";
 import type { Draft } from "@/types/draft";
@@ -27,10 +28,8 @@ export function DraftHeader({
 
   return (
     <header className="mb-8 border-b border-zinc-100 pb-8">
-      <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-[1.75rem]">
-        {pageTitle}
-      </h1>
-      <div className="mt-2 text-sm text-zinc-600">
+      <h1 className={uiPageTitle}>{pageTitle}</h1>
+      <div className={`mt-2 ${uiMetaTextSm}`}>
         <span className="font-medium text-zinc-500">{t.draft.workingTitleLabel}: </span>
         <BilingualAssistSubline value={draft.title} lang={lang} />
       </div>

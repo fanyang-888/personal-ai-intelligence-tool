@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { SourceChannelBadge } from "@/components/digest/source-channel-badge";
 import { StoryBadge } from "@/components/digest/story-badge";
+import { IngestChannelRow } from "@/components/digest/ingest-channel-row";
+import { MetaRow } from "@/components/shared/meta-row";
+import { ResultCardFrame } from "@/components/shared/result-card-frame";
 import { useI18n } from "@/lib/i18n";
 import { pickLocalized } from "@/lib/utils/localized-string";
-import { archiveChannelHref } from "@/lib/utils/archive-url";
+import { uiMetaText, uiTextLinkPrimary } from "@/lib/ui/classes";
 import {
   formatClusterSourcesLine,
   formatRelevancePercent,
@@ -31,36 +33,17 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
     partitionChannelCountsForDisplay(channelCounts, 3);
 
   return (
-    <li className="rounded-lg border border-zinc-200 bg-white p-4 shadow-sm">
+    <ResultCardFrame as="li" variant="digest">
       <h3 className="text-base font-semibold leading-snug text-foreground">
         {pickLocalized(cluster.title, lang)}
       </h3>
 
       {visibleChannels.length > 0 ? (
-        <ul
-          className="mt-2 flex list-none flex-wrap gap-1.5 p-0 sm:gap-2"
-          aria-label={t.digest.ingestChannelsAria}
-        >
-          {visibleChannels.map(({ channel, count }) => (
-            <li key={channel}>
-              <SourceChannelBadge
-                channel={channel}
-                count={count}
-                href={archiveChannelHref(channel)}
-              />
-            </li>
-          ))}
-          {extraTypeCount > 0 ? (
-            <li>
-              <span
-                className="inline-flex items-center rounded-md border border-dashed border-zinc-300 bg-zinc-50 px-2 py-0.5 text-xs font-medium tabular-nums text-zinc-500"
-                title={t.digest.formatMoreChannelTypesHidden(extraTypeCount)}
-              >
-                +{extraTypeCount}
-              </span>
-            </li>
-          ) : null}
-        </ul>
+        <IngestChannelRow
+          visibleChannels={visibleChannels}
+          extraTypeCount={extraTypeCount}
+          className="mt-2"
+        />
       ) : null}
 
       <p className="mt-2 line-clamp-1 text-sm text-zinc-600">
@@ -68,7 +51,7 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
       </p>
 
       {sourcesLine ? (
-        <p className="mt-2 text-xs text-zinc-500">
+        <p className={`mt-2 ${uiMetaText}`}>
           <span className="font-medium text-zinc-600">
             {t.digest.sourcesPrefix}{" "}
           </span>
@@ -85,29 +68,33 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
         ))}
       </div>
 
-      <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500">
-        <div>
-          <dt className="sr-only">{t.digest.srOnlySources}</dt>
-          <dd>{t.formatSourceCount(sourceCount)}</dd>
-        </div>
-        <div>
-          <dt className="sr-only">{t.digest.srOnlyFreshness}</dt>
-          <dd>{freshness}</dd>
-        </div>
-        <div>
-          <dt className="sr-only">{t.digest.srOnlyRelevance}</dt>
-          <dd>{relevance}</dd>
-        </div>
-      </dl>
+      <MetaRow
+        dense
+        className="mt-3"
+        items={[
+          {
+            label: t.digest.srOnlySources,
+            value: t.formatSourceCount(sourceCount),
+            labelSrOnly: true,
+          },
+          {
+            label: t.digest.srOnlyFreshness,
+            value: freshness,
+            labelSrOnly: true,
+          },
+          {
+            label: t.digest.srOnlyRelevance,
+            value: relevance,
+            labelSrOnly: true,
+          },
+        ]}
+      />
 
       <div className="mt-4">
-        <Link
-          href={`/cluster/${cluster.id}`}
-          className="text-sm font-semibold text-emerald-800 underline decoration-emerald-600/40 underline-offset-4 hover:text-emerald-950"
-        >
+        <Link href={`/cluster/${cluster.id}`} className={uiTextLinkPrimary}>
           {t.digest.viewStory}
         </Link>
       </div>
-    </li>
+    </ResultCardFrame>
   );
 }

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { SectionTitle } from "@/components/shared/section-title";
 import { useI18n } from "@/lib/i18n";
+import { uiTextLinkPrimary } from "@/lib/ui/classes";
 
 type DraftVariant = "prominent" | "compact" | "default";
 
@@ -38,7 +39,7 @@ export function DraftAction({
             </p>
             <Link
               href={`/draft/${draftId}`}
-              className="mt-4 inline-flex text-sm font-semibold text-emerald-900 underline decoration-emerald-600/50 underline-offset-4 hover:text-emerald-950"
+              className={`mt-4 inline-flex ${uiTextLinkPrimary}`}
             >
               {t.cluster.openDraft}
             </Link>
@@ -74,7 +75,7 @@ export function DraftAction({
         <p className="mt-1 text-xs text-zinc-600">{t.cluster.draftCompactLead}</p>
         <Link
           href={`/draft/${draftId}`}
-          className="mt-3 inline-flex text-sm font-semibold text-emerald-800 underline decoration-emerald-600/40 underline-offset-4 hover:text-emerald-950"
+          className={`mt-3 inline-flex ${uiTextLinkPrimary}`}
         >
           {t.cluster.openDraft}
         </Link>
@@ -88,10 +89,7 @@ export function DraftAction({
       {draftId ? (
         <>
           <p className="mb-3 text-sm text-zinc-600">{t.cluster.draftSectionLead}</p>
-          <Link
-            href={`/draft/${draftId}`}
-            className="text-sm font-medium text-emerald-800 underline underline-offset-4 hover:text-emerald-950"
-          >
+          <Link href={`/draft/${draftId}`} className={uiTextLinkPrimary}>
             {t.cluster.openDraft}
           </Link>
         </>

@@ -5,9 +5,7 @@ import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
 import { TopNavSearch } from "@/components/layout/top-nav-search";
 import { LanguageToggle } from "@/components/layout/language-toggle";
-
-const linkClass =
-  "shrink-0 text-sm font-medium text-foreground underline-offset-4 hover:text-emerald-800 hover:underline";
+import { uiTextLinkNav } from "@/lib/ui/classes";
 
 export function TopNav() {
   const { t } = useI18n();
@@ -25,13 +23,13 @@ export function TopNav() {
           className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm"
           aria-label={t.nav.mainAria}
         >
-          <Link href="/" className={linkClass}>
+          <Link href="/" className={`shrink-0 ${uiTextLinkNav}`}>
             {t.nav.dailyDigest}
           </Link>
-          <Link href="/archive" className={linkClass}>
+          <Link href="/archive" className={`shrink-0 ${uiTextLinkNav}`}>
             {t.nav.archive}
           </Link>
-          <Link href="/#draft-of-the-day" className={linkClass}>
+          <Link href="/#draft-of-the-day" className={`shrink-0 ${uiTextLinkNav}`}>
             {t.nav.draftOfDay}
           </Link>
         </nav>

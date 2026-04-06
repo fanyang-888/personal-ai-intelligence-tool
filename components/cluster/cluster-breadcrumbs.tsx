@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { BilingualAssistBreadcrumbTitle } from "@/components/shared/bilingual-assist-text";
+import { BackLink } from "@/components/shared/back-link";
 import { useI18n } from "@/lib/i18n";
 import type { LocalizedString } from "@/types/localized";
 
@@ -19,12 +19,7 @@ export function ClusterBreadcrumbs({ clusterTitle }: ClusterBreadcrumbsProps) {
     >
       <ol className="flex flex-wrap items-center gap-x-1 gap-y-1">
         <li>
-          <Link
-            href="/"
-            className="font-medium text-emerald-800 underline decoration-emerald-600/40 underline-offset-4 hover:text-emerald-950"
-          >
-            {t.nav.dailyDigest}
-          </Link>
+          <BackLink href="/">{t.nav.dailyDigest}</BackLink>
         </li>
         <li className="text-zinc-400" aria-hidden>
           /

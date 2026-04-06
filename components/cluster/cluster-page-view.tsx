@@ -9,7 +9,10 @@ import { CoveredSourcesList } from "@/components/cluster/covered-sources-list";
 import { RelatedStories } from "@/components/cluster/related-stories";
 import { DraftAction } from "@/components/cluster/draft-action";
 import { ClusterStoryFooter } from "@/components/cluster/cluster-story-footer";
-import { BilingualAssistBody } from "@/components/shared/bilingual-assist-text";
+import {
+  BilingualAssistBody,
+  BilingualTrustNote,
+} from "@/components/shared/bilingual-assist-text";
 import { SectionTitle } from "@/components/shared/section-title";
 import { getNextClusterInRankOrder } from "@/lib/utils/cluster-meta";
 import type { Cluster } from "@/types/cluster";
@@ -39,12 +42,7 @@ export function ClusterPageView({
           <ClusterHeader cluster={cluster} articles={articles} />
 
           {lang === "zh" ? (
-            <p
-              className="mb-4 rounded-md border border-dashed border-zinc-200 bg-zinc-50/80 px-3 py-2 text-xs leading-relaxed text-zinc-600"
-              role="note"
-            >
-              {t.cluster.bilingualAssistTrustNote}
-            </p>
+            <BilingualTrustNote>{t.cluster.bilingualAssistTrustNote}</BilingualTrustNote>
           ) : null}
 
           <section className="mb-6">
