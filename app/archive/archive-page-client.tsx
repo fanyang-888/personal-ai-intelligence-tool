@@ -2,18 +2,31 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { articles } from "@/lib/mock-data/articles";
 import { clusters } from "@/lib/mock-data/clusters";
 import { sources } from "@/lib/mock-data/sources";
-import { filterClusters, uniqueThemes } from "@/lib/utils/search";
-import { mapClustersToArchiveRows } from "@/lib/mappers/archive";
+import {
+  filterArticles,
+  filterClusters,
+  uniqueThemes,
+} from "@/lib/utils/search";
+import {
+  mapArticlesToArchiveRows,
+  mapClustersToArchiveRows,
+  type ArchiveResultRow,
+} from "@/lib/mappers/archive";
 import {
   archiveHref,
   parseArchiveQuery,
 } from "@/lib/utils/archive-url";
 import { useI18n } from "@/lib/i18n";
+import { ArchiveResultCard } from "@/components/archive/archive-result-card";
 import { SearchBar } from "@/components/archive/search-bar";
 import { FilterBar } from "@/components/archive/filter-bar";
-import { ResultCard } from "@/components/archive/result-card";
+import {
+  ResultModeToggle,
+  type ArchiveResultMode,
+} from "@/components/archive/result-mode-toggle";
 import { SectionTitle } from "@/components/shared/section-title";
 import { EmptyState } from "@/components/shared/empty-state";
 import { NotFoundState } from "@/components/shared/not-found-state";
@@ -28,6 +41,7 @@ export function ArchivePageClient() {
   const [theme, setTheme] = useState("");
   const [sourceId, setSourceId] = useState("");
   const [channel, setChannel] = useState("");
+  const [resultMode, setResultMode] = useState<ArchiveResultMode>("clusters");
 
   const spKey = searchParams.toString();
   useEffect(() => {
@@ -94,7 +108,7 @@ export function ArchivePageClient() {
     [],
   );
 
-  const filtered = useMemo(
+  const filteredClusters = useMemo(
     () =>
       filterClusters(clusters, {
         keyword,
@@ -105,9 +119,30 @@ export function ArchivePageClient() {
     [keyword, theme, sourceId, channel],
   );
 
-  const rows = useMemo(
-    () => mapClustersToArchiveRows(filtered, lang),
-    [filtered, lang],
+  const filteredArticles = useMemo(
+    () =>
+      filterArticles(articles, {
+        keyword,
+        theme,
+        sourceId,
+        channel,
+      }),
+    [keyword, theme, sourceId, channel],
+  );
+
+  const clusterRows = useMemo(
+    () => mapClustersToArchiveRows(filteredClusters, lang),
+    [filteredClusters, lang],
+  );
+
+  const articleRows = useMemo(
+    () => mapArticlesToArchiveRows(filteredArticles, lang),
+    [filteredArticles, lang],
+  );
+
+  const rows: ArchiveResultRow[] = useMemo(
+    () => (resultMode === "clusters" ? clusterRows : articleRows),
+    [resultMode, clusterRows, articleRows],
   );
 
   const hasActiveFilters = Boolean(
@@ -134,6 +169,7 @@ export function ArchivePageClient() {
         label={t.archive.searchLabel}
         placeholder={t.archive.searchPlaceholder}
       />
+      <ResultModeToggle value={resultMode} onChange={setResultMode} />
       <FilterBar
         theme={theme}
         sourceId={sourceId}
@@ -148,16 +184,26 @@ export function ArchivePageClient() {
       <SectionTitle>{t.archive.results}</SectionTitle>
 
       {showAllEmpty ? (
-        <EmptyState title={t.archive.emptyCatalog} />
+        <EmptyState
+          title={
+            resultMode === "clusters"
+              ? t.archive.emptyCatalog
+              : t.archive.emptyCatalogArticles
+          }
+        />
       ) : showNoResults ? (
         <NotFoundState
           title={t.archive.noResultsTitle}
           message={t.archive.noResultsMessage}
         />
       ) : (
-        <ul className="space-y-3">
+        <ul
+          className={
+            resultMode === "clusters" ? "space-y-4" : "space-y-2.5"
+          }
+        >
           {rows.map((row) => (
-            <ResultCard key={row.id} row={row} />
+            <ArchiveResultCard key={row.id} row={row} />
           ))}
         </ul>
       )}

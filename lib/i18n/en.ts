@@ -66,6 +66,7 @@ export const en: Translations = {
     searchLabel: "Search",
     results: "Results",
     emptyCatalog: "No clusters in catalog",
+    emptyCatalogArticles: "No articles in catalog",
     noResultsTitle: "No results",
     noResultsMessage:
       "Try a different keyword, theme, source, or channel.",
@@ -76,6 +77,11 @@ export const en: Translations = {
     allSources: "All sources",
     allChannels: "All channels",
     loading: "Loading archive…",
+    resultModeClusters: "Clusters",
+    resultModeArticles: "Articles",
+    resultModeGroupAria: "Result type",
+    publishedLabel: "Published",
+    relatedCluster: "Related cluster",
   },
   channels: {
     email: "Email",

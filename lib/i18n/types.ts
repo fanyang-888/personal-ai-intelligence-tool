@@ -77,6 +77,12 @@ export type Translations = {
     allSources: string;
     allChannels: string;
     loading: string;
+    resultModeClusters: string;
+    resultModeArticles: string;
+    resultModeGroupAria: string;
+    publishedLabel: string;
+    relatedCluster: string;
+    emptyCatalogArticles: string;
   };
   channels: ChannelLabels;
   cluster: {
