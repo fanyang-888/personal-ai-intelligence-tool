@@ -82,6 +82,32 @@ python -m scripts.seed_sources
 
 Run from `backend/` with `.env` configured. Safe to run multiple times; existing names are skipped.
 
+## Week 2 Day 2 — Trusted source adapters
+
+Trusted publishers are defined in [`app/source_catalog/trusted_sources.yaml`](app/source_catalog/trusted_sources.yaml) (validated by [`TrustedSourceConfig`](app/schemas/trusted_source_config.py)). This lives under `app/source_catalog/` so it does not clash with the settings module [`app/config.py`](app/config.py).
+
+**Dry run** (fetches remote feeds/HTML; does not write to the database):
+
+```bash
+python -m scripts.fetch_index_dry_run
+python -m scripts.fetch_index_dry_run --slug anthropic-newsroom
+python -m scripts.fetch_index_dry_run --json --slug techcrunch-ai
+```
+
+Requires `SOURCE_FETCH_USER_AGENT` and the usual `.env` (imports `app.config.settings`). Each run logs start/success/failure per source and prints candidate counts.
+
+**Candidate shape** (after `normalize`): `title`, `url`, `published_at`, `author_name`, `raw_meta` (parser hints, summary snippet, tags).
+
+**Registry**: `from app.adapters import get_adapter, ADAPTER_REGISTRY` maps `adapter_key` → `OpenAINewsAdapter`, `AnthropicNewsroomAdapter`, or `TechCrunchAIAdapter`.
+
+| Source | Slug | Ingestion |
+|--------|------|-----------|
+| OpenAI News | `openai-news` | RSS (`openai.com/news/rss.xml`); HTML fallback logged only if RSS empty |
+| Anthropic Newsroom | `anthropic-newsroom` | No public RSS in config → HTML index link extraction on `/news` |
+| TechCrunch AI | `techcrunch-ai` | RSS category feed only |
+
+`fetch_article` on `BaseSourceAdapter` returns a stub (`html: null`) until Day 3.
+
 ## Adapters and scripts (ingestion)
 
 Use a DB session **outside** FastAPI’s `Depends(get_db)`:
@@ -94,6 +120,8 @@ Use a DB session **outside** FastAPI’s `Depends(get_db)`:
 
 - `app/main.py` — FastAPI application
 - `app/config.py` — settings from environment
+- `app/source_catalog/` — `trusted_sources.yaml` + `load_trusted_sources()`
+- `app/adapters/` — `BaseSourceAdapter`, RSS/HTML helpers, concrete adapters, `get_adapter`
 - `app/db.py` — SQLAlchemy engine, `SessionLocal` / `session_factory`, `session_scope`, `get_db`
 - `app/logging_config.py` — shared stderr logging format
 - `app/crud/` — persistence helpers for ingestion
@@ -101,4 +129,4 @@ Use a DB session **outside** FastAPI’s `Depends(get_db)`:
 - `app/schemas/` — Pydantic schemas for future routes
 - `app/api/routes/` — route modules
 - `migrations/` — Alembic migration scripts
-- `scripts/` — dev helpers (e.g. `seed_sources`)
+- `scripts/` — dev helpers (`seed_sources`, `fetch_index_dry_run`)
