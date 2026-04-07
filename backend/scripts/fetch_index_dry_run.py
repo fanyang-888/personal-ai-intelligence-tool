@@ -4,6 +4,7 @@ Requires the same env as the API (``DATABASE_URL``, etc.) because ``app.config``
 
     cd backend && python -m scripts.fetch_index_dry_run
     python -m scripts.fetch_index_dry_run --slug anthropic-newsroom
+    python -m scripts.fetch_index_dry_run --json --slug openai-news
 """
 
 from __future__ import annotations
@@ -16,8 +17,8 @@ import sys
 
 from app.adapters import get_adapter
 from app.adapters.registry import AdapterNotRegisteredError
-from app.source_catalog.loader import load_trusted_sources
 from app.logging_config import configure_logging
+from app.source_catalog.loader import load_trusted_sources
 
 logger = logging.getLogger(__name__)
 
@@ -30,32 +31,47 @@ async def _run(slug: str | None, json_out: bool) -> int:
             logger.error("no active source with slug=%r", slug)
             return 1
 
-    summary: list[dict] = []
+    results: list[dict] = []
     exit_code = 0
     for cfg in configs:
         try:
             adapter = get_adapter(cfg)
             items = await adapter.fetch_index()
-            summary.append({"slug": cfg.slug, "name": cfg.name, "count": len(items), "error": None})
-            if json_out:
-                print(json.dumps({"slug": cfg.slug, "items": items}, indent=2, default=str))
-            else:
+            results.append(
+                {
+                    "slug": cfg.slug,
+                    "name": cfg.name,
+                    "count": len(items),
+                    "error": None,
+                    "items": items,
+                }
+            )
+            if not json_out:
                 print(f"{cfg.slug}\t{len(items)} candidates")
         except (AdapterNotRegisteredError, Exception) as e:
             exit_code = 1
-            summary.append(
+            results.append(
                 {
                     "slug": cfg.slug,
                     "name": cfg.name,
                     "count": 0,
                     "error": f"{type(e).__name__}: {e}",
+                    "items": [],
                 }
             )
             logger.error("source failed slug=%s err=%s", cfg.slug, e)
 
-    logger.info("fetch_index_dry_run finished sources=%s", len(summary))
-    if json_out and not slug:
-        print(json.dumps(summary, indent=2))
+    logger.info("fetch_index_dry_run finished sources=%s", len(results))
+    if json_out:
+        if len(results) == 1:
+            print(json.dumps(results[0], indent=2, default=str))
+        else:
+            # Omit full item lists when dumping all sources (OpenAI RSS can be 100s of entries).
+            slim = [
+                {"slug": r["slug"], "name": r["name"], "count": r["count"], "error": r["error"]}
+                for r in results
+            ]
+            print(json.dumps(slim, indent=2, default=str))
     return exit_code
 
 
@@ -66,7 +82,7 @@ def main() -> None:
     parser.add_argument(
         "--json",
         action="store_true",
-        help="Emit full candidate list per source (or summary if no --slug)",
+        help="JSON to stdout (full items only when exactly one source is selected)",
     )
     args = parser.parse_args()
     code = asyncio.run(_run(args.slug, args.json))

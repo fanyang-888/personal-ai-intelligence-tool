@@ -91,7 +91,8 @@ Trusted publishers are defined in [`app/source_catalog/trusted_sources.yaml`](ap
 ```bash
 python -m scripts.fetch_index_dry_run
 python -m scripts.fetch_index_dry_run --slug anthropic-newsroom
-python -m scripts.fetch_index_dry_run --json --slug techcrunch-ai
+python -m scripts.fetch_index_dry_run --json --slug techcrunch-ai   # full candidate list
+python -m scripts.fetch_index_dry_run --json   # all sources, counts only (no huge item arrays)
 ```
 
 Requires `SOURCE_FETCH_USER_AGENT` and the usual `.env` (imports `app.config.settings`). Each run logs start/success/failure per source and prints candidate counts.
