@@ -1,7 +1,7 @@
 services:
-  postgres:
+  db:
     image: postgres:16-alpine
-    container_name: pait-postgres
+    container_name: pait-db
     environment:
       POSTGRES_USER: pait
       POSTGRES_PASSWORD: pait
@@ -10,6 +10,12 @@ services:
       - "5432:5432"
     volumes:
       - pait_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pait -d pait"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 volumes:
   pait_pg_data:

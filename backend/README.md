@@ -15,7 +15,7 @@ From this directory (`backend/`):
 docker compose up -d
 ```
 
-This exposes Postgres on `localhost:5432` with user/password/database `pait` (see `docker-compose.yml`).
+The Compose service is named **`db`** (hostname `db` on the Compose network). Postgres is exposed on `localhost:5432` with user/password/database `pait` (see `docker-compose.yml`). The `db` service includes a **`healthcheck`** (`pg_isready`) so you can use `depends_on: { db: { condition: service_healthy } }` if you add an API container later.
 
 To use your own Postgres instead, create a database and set `DATABASE_URL` in `.env` accordingly.
 
@@ -60,13 +60,12 @@ uvicorn app.main:app --reload
 Open [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health). A successful response looks like:
 
 ```json
-{"status":"ok","database":"ok"}
+{"status":"healthy"}
 ```
 
-If PostgreSQL is unreachable or misconfigured, `/health` returns **503** with a JSON `detail` payload (no secrets).
+If PostgreSQL is unreachable or misconfigured, `/health` returns **503** with `detail` set to the generic string **`Database connection failed`** (no hostnames, usernames, or driver/traceback text).
 
-
-API docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
+API docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs). Week 2 Day 1 registers only **`GET /health`** — there are **no CRUD routes** for sources or articles yet.
 
 ## Layout
 

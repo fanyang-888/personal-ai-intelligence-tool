@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, UniqueConstraint, func
+from sqlalchemy import DateTime, ForeignKey, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -16,7 +16,6 @@ if TYPE_CHECKING:
 
 class Article(Base):
     __tablename__ = "articles"
-    __table_args__ = (UniqueConstraint("url", name="uq_articles_url"),)
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
@@ -28,7 +27,8 @@ class Article(Base):
         index=True,
     )
     title: Mapped[str] = mapped_column(Text, nullable=False)
-    url: Mapped[str] = mapped_column(Text, nullable=False)
+    # UNIQUE implies a backing unique index on PostgreSQL (dedupe + lookup); avoid duplicate index=True.
+    url: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
     canonical_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     fetched_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
