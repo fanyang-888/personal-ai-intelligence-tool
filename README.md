@@ -1,23 +1,18 @@
 # Personal AI Intelligence Tool
 
-Frontend-first local MVP: **Daily Digest** (`/`), **story cluster** detail (`/cluster/[id]`), **Archive** search (`/archive`), and **draft** detail (`/draft/[id]`). Data is mocked under `lib/mock-data/`; there is no backend yet.
+A **frontend-only MVP** for browsing a daily digest, story clusters, an archive with search, and LinkedIn-style drafts. All content lives in [`lib/mock-data/`](lib/mock-data/); there is **no backend, API, or authentication**.
 
-## Live site (GitHub Pages)
+## Known limitations
 
-After you enable **Settings → Pages → Source: GitHub Actions** and push to `main`, the workflow deploys the static export:
+- **Mock data only** — nothing is persisted or fetched from a network.
+- **Static export** — `next build` writes to `out/`; there are no server routes or SSR APIs. Use `npm run dev` for development; **`npm run start` is not used** for the static `out/` output.
+- **GitHub Pages** — production builds set `PAGES_BASE_PATH` (see workflow). Local dev uses `/` — do not set `PAGES_BASE_PATH` when running `npm run dev`.
+- **Draft “Regenerate”** — cycles a few **local** text variants; there is no model call.
+- **Document titles** on cluster/draft pages are set client-side (`DocumentTitle`) so they work with static export.
 
-**https://fanyang-888.github.io/personal-ai-intelligence-tool/**
+**Requirements:** Node **20+**, npm.
 
-Examples:
-
-- [Daily Digest](https://fanyang-888.github.io/personal-ai-intelligence-tool/)
-- [Cluster](https://fanyang-888.github.io/personal-ai-intelligence-tool/cluster/cluster-1)
-- [Draft](https://fanyang-888.github.io/personal-ai-intelligence-tool/draft/draft-1) (see also `/draft/draft-2`)
-- [Archive](https://fanyang-888.github.io/personal-ai-intelligence-tool/archive)
-
-If you **rename the GitHub repository**, set the same path in the workflow and in `PAGES_BASE_PATH` (see below).
-
-## Run locally
+## Quick start
 
 ```bash
 cd personal-ai-intelligence-tool
@@ -25,47 +20,53 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Do **not** set `PAGES_BASE_PATH` for normal local dev (the app is served at `/`).
+Open [http://localhost:3000](http://localhost:3000).
+
+## Live site (GitHub Pages)
+
+**https://fanyang-888.github.io/personal-ai-intelligence-tool/**
+
+Enable **Settings → Pages → Source: GitHub Actions**, then pushes to `main` run [`.github/workflows/deploy-github-pages.yml`](.github/workflows/deploy-github-pages.yml) (build uses `PAGES_BASE_PATH=/personal-ai-intelligence-tool`). If you **rename the repo**, update that path in the workflow and in local preview commands below.
+
+| Page | URL |
+|------|-----|
+| Daily Digest | [/](https://fanyang-888.github.io/personal-ai-intelligence-tool/) |
+| Cluster | [/cluster/cluster-1](https://fanyang-888.github.io/personal-ai-intelligence-tool/cluster/cluster-1) |
+| Archive | [/archive](https://fanyang-888.github.io/personal-ai-intelligence-tool/archive) |
+| Draft | [/draft/draft-1](https://fanyang-888.github.io/personal-ai-intelligence-tool/draft/draft-1), `/draft/draft-2` |
 
 ## Build (static export)
-
-`next build` emits static files to `out/` (`output: "export"`).
 
 ```bash
 npm run build
 ```
 
-Preview the **GitHub Pages** URL layout locally:
+Output: `out/`. To match GitHub Pages paths locally:
 
 ```bash
 PAGES_BASE_PATH=/personal-ai-intelligence-tool npm run build
 npx --yes serve out
 ```
 
-Then open the URL `serve` prints (paths will include `/personal-ai-intelligence-tool/...`).
+Use the URL `serve` prints (paths include `/personal-ai-intelligence-tool/...`).
 
-**Note:** With static export, use `npm run dev` for development. `npm run start` is not used for the `out/` folder.
+## Routes (local)
 
-## Try these routes
+| Route | Example |
+|--------|---------|
+| Daily Digest | `/` |
+| Cluster | `/cluster/cluster-1` |
+| Archive | `/archive` |
+| Draft | `/draft/draft-1`, `/draft/draft-2` |
 
-| Route | Local example | On GitHub Pages |
-|--------|----------------|-----------------|
-| Daily Digest | `/` | `/personal-ai-intelligence-tool/` |
-| Cluster | `/cluster/cluster-1` | `.../cluster/cluster-1` |
-| Archive | `/archive` | `.../archive` |
-| Draft | `/draft/draft-1`, `/draft/draft-2` | `.../draft/draft-1` |
-
-On a draft page, **Regenerate** cycles through 2–3 local text variants (no model call).
-
-## Folder map
+## Project layout
 
 - `app/` — App Router pages and layouts
-- `components/` — UI by area (`layout`, `digest`, `cluster`, `archive`, `draft`, `shared`)
-- `lib/mock-data/` — `sources`, `articles`, `clusters`, `drafts`
-- `lib/mappers/` — `digest`, `archive` view shaping
-- `lib/utils/` — `format-date`, `search`, `score`
-- `types/` — `source`, `article`, `cluster`, `draft`
+- `components/` — UI (`layout`, `digest`, `cluster`, `archive`, `draft`, `shared`)
+- `lib/mock-data/` — sources, articles, clusters, drafts
+- `lib/mappers/` — digest and archive view shaping
+- `lib/utils/` — dates, search, scoring, archive URLs
+- `types/` — shared TypeScript types
 - `public/` — static assets (includes `.nojekyll` for GitHub Pages)
-- `.github/workflows/` — deploy to GitHub Pages on push to `main`
 
-Stack: **Next.js** (App Router), **TypeScript**, **Tailwind CSS**.
+**Stack:** Next.js (App Router), React, TypeScript, Tailwind CSS.
