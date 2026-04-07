@@ -112,6 +112,8 @@ Per-source YAML fields (optional): `user_agent` (browser-like string for WAFs), 
 
 `fetch_article` on `BaseSourceAdapter` returns a stub (`html: null`) until Day 3.
 
+**Backlog (non-blocking before Day 3):** tracked in [`docs/BACKLOG.md`](../docs/BACKLOG.md) — `sources` vs YAML drift, full HTML fallback for OpenAI/Anthropic when RSS dies, and incremental ingestion (`last_polled_at`, conditional HTTP headers, end-to-end loop).
+
 ## Adapters and scripts (ingestion)
 
 Use a DB session **outside** FastAPI’s `Depends(get_db)`:
