@@ -9,8 +9,14 @@ class ArticleCreate(BaseModel):
 
     source_id: UUID
     title: str = Field(min_length=1)
-    url: str = Field(min_length=1)
-    canonical_url: str | None = None
+    url: str = Field(
+        min_length=1,
+        description="Stable fetch identity; must match DB UNIQUE and create_article ON CONFLICT key.",
+    )
+    canonical_url: str | None = Field(
+        default=None,
+        description="Optional; not used for dedupe unless schema is extended later.",
+    )
     published_at: datetime | None = None
     fetched_at: datetime | None = None
     raw_text: str | None = None

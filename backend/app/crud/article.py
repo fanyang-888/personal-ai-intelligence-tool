@@ -16,6 +16,9 @@ logger = logging.getLogger(__name__)
 def create_article(db: Session, article_in: ArticleCreate) -> Article | None:
     """Insert an article. Returns ``None`` if ``url`` already exists (unique constraint).
 
+    Dedupe is on **``url`` only** (not ``canonical_url``). Pass the fetch identity you use for
+    stable comparison (typically the final request URL or normalized permalink).
+
     Does not commit. With :func:`app.db.session_scope`, the scope commits on exit.
     With FastAPI :func:`app.db.get_db`, call ``db.commit()`` in the route after success.
     """

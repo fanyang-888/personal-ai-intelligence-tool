@@ -15,6 +15,12 @@ if TYPE_CHECKING:
 
 
 class Article(Base):
+    """Row identity for ingestion dedupe is ``url`` only (DB UNIQUE + ``create_article`` conflict target).
+
+    ``canonical_url`` is optional metadata (e.g. after redirects); it is **not** unique and must not
+    be used as the duplicate key unless we add a separate migration and change ``create_article``.
+    """
+
     __tablename__ = "articles"
 
     id: Mapped[uuid.UUID] = mapped_column(

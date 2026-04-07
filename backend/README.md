@@ -67,6 +67,21 @@ If PostgreSQL is unreachable or misconfigured, `/health` returns **503** with `d
 
 API docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs). The OpenAPI UI currently exposes only **`GET /health`** — ingestion is expected to run from **scripts or tasks**, not from manual CRUD in Swagger.
 
+## Article dedupe (which column is unique?)
+
+- **Enforced in PostgreSQL and in** `create_article`: **`articles.url`** is **UNIQUE**; ingestion treats it as the stable identity for “already seen this item” (see `ON CONFLICT … ON url`).
+- **`canonical_url`** is **not** unique and is **not** part of that conflict handling. Use it for display or later cross-reference; if you ever need dedupe on canonical links, that would be a **new** constraint and a deliberate change to `create_article`.
+
+## Seed data (`sources`)
+
+After migrations, optionally load dev/test **source** rows (idempotent by `name`):
+
+```bash
+python -m scripts.seed_sources
+```
+
+Run from `backend/` with `.env` configured. Safe to run multiple times; existing names are skipped.
+
 ## Adapters and scripts (ingestion)
 
 Use a DB session **outside** FastAPI’s `Depends(get_db)`:
@@ -86,3 +101,4 @@ Use a DB session **outside** FastAPI’s `Depends(get_db)`:
 - `app/schemas/` — Pydantic schemas for future routes
 - `app/api/routes/` — route modules
 - `migrations/` — Alembic migration scripts
+- `scripts/` — dev helpers (e.g. `seed_sources`)
