@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from app.adapters.article_html import extract_techcrunch_article, fetch_html
 from app.adapters.base import BaseSourceAdapter
 from app.adapters.http_client import ingestion_http_client
 from app.adapters.ingestion_limits import apply_entry_limits
@@ -16,6 +17,64 @@ logger = logging.getLogger(__name__)
 class TechCrunchAIAdapter(BaseSourceAdapter):
     source_name = "TechCrunch AI"
     adapter_key = "techcrunch_ai"
+
+    async def fetch_article(self, item: dict[str, Any]) -> dict[str, Any]:
+        url = (item.get("url") or "").strip()
+        if not url:
+            return {
+                "status": "failed",
+                "error": "missing candidate url",
+                "error_type": "ValueError",
+                "adapter_key": self.adapter_key,
+            }
+        try:
+            async with ingestion_http_client(self.source_config) as client:
+                html, final_url = await fetch_html(client, url)
+        except Exception as e:
+            logger.exception(
+                "fetch_article http failure adapter=%s url=%s",
+                self.adapter_key,
+                url[:200],
+            )
+            return {
+                "status": "failed",
+                "error": str(e),
+                "error_type": type(e).__name__,
+                "url": url,
+                "adapter_key": self.adapter_key,
+            }
+        extracted = extract_techcrunch_article(html, final_url)
+        raw = (extracted.get("raw_text") or "").strip()
+        if len(raw) < 40:
+            return {
+                "status": "failed",
+                "error": "empty_or_short_extraction",
+                "error_type": "ParseError",
+                "url": url,
+                "adapter_key": self.adapter_key,
+                "raw_meta": {
+                    "full_fetch": {
+                        "extraction_method": extracted.get("extraction_method"),
+                        "http_final_url": extracted.get("http_final_url"),
+                    }
+                },
+            }
+        base_meta = dict(item.get("raw_meta") or {})
+        base_meta["full_fetch"] = {
+            "site": "techcrunch.com",
+            "extraction_method": extracted.get("extraction_method"),
+            "http_final_url": extracted.get("http_final_url"),
+        }
+        return {
+            "status": "ok",
+            "url": url,
+            "raw_text": raw,
+            "canonical_url": extracted.get("canonical_url"),
+            "title_guess": extracted.get("title_guess"),
+            "author_guess": extracted.get("author_guess"),
+            "excerpt": extracted.get("excerpt"),
+            "raw_meta": base_meta,
+        }
 
     async def fetch_index(self) -> list[dict[str, Any]]:
         slug = self.source_config.slug

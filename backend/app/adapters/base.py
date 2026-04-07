@@ -26,11 +26,13 @@ class BaseSourceAdapter(ABC):
         """Fetch recent article candidates (normalized dicts)."""
 
     async def fetch_article(self, item: dict[str, Any]) -> dict[str, Any]:
-        """Full body fetch deferred (Day 3+)."""
+        """Download and parse one article page; concrete adapters override (Day 3)."""
         return {
+            "status": "failed",
+            "error": "fetch_article not implemented for this adapter",
+            "error_type": "NotImplementedError",
+            "adapter_key": getattr(self, "adapter_key", ""),
             "url": item.get("url"),
-            "html": None,
-            "status": "deferred",
         }
 
     def normalize(self, raw: dict[str, Any]) -> dict[str, Any]:
