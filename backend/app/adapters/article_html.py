@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import logging
+import re
 from typing import Any
 from urllib.parse import urljoin
 
@@ -11,11 +13,76 @@ from bs4 import BeautifulSoup
 
 from app.adapters.http_fetch import get_with_retry
 
+logger = logging.getLogger(__name__)
+
+_BOILERPLATE_CLASS_KEYS = (
+    "related-posts",
+    "related_posts",
+    "social-share",
+    "social_share",
+    "share-buttons",
+    "newsletter",
+    "sidebar",
+    "comments-area",
+    "comment-list",
+    "popular-posts",
+    "recommended",
+)
+
+
+def strip_boilerplate_tags(soup: BeautifulSoup) -> None:
+    """Remove nav/header/footer/aside and noisy class blocks before main-text extraction (mutates soup)."""
+    for tag in soup.find_all(["nav", "header", "footer", "aside"]):
+        tag.decompose()
+    for div in soup.find_all("div"):
+        attrs = getattr(div, "attrs", None) or {}
+        cls_attr = attrs.get("class")
+        if not cls_attr:
+            continue
+        classes = " ".join(cls_attr if isinstance(cls_attr, list) else [str(cls_attr)]).lower()
+        if any(k in classes for k in _BOILERPLATE_CLASS_KEYS):
+            div.decompose()
+
+
+def paragraph_text_ratio(soup: BeautifulSoup) -> float | None:
+    """Share of visible characters that live under ``<p>`` tags (None if no paragraphs)."""
+    ps = soup.find_all("p")
+    if not ps:
+        return None
+    p_len = sum(len(p.get_text(strip=True)) for p in ps)
+    total = len(soup.get_text(strip=True))
+    if total <= 0:
+        return None
+    return p_len / total
+
 
 async def fetch_html(client: httpx.AsyncClient, url: str) -> tuple[str, str]:
-    """GET ``url``; return ``(html_text, final_url_after_redirects)``."""
+    """GET ``url``; return ``(html_text, final_url_after_redirects)``.
+
+    Use ``Content-Type`` charset when present (``charset_encoding``), then optional ``<meta charset>``
+    sniff if the header omitted it.
+    """
     resp = await get_with_retry(client, url)
-    return resp.text, str(resp.url)
+    ce = resp.charset_encoding
+    if ce:
+        resp.encoding = ce
+    else:
+        resp.encoding = "utf-8"
+    text = resp.text
+    if not ce:
+        m = re.search(
+            rb'<meta[^>]+charset=["\']?([^"\'\\s>]+)',
+            resp.content[:65536],
+            re.I,
+        )
+        if m:
+            try:
+                decl = m.group(1).decode("ascii", errors="ignore").strip().lower()
+                if decl and decl not in ("utf-8", "utf8"):
+                    text = resp.content.decode(decl, errors="replace")
+            except (LookupError, UnicodeDecodeError):
+                pass
+    return text, str(resp.url)
 
 
 def _parse_json_ld_article(soup: BeautifulSoup) -> tuple[str | None, str | None, str | None]:
@@ -29,7 +96,11 @@ def _parse_json_ld_article(soup: BeautifulSoup) -> tuple[str | None, str | None,
             continue
         try:
             data = json.loads(raw)
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
+            logger.info(
+                "article_html json_ld parse skipped reason=invalid_json err=%s",
+                e.__class__.__name__,
+            )
             continue
         if isinstance(data, dict) and "@graph" in data and isinstance(data["@graph"], list):
             data = data["@graph"]
@@ -103,8 +174,12 @@ def fallback_main_text(soup: BeautifulSoup, *, site_hint: str) -> str | None:
     class_keywords = ("article-content", "entry-content", "post-content", "prose", "article__")
     if site_hint == "techcrunch":
         class_keywords = ("article-content", "entry-content") + class_keywords
-    for div in soup.find_all("div", class_=True):
-        classes = " ".join(div.get("class", [])).lower()
+    for div in soup.find_all("div"):
+        attrs = getattr(div, "attrs", None) or {}
+        cls_attr = attrs.get("class")
+        if not cls_attr:
+            continue
+        classes = " ".join(cls_attr if isinstance(cls_attr, list) else [str(cls_attr)]).lower()
         if any(k in classes for k in class_keywords):
             t = _visible_block_text(div)
             if len(t) > 200:
@@ -112,17 +187,50 @@ def fallback_main_text(soup: BeautifulSoup, *, site_hint: str) -> str | None:
     return None
 
 
-def extract_openai_article(html: str, final_url: str) -> dict[str, Any]:
-    """OpenAI news / blog HTML → text + metadata."""
-    soup = BeautifulSoup(html, "html.parser")
+def _extract_with_logging(
+    site: str,
+    soup: BeautifulSoup,
+    final_url: str,
+    *,
+    site_hint: str,
+    techcrunch_selectors_first: bool = False,
+) -> dict[str, Any]:
+    """Shared pipeline: JSON-LD → optional TechCrunch div → DOM fallback; logs extraction path."""
     body, headline, author = _parse_json_ld_article(soup)
     meta = meta_canonical_and_open_graph(soup, final_url)
-    method = "json_ld" if body else None
-    if not body:
-        body = fallback_main_text(soup, site_hint="openai")
-        method = "dom_fallback"
+    method: str | None = None
+    p_ratio: float | None = None
+
+    if body:
+        method = "json_ld"
+        p_ratio = None
+        logger.info("article_html extraction site=%s method=json_ld url=%s", site, final_url[:120])
+    else:
+        if techcrunch_selectors_first:
+            node = soup.select_one(".article-content") or soup.select_one("article")
+            body = _visible_block_text(node) if node else None
+            if body and len(body) > 120:
+                method = "techcrunch_selectors"
+                p_ratio = paragraph_text_ratio(soup)
+                logger.info(
+                    "article_html extraction site=%s method=techcrunch_selectors paragraph_ratio=%s url=%s",
+                    site,
+                    f"{p_ratio:.3f}" if p_ratio is not None else "n/a",
+                    final_url[:120],
+                )
+        if not body:
+            body = fallback_main_text(soup, site_hint=site_hint)
+            method = "dom_fallback"
+            p_ratio = paragraph_text_ratio(soup)
+            logger.info(
+                "article_html extraction site=%s method=dom_fallback paragraph_ratio=%s url=%s",
+                site,
+                f"{p_ratio:.3f}" if p_ratio is not None else "n/a",
+                final_url[:120],
+            )
+
     excerpt = meta.get("og_description")
-    if excerpt and body and excerpt in body[:500]:
+    if excerpt and body and isinstance(excerpt, str) and excerpt in body[:500]:
         excerpt = excerpt[:280]
     return {
         "raw_text": body,
@@ -132,50 +240,30 @@ def extract_openai_article(html: str, final_url: str) -> dict[str, Any]:
         "excerpt": excerpt if isinstance(excerpt, str) else None,
         "extraction_method": method,
         "http_final_url": final_url,
+        "paragraph_ratio": p_ratio,
     }
+
+
+def extract_openai_article(html: str, final_url: str) -> dict[str, Any]:
+    soup = BeautifulSoup(html, "html.parser")
+    strip_boilerplate_tags(soup)
+    out = _extract_with_logging("openai.com", soup, final_url, site_hint="openai")
+    return out
 
 
 def extract_anthropic_article(html: str, final_url: str) -> dict[str, Any]:
     soup = BeautifulSoup(html, "html.parser")
-    body, headline, author = _parse_json_ld_article(soup)
-    meta = meta_canonical_and_open_graph(soup, final_url)
-    method = "json_ld" if body else None
-    if not body:
-        body = fallback_main_text(soup, site_hint="anthropic")
-        method = "dom_fallback"
-    excerpt = meta.get("og_description")
-    return {
-        "raw_text": body,
-        "canonical_url": meta.get("canonical_url"),
-        "title_guess": headline or meta.get("og_title"),
-        "author_guess": author,
-        "excerpt": excerpt if isinstance(excerpt, str) else None,
-        "extraction_method": method,
-        "http_final_url": final_url,
-    }
+    strip_boilerplate_tags(soup)
+    return _extract_with_logging("anthropic.com", soup, final_url, site_hint="anthropic")
 
 
 def extract_techcrunch_article(html: str, final_url: str) -> dict[str, Any]:
     soup = BeautifulSoup(html, "html.parser")
-    body, headline, author = _parse_json_ld_article(soup)
-    meta = meta_canonical_and_open_graph(soup, final_url)
-    method = "json_ld" if body else None
-    if not body:
-        # TechCrunch often uses .article-content
-        node = soup.select_one(".article-content") or soup.select_one("article")
-        body = _visible_block_text(node) if node else None
-        if body and len(body) > 120:
-            method = "techcrunch_selectors"
-        else:
-            body = fallback_main_text(soup, site_hint="techcrunch")
-            method = "dom_fallback"
-    excerpt = meta.get("og_description")
-    return {
-        "raw_text": body,
-        "canonical_url": meta.get("canonical_url"),
-        "title_guess": headline or meta.get("og_title"),
-        "author_guess": author,
-        "excerpt": excerpt if isinstance(excerpt, str) else None,
-        "extraction_method": method,
-        "http_final_url": final_url,
-    }
+    strip_boilerplate_tags(soup)
+    return _extract_with_logging(
+        "techcrunch.com",
+        soup,
+        final_url,
+        site_hint="techcrunch",
+        techcrunch_selectors_first=True,
+    )

@@ -5,6 +5,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+import httpx
+
 from app.adapters.article_html import extract_anthropic_article, fetch_html
 from app.adapters.base import BaseSourceAdapter
 from app.adapters.html_index import extract_anthropic_news_candidates
@@ -32,6 +34,21 @@ class AnthropicNewsroomAdapter(BaseSourceAdapter):
         try:
             async with ingestion_http_client(self.source_config) as client:
                 html, final_url = await fetch_html(client, url)
+        except httpx.HTTPStatusError as e:
+            logger.warning(
+                "fetch_article http error adapter=%s url=%s status=%s",
+                self.adapter_key,
+                url[:200],
+                e.response.status_code,
+            )
+            return {
+                "status": "failed",
+                "error": str(e),
+                "error_type": type(e).__name__,
+                "http_status": e.response.status_code,
+                "url": url,
+                "adapter_key": self.adapter_key,
+            }
         except Exception as e:
             logger.exception(
                 "fetch_article http failure adapter=%s url=%s",
@@ -47,7 +64,7 @@ class AnthropicNewsroomAdapter(BaseSourceAdapter):
             }
         extracted = extract_anthropic_article(html, final_url)
         raw = (extracted.get("raw_text") or "").strip()
-        if len(raw) < 40:
+        if len(raw) < 200:
             return {
                 "status": "failed",
                 "error": "empty_or_short_extraction",
@@ -58,6 +75,7 @@ class AnthropicNewsroomAdapter(BaseSourceAdapter):
                     "full_fetch": {
                         "extraction_method": extracted.get("extraction_method"),
                         "http_final_url": extracted.get("http_final_url"),
+                        "paragraph_ratio": extracted.get("paragraph_ratio"),
                     }
                 },
             }
@@ -66,6 +84,7 @@ class AnthropicNewsroomAdapter(BaseSourceAdapter):
             "site": "anthropic.com",
             "extraction_method": extracted.get("extraction_method"),
             "http_final_url": extracted.get("http_final_url"),
+            "paragraph_ratio": extracted.get("paragraph_ratio"),
         }
         return {
             "status": "ok",

@@ -23,6 +23,10 @@ def word_count(text: str) -> int:
 
 
 def content_sha256_hex(text: str) -> str:
-    """SHA-256 hex digest of UTF-8 bytes (used for ``content_hash``)."""
+    """SHA-256 hex digest of UTF-8 bytes (``content_hash``).
+
+    Identical body text under different URLs yields the same digest (possible signal for
+    cross-posts); we do **not** merge rows on hash today—dedupe remains URL/canonical merge only.
+    """
     body = (text or "").encode("utf-8")
     return hashlib.sha256(body).hexdigest()
