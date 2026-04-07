@@ -19,6 +19,11 @@ from uuid import UUID
 
 from app.adapters import get_adapter
 from app.adapters.registry import AdapterNotRegisteredError
+from app.crud.ingest_url_state import (
+    is_url_ingest_blocked,
+    record_fetch_success,
+    record_http_403,
+)
 from app.db import session_scope
 from app.logging_config import configure_logging
 from app.services.article_ingest import (
@@ -91,19 +96,39 @@ async def _run(slug: str | None, per_source_limit: int, dry_run: bool) -> int:
                 break
             max_attempts -= 1
             candidates_seen += 1
+            cand_url = (cand.get("url") or "").strip()
+            if not dry_run and cand_url:
+                with session_scope() as db:
+                    if is_url_ingest_blocked(db, cand_url):
+                        totals["skipped_blocked"] += 1
+                        st["skipped_blocked"] += 1
+                        logger.info(
+                            "skip fetch (permanent_failure after 403s) slug=%s url=%s",
+                            slug_label,
+                            cand_url[:200],
+                        )
+                        continue
+
             fr = await adapter.fetch_article(cand)
             if fr.get("status") != "ok":
                 totals["fetch_failed"] += 1
                 st["fetch_failed"] += 1
+                if not dry_run and cand_url and fr.get("http_status") == 403:
+                    with session_scope() as db:
+                        record_http_403(db, cand_url)
                 logger.error(
                     "fetch_article failed slug=%s adapter=%s url=%s type=%s err=%s",
                     slug_label,
                     fr.get("adapter_key", adapter.adapter_key),
-                    (fr.get("url") or cand.get("url") or "")[:200],
+                    (fr.get("url") or cand_url or "")[:200],
                     fr.get("error_type"),
                     fr.get("error"),
                 )
                 continue
+
+            if not dry_run and cand_url:
+                with session_scope() as db:
+                    record_fetch_success(db, cand_url)
 
             successes += 1
             normalized = normalized_from_candidate_fetch(

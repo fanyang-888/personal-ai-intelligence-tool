@@ -116,7 +116,7 @@ Per-source YAML fields (optional): `user_agent` (browser-like string for WAFs), 
 
 ## Week 2 Day 3 — Full article fetch + persist
 
-1. Run migrations (adds `sources.slug`, `articles.author_name`, `organization_name`, `raw_meta` JSONB):
+1. Run migrations (adds `sources.slug`, article metadata columns, `articles.word_count`, partial index on `canonical_url`, `ingest_url_states` for 403 backoff, etc.):
 
 ```bash
 alembic upgrade head
@@ -130,19 +130,26 @@ python -m scripts.ingest_full_articles --slug anthropic-newsroom --per-source-li
 python -m scripts.ingest_full_articles --dry-run
 ```
 
-- **Dedupe:** unchanged — `ON CONFLICT DO NOTHING` on `articles.url` (normalized permalink from the index).
-- **Skips:** HTTP/parsing failures are logged with `adapter_key` and URL; short/empty body or empty title are **rejected** (no row). Duplicates log `duplicate_skip` at INFO.
-- **Scanning:** the script walks the index in order until it records `--per-source-limit` successful fetches per source (skips 403/empty parse) up to the index size.
-- **`--dry-run`:** no database access (no `sources` upsert, no `articles` insert) — useful without Postgres.
-- **OpenAI article pages** may return **403** from some networks (bot/WAF); Anthropic and TechCrunch fetches are usually fine. Adapter code is in place; use a network/VPN that OpenAI allows if you need OpenAI bodies in CI.
-- **Normalized model:** see `app/schemas/normalized_article.py` and `app/services/article_ingest.py` (`normalized_from_candidate_fetch`, `persist_fetched_article`).
+- **Dedupe:** `articles.url` stays **UNIQUE**; new rows use `ON CONFLICT DO NOTHING`. If the fetch provides a **canonical** URL that already matches an existing row’s `canonical_url` or `url`, that row is **updated** (and the index `url` may be moved when safe). Re-fetching the **same** `url` **overwrites** body fields (manual edits are not preserved across re-ingest).
+- **Quality:** minimum body length ~400 chars; DOM extractions (non–JSON-LD) also require a minimum **paragraph density** (`<p>` text vs total). Malformed JSON-LD logs at INFO and falls back to DOM; `article_html` logs `method=json_ld` vs `dom_fallback` for monitoring.
+- **Encoding:** HTML uses `Content-Type` charset when present, then optional `<meta charset>` sniff.
+- **Boilerplate:** nav/header/footer/aside and common “related/social” blocks are stripped before text extraction (Day 4 can extend).
+- **403 backoff:** after **three** HTTP 403 responses for the same normalized URL, `ingest_url_states.ingestion_status` becomes `permanent_failure` and the script **skips** further fetches until you delete the row or reset counts. Successful fetches reset the counter.
+- **`word_count`:** stored as an indexed integer column (not only JSONB) for cheap SQL filters.
+- **Skips:** failures are logged with `adapter_key` and URL; outcomes include `inserted`, `updated`, `rejected`, `duplicate`, `skipped_blocked`, `fetch_failed`.
+- **Scanning:** walks the index until `--per-source-limit` successes or attempts are exhausted.
+- **`--dry-run`:** no database access — useful without Postgres.
+- **Frontend / XSS:** `raw_text` and `cleaned_text` are **plain text** (tags removed by BeautifulSoup `get_text`). If you ever render publisher HTML, sanitize explicitly; do not treat stored strings as HTML by default.
+- **Normalized model:** `app/schemas/normalized_article.py`, `app/services/article_ingest.py`.
+
+**Manual QA ideas:** (1) a URL with multiple redirects — `articles.url` should stay the normalized index permalink while `canonical_url` reflects the page’s declared canonical / `og:url`. (2) Re-run ingestion after editing `cleaned_text` — expect overwrite on same `url`. (3) Local HTML fixture with broken `ld+json` — should log JSON parse skip and still run DOM fallback without aborting the script.
 
 ## Adapters and scripts (ingestion)
 
 Use a DB session **outside** FastAPI’s `Depends(get_db)`:
 
 - `from app.db import SessionLocal, session_factory, session_scope` — `session_factory` is the same `sessionmaker` as `SessionLocal`. Prefer `with session_scope() as db:` in scripts so commits/rollbacks and `close()` are handled.
-- `from app.crud.article import create_article` — inserts with PostgreSQL `ON CONFLICT DO NOTHING` on `articles.url`; returns the new `Article` or `None` if the URL was already present.
+- `from app.crud.article import create_article` — inserts with PostgreSQL `ON CONFLICT DO NOTHING` on `articles.url`; merge/update paths live in `app/services/article_ingest.persist_fetched_article`.
 - `from app.logging_config import configure_logging` — call once at the start of a standalone script (the ASGI app calls this on import via `main.py`).
 
 ## Layout
@@ -153,7 +160,7 @@ Use a DB session **outside** FastAPI’s `Depends(get_db)`:
 - `app/adapters/` — `BaseSourceAdapter`, RSS/HTML helpers, concrete adapters, `get_adapter`
 - `app/db.py` — SQLAlchemy engine, `SessionLocal` / `session_factory`, `session_scope`, `get_db`
 - `app/logging_config.py` — shared stderr logging format
-- `app/crud/` — persistence helpers for ingestion
+- `app/crud/` — persistence helpers for ingestion (`article`, `ingest_url_state`)
 - `app/models/` — ORM models
 - `app/schemas/` — Pydantic schemas for future routes
 - `app/api/routes/` — route modules
