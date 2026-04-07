@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -24,6 +25,9 @@ class ArticleCreate(BaseModel):
     excerpt: str | None = None
     content_hash: str | None = None
     language: str | None = None
+    author_name: str | None = None
+    organization_name: str | None = None
+    raw_meta: dict[str, Any] = Field(default_factory=dict)
 
 
 class ArticleRead(BaseModel):
@@ -43,5 +47,8 @@ class ArticleRead(BaseModel):
     excerpt: str | None
     content_hash: str | None
     language: str | None
+    author_name: str | None
+    organization_name: str | None
+    raw_meta: dict[str, Any]
     created_at: datetime
     updated_at: datetime

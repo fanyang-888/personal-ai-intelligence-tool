@@ -22,6 +22,7 @@ class Source(Base):
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
+    slug: Mapped[str | None] = mapped_column(String(128), nullable=True, unique=True, index=True)
     name: Mapped[str] = mapped_column(String(512), nullable=False)
     type: Mapped[str] = mapped_column("type", String(128), nullable=False)
     base_url: Mapped[str | None] = mapped_column(Text, nullable=True)
