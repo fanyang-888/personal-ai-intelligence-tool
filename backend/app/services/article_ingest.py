@@ -3,18 +3,54 @@
 from __future__ import annotations
 
 import logging
+from datetime import datetime, timezone
 from enum import Enum
+from typing import Any
+from uuid import UUID
+
 from sqlalchemy.orm import Session
 
 from app.crud.article import create_article
 from app.schemas.article import ArticleCreate
 from app.schemas.normalized_article import NormalizedFetchedArticle
+from app.schemas.trusted_source_config import TrustedSourceConfig
+from app.utils.datetime_parse import iso_to_utc_datetime
 from app.utils.text_stats import content_sha256_hex, minimal_clean_text, word_count
 
 logger = logging.getLogger(__name__)
 
 # Reject empty shells / failed extractions (tune per environment if needed).
 _MIN_BODY_CHARS = 80
+
+
+def normalized_from_candidate_fetch(
+    *,
+    source_id: UUID,
+    config: TrustedSourceConfig,
+    candidate: dict[str, Any],
+    fetch_ok: dict[str, Any],
+) -> NormalizedFetchedArticle:
+    """Build :class:`NormalizedFetchedArticle` from index candidate + successful ``fetch_article``."""
+    title = (fetch_ok.get("title_guess") or candidate.get("title") or "").strip()
+    author = fetch_ok.get("author_guess") or candidate.get("author_name")
+    author_s = author.strip() if isinstance(author, str) and author.strip() else None
+    pub = iso_to_utc_datetime(candidate.get("published_at"))
+    raw = (fetch_ok.get("raw_text") or "").strip()
+    return NormalizedFetchedArticle(
+        source_id=source_id,
+        title=title or "Untitled",
+        url=(candidate.get("url") or "").strip(),
+        canonical_url=fetch_ok.get("canonical_url"),
+        author_name=author_s,
+        organization_name=config.name,
+        published_at=pub,
+        fetched_at=datetime.now(timezone.utc),
+        raw_text=raw,
+        cleaned_text=minimal_clean_text(raw),
+        excerpt=(fetch_ok.get("excerpt") or "").strip() or None,
+        language=config.default_language,
+        raw_meta=dict(fetch_ok.get("raw_meta") or {}),
+    )
 
 
 class PersistArticleOutcome(str, Enum):

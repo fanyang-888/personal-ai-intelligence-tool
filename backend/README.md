@@ -110,9 +110,32 @@ Per-source YAML fields (optional): `user_agent` (browser-like string for WAFs), 
 | Anthropic Newsroom | `anthropic-newsroom` | No public RSS in config → HTML index on `/news` (BS4 + `urljoin` / normalized URLs) |
 | TechCrunch AI | `techcrunch-ai` | RSS category feed only |
 
-`fetch_article` on `BaseSourceAdapter` returns a stub (`html: null`) until Day 3.
+`fetch_article` is implemented per adapter (Day 3): single-page GET + BeautifulSoup / JSON-LD + small site-specific fallbacks — **not** a generic crawler.
 
 **Backlog (non-blocking before Day 3):** tracked in [`docs/BACKLOG.md`](../docs/BACKLOG.md) — `sources` vs YAML drift, full HTML fallback for OpenAI/Anthropic when RSS dies, and incremental ingestion (`last_polled_at`, conditional HTTP headers, end-to-end loop).
+
+## Week 2 Day 3 — Full article fetch + persist
+
+1. Run migrations (adds `sources.slug`, `articles.author_name`, `organization_name`, `raw_meta` JSONB):
+
+```bash
+alembic upgrade head
+```
+
+2. Ingest full text for the first *N* index items per trusted source (upserts `sources` from YAML by `slug`, then inserts articles):
+
+```bash
+python -m scripts.ingest_full_articles
+python -m scripts.ingest_full_articles --slug anthropic-newsroom --per-source-limit 2
+python -m scripts.ingest_full_articles --dry-run
+```
+
+- **Dedupe:** unchanged — `ON CONFLICT DO NOTHING` on `articles.url` (normalized permalink from the index).
+- **Skips:** HTTP/parsing failures are logged with `adapter_key` and URL; short/empty body or empty title are **rejected** (no row). Duplicates log `duplicate_skip` at INFO.
+- **Scanning:** the script walks the index in order until it records `--per-source-limit` successful fetches per source (skips 403/empty parse) up to the index size.
+- **`--dry-run`:** no database access (no `sources` upsert, no `articles` insert) — useful without Postgres.
+- **OpenAI article pages** may return **403** from some networks (bot/WAF); Anthropic and TechCrunch fetches are usually fine. Adapter code is in place; use a network/VPN that OpenAI allows if you need OpenAI bodies in CI.
+- **Normalized model:** see `app/schemas/normalized_article.py` and `app/services/article_ingest.py` (`normalized_from_candidate_fetch`, `persist_fetched_article`).
 
 ## Adapters and scripts (ingestion)
 
@@ -135,4 +158,5 @@ Use a DB session **outside** FastAPI’s `Depends(get_db)`:
 - `app/schemas/` — Pydantic schemas for future routes
 - `app/api/routes/` — route modules
 - `migrations/` — Alembic migration scripts
-- `scripts/` — dev helpers (`seed_sources`, `fetch_index_dry_run`)
+- `scripts/` — dev helpers (`seed_sources`, `fetch_index_dry_run`, `ingest_full_articles`)
+- `app/services/` — `source_sync`, `article_ingest` (Day 3 persistence path)
