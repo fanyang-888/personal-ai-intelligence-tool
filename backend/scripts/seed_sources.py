@@ -5,6 +5,10 @@ Run from ``backend/``:
     python -m scripts.seed_sources
 
 Requires ``DATABASE_URL`` (and other app env vars) via ``.env`` or the environment.
+
+Trusted publishers from ``trusted_sources.yaml`` are **not** created here; use
+``python -m scripts.ingest_full_articles`` (or call ``upsert_source_from_trusted_config``)
+which sets ``sources.slug`` and aligns rows with YAML. Seed rows keep ``slug=NULL``.
 """
 
 from __future__ import annotations
