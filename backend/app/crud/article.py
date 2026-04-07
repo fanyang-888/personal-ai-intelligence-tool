@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
+from sqlalchemy import or_, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
@@ -36,3 +38,40 @@ def create_article(db: Session, article_in: ArticleCreate) -> Article | None:
     article = db.get(Article, article_id)
     logger.info("inserted article id=%s url=%s", article_id, article_in.url[:200])
     return article
+
+
+def find_article_by_canonical_or_url(db: Session, canonical: str) -> Article | None:
+    """Return a row whose ``canonical_url`` or ``url`` equals ``canonical`` (normalized caller)."""
+    if not canonical or not canonical.strip():
+        return None
+    c = canonical.strip()
+    return db.execute(
+        select(Article).where(or_(Article.canonical_url == c, Article.url == c)).limit(1)
+    ).scalar_one_or_none()
+
+
+def get_article_by_url(db: Session, url: str) -> Article | None:
+    return db.execute(select(Article).where(Article.url == url)).scalar_one_or_none()
+
+
+def apply_article_create_to_row(row: Article, data: dict[str, Any]) -> None:
+    """Copy insert-shaped fields onto an existing ORM row (refresh / merge)."""
+    for key in (
+        "source_id",
+        "title",
+        "url",
+        "canonical_url",
+        "published_at",
+        "fetched_at",
+        "raw_text",
+        "cleaned_text",
+        "excerpt",
+        "content_hash",
+        "language",
+        "author_name",
+        "organization_name",
+        "raw_meta",
+        "word_count",
+    ):
+        if key in data:
+            setattr(row, key, data[key])
