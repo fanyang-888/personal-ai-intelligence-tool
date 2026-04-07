@@ -1,6 +1,6 @@
 # Backend (FastAPI)
 
-Minimal API and database layer for the Personal AI Intelligence Tool. Week 2 Day 1 scope: health check, PostgreSQL schema (`sources`, `articles`), and local dev wiring only.
+Minimal API and database layer for the Personal AI Intelligence Tool. Core scope: health check, PostgreSQL schema (`sources`, `articles`), ingestion-oriented fields on `sources`, and helpers for **source adapters** (session factory, `create_article`, logging).
 
 ## Prerequisites
 
@@ -65,13 +65,23 @@ Open [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health). A successful 
 
 If PostgreSQL is unreachable or misconfigured, `/health` returns **503** with `detail` set to the generic string **`Database connection failed`** (no hostnames, usernames, or driver/traceback text).
 
-API docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs). Week 2 Day 1 registers only **`GET /health`** — there are **no CRUD routes** for sources or articles yet.
+API docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs). The OpenAPI UI currently exposes only **`GET /health`** — ingestion is expected to run from **scripts or tasks**, not from manual CRUD in Swagger.
+
+## Adapters and scripts (ingestion)
+
+Use a DB session **outside** FastAPI’s `Depends(get_db)`:
+
+- `from app.db import SessionLocal, session_factory, session_scope` — `session_factory` is the same `sessionmaker` as `SessionLocal`. Prefer `with session_scope() as db:` in scripts so commits/rollbacks and `close()` are handled.
+- `from app.crud.article import create_article` — inserts with PostgreSQL `ON CONFLICT DO NOTHING` on `articles.url`; returns the new `Article` or `None` if the URL was already present.
+- `from app.logging_config import configure_logging` — call once at the start of a standalone script (the ASGI app calls this on import via `main.py`).
 
 ## Layout
 
 - `app/main.py` — FastAPI application
 - `app/config.py` — settings from environment
-- `app/db.py` — SQLAlchemy engine and sessions
+- `app/db.py` — SQLAlchemy engine, `SessionLocal` / `session_factory`, `session_scope`, `get_db`
+- `app/logging_config.py` — shared stderr logging format
+- `app/crud/` — persistence helpers for ingestion
 - `app/models/` — ORM models
 - `app/schemas/` — Pydantic schemas for future routes
 - `app/api/routes/` — route modules
