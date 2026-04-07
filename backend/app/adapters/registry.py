@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class AdapterNotRegisteredError(KeyError):
-    """Raised when ``trusted_sources.yaml`` references an unknown ``adapter_key``."""
+    """Raised when ``source_catalog/trusted_sources.yaml`` references an unknown ``adapter_key``."""
 
 
 ADAPTER_REGISTRY: dict[str, type[BaseSourceAdapter]] = {

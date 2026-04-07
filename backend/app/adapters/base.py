@@ -16,7 +16,9 @@ class BaseSourceAdapter(ABC):
     source_name: str
     adapter_key: str
 
-    def __init__(self, source_config: TrustedSourceConfig) -> None:
+    def __init__(self, source_config: TrustedSourceConfig | dict) -> None:
+        if isinstance(source_config, dict):
+            source_config = TrustedSourceConfig.model_validate(source_config)
         self.source_config = source_config
 
     @abstractmethod
