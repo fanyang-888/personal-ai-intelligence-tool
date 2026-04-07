@@ -74,6 +74,7 @@ class OpenAINewsAdapter(BaseSourceAdapter):
                         "extraction_method": extracted.get("extraction_method"),
                         "http_final_url": extracted.get("http_final_url"),
                         "paragraph_ratio": extracted.get("paragraph_ratio"),
+                        "parser_version": extracted.get("parser_version"),
                     }
                 },
             }
@@ -83,6 +84,7 @@ class OpenAINewsAdapter(BaseSourceAdapter):
             "extraction_method": extracted.get("extraction_method"),
             "http_final_url": extracted.get("http_final_url"),
             "paragraph_ratio": extracted.get("paragraph_ratio"),
+            "parser_version": extracted.get("parser_version"),
         }
         return {
             "status": "ok",

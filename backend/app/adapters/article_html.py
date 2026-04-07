@@ -15,6 +15,9 @@ from app.adapters.http_fetch import get_with_retry
 
 logger = logging.getLogger(__name__)
 
+# Bump when boilerplate / ratio / JSON-LD heuristics change (enables future re-ingest decisions).
+ARTICLE_HTML_PARSER_VERSION = "article_html/v3"
+
 _BOILERPLATE_CLASS_KEYS = (
     "related-posts",
     "related_posts",
@@ -45,15 +48,15 @@ def strip_boilerplate_tags(soup: BeautifulSoup) -> None:
 
 
 def paragraph_text_ratio(soup: BeautifulSoup) -> float | None:
-    """Share of visible characters that live under ``<p>`` tags (None if no paragraphs)."""
-    ps = soup.find_all("p")
-    if not ps:
+    """Share of visible characters in ``<p>`` and ``<li>`` vs document (list-heavy posts included)."""
+    blocks = soup.find_all(["p", "li"])
+    if not blocks:
         return None
-    p_len = sum(len(p.get_text(strip=True)) for p in ps)
+    block_len = sum(len(el.get_text(strip=True)) for el in blocks)
     total = len(soup.get_text(strip=True))
     if total <= 0:
         return None
-    return p_len / total
+    return block_len / total
 
 
 async def fetch_html(client: httpx.AsyncClient, url: str) -> tuple[str, str]:
@@ -241,6 +244,7 @@ def _extract_with_logging(
         "extraction_method": method,
         "http_final_url": final_url,
         "paragraph_ratio": p_ratio,
+        "parser_version": ARTICLE_HTML_PARSER_VERSION,
     }
 
 

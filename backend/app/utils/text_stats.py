@@ -5,6 +5,19 @@ from __future__ import annotations
 import hashlib
 import re
 
+import bleach
+
+
+def sanitize_plaintext_for_storage(text: str) -> str:
+    """Strip any residual markup/attributes before persistence (defense in depth for XSS).
+
+    ``cleaned_text`` / ``raw_text`` are intended as **plain text** for UI (use text nodes or escape).
+    BeautifulSoup ``get_text`` usually removes tags; this pass removes stray tags and event attributes.
+    """
+    if not text or not str(text).strip():
+        return (text or "").strip()
+    return bleach.clean(str(text), tags=[], attributes={}, strip=True).strip()
+
 
 def minimal_clean_text(text: str) -> str:
     """Strip ends and collapse internal whitespace (no linguistic cleaning)."""

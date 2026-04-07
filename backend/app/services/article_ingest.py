@@ -16,19 +16,28 @@ from app.crud.article import (
     find_article_by_canonical_or_url,
     get_article_by_url,
 )
+from app.models.article import Article
 from app.schemas.article import ArticleCreate
 from app.schemas.normalized_article import NormalizedFetchedArticle
 from app.schemas.trusted_source_config import TrustedSourceConfig
 from app.utils.datetime_parse import iso_to_utc_datetime
-from app.utils.text_stats import content_sha256_hex, minimal_clean_text, word_count
+from app.utils.text_stats import (
+    content_sha256_hex,
+    minimal_clean_text,
+    sanitize_plaintext_for_storage,
+    word_count,
+)
 from app.utils.url_normalize import normalize_article_url
 
 logger = logging.getLogger(__name__)
 
 # Full article should be substantial; cookie banners often exceed 80 chars.
 _MIN_BODY_CHARS = 400
-# When DOM fallback is used, require a minimum share of text inside <p> vs total (nav-heavy pages fail).
+# When DOM fallback is used, require a minimum share of text in <p>/<li> vs total (nav-heavy pages fail).
 _MIN_PARAGRAPH_RATIO_DOM = 0.12
+_MIN_PARAGRAPH_RATIO_TECHCRUNCH = 0.08
+# When re-fetching an existing row, do not replace body if the new extract is much shorter (WAF / parser regression).
+_MIN_BODY_MERGE_RATIO = 0.8
 
 
 def normalized_from_candidate_fetch(
@@ -73,13 +82,51 @@ def _full_fetch_meta(raw_meta: dict[str, Any]) -> dict[str, Any]:
     return ff if isinstance(ff, dict) else {}
 
 
+def _effective_body_len(row: Article) -> int:
+    return max(len((row.cleaned_text or "").strip()), len((row.raw_text or "").strip()))
+
+
+def _apply_body_merge_guard(existing: Article, data: dict[str, Any]) -> None:
+    """If the new body is much shorter than stored text, keep existing body fields and merge flags into ``raw_meta``."""
+    ex_len = _effective_body_len(existing)
+    new_raw = (data.get("raw_text") or "").strip()
+    new_clean = (data.get("cleaned_text") or "").strip()
+    new_len = max(len(new_raw), len(new_clean))
+    if ex_len < _MIN_BODY_CHARS:
+        return
+    if new_len >= ex_len * _MIN_BODY_MERGE_RATIO:
+        return
+    data["raw_text"] = existing.raw_text
+    data["cleaned_text"] = existing.cleaned_text
+    data["content_hash"] = existing.content_hash
+    data["word_count"] = existing.word_count
+    meta = dict(data.get("raw_meta") or {})
+    ing_m = dict(meta.get("ingestion") or {}) if isinstance(meta.get("ingestion"), dict) else {}
+    ing_m["body_preserved_short_fetch"] = True
+    ing_m["existing_body_len"] = ex_len
+    ing_m["attempted_body_len"] = new_len
+    ing_m["word_count"] = existing.word_count
+    meta["ingestion"] = ing_m
+    data["raw_meta"] = meta
+    logger.info(
+        "ingest body_preserved (new shorter than %.0f%% of existing) article_id=%s existing_len=%s new_len=%s",
+        _MIN_BODY_MERGE_RATIO * 100,
+        existing.id,
+        ex_len,
+        new_len,
+    )
+
+
 def persist_fetched_article(
     db: Session,
     normalized: NormalizedFetchedArticle,
     *,
     adapter_key: str = "",
 ) -> PersistArticleOutcome:
-    """Insert or update by ``url`` / ``canonical_url``. Re-fetching the same ``url`` overwrites body fields.
+    """Insert or update by ``url`` / ``canonical_url``.
+
+    Re-fetch updates an existing row, but if the new extract is much shorter than stored text (likely WAF /
+    parser regression), **body** fields are preserved and only metadata / ``raw_meta`` hints are merged.
 
     ``content_hash`` uses SHA-256 over cleaned/raw text (see module comment in ``text_stats``); identical
     text across URLs yields identical hashes (possible future cross-post merge signal — not applied today).
@@ -93,10 +140,11 @@ def persist_fetched_article(
         )
         return PersistArticleOutcome.rejected
 
-    raw_t = (normalized.raw_text or "").strip()
-    cleaned = (normalized.cleaned_text or "").strip()
+    raw_t = sanitize_plaintext_for_storage((normalized.raw_text or "").strip())
+    cleaned = sanitize_plaintext_for_storage((normalized.cleaned_text or "").strip())
     if not cleaned and raw_t:
         cleaned = minimal_clean_text(raw_t)
+        cleaned = sanitize_plaintext_for_storage(cleaned)
     if not raw_t and cleaned:
         raw_t = cleaned
 
@@ -114,19 +162,23 @@ def persist_fetched_article(
     ff = _full_fetch_meta(meta_in)
     method = ff.get("extraction_method")
     p_ratio = ff.get("paragraph_ratio")
+    min_dom_ratio = (
+        _MIN_PARAGRAPH_RATIO_TECHCRUNCH if adapter_key == "techcrunch_ai" else _MIN_PARAGRAPH_RATIO_DOM
+    )
     if (
         isinstance(method, str)
         and method != "json_ld"
         and p_ratio is not None
         and isinstance(p_ratio, (int, float))
-        and float(p_ratio) < _MIN_PARAGRAPH_RATIO_DOM
+        and float(p_ratio) < min_dom_ratio
     ):
         logger.warning(
-            "ingest rejected reason=low_paragraph_density adapter=%s url=%s method=%s ratio=%s",
+            "ingest rejected reason=low_paragraph_density adapter=%s url=%s method=%s ratio=%s min=%s",
             adapter_key,
             normalized.url[:200],
             method,
             p_ratio,
+            min_dom_ratio,
         )
         return PersistArticleOutcome.rejected
 
@@ -175,6 +227,7 @@ def persist_fetched_article(
                     data["url"] = url_n
                 else:
                     data["url"] = existing.url
+            _apply_body_merge_guard(existing, data)
             apply_article_create_to_row(existing, data)
             logger.info(
                 "ingest updated (canonical match) adapter=%s article_id=%s url=%s",
@@ -196,6 +249,7 @@ def persist_fetched_article(
 
     by_url = get_article_by_url(db, url_n)
     if by_url is not None:
+        _apply_body_merge_guard(by_url, data)
         apply_article_create_to_row(by_url, data)
         logger.info(
             "ingest updated (same url re-fetch) adapter=%s article_id=%s url=%s",

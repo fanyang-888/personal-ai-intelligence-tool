@@ -116,7 +116,7 @@ Per-source YAML fields (optional): `user_agent` (browser-like string for WAFs), 
 
 ## Week 2 Day 3 — Full article fetch + persist
 
-1. Run migrations (adds `sources.slug`, article metadata columns, `articles.word_count`, partial index on `canonical_url`, `ingest_url_states` for 403 backoff, etc.):
+1. Run migrations (adds `sources.slug`, article metadata columns, `articles.word_count`, partial index on `canonical_url`, `ingest_url_states` with optional `retry_at`, etc.):
 
 ```bash
 alembic upgrade head
@@ -128,21 +128,23 @@ alembic upgrade head
 python -m scripts.ingest_full_articles
 python -m scripts.ingest_full_articles --slug anthropic-newsroom --per-source-limit 2
 python -m scripts.ingest_full_articles --dry-run
+python -m scripts.ingest_full_articles --force-retry-failures   # clear 403 ban table, then ingest
 ```
 
-- **Dedupe:** `articles.url` stays **UNIQUE**; new rows use `ON CONFLICT DO NOTHING`. If the fetch provides a **canonical** URL that already matches an existing row’s `canonical_url` or `url`, that row is **updated** (and the index `url` may be moved when safe). Re-fetching the **same** `url` **overwrites** body fields (manual edits are not preserved across re-ingest).
-- **Quality:** minimum body length ~400 chars; DOM extractions (non–JSON-LD) also require a minimum **paragraph density** (`<p>` text vs total). Malformed JSON-LD logs at INFO and falls back to DOM; `article_html` logs `method=json_ld` vs `dom_fallback` for monitoring.
+- **Dedupe:** `articles.url` stays **UNIQUE** (no `UNIQUE` on `canonical_url` — multiple NULLs and concurrent writers mean canonical dedupe is **application-level** today; the ingest script is single-process). If the fetch provides a **canonical** URL that already matches an existing row’s `canonical_url` or `url`, that row is **updated** (and the index `url` may be moved when safe).
+- **Body merge guard:** on update, if the new extract is **shorter than 80%** of the stored body length (and the stored body already meets the minimum size), **raw/cleaned text, hash, and word_count** are kept; `raw_meta.ingestion.body_preserved_short_fetch` records the event. Title/canonical/fetched_at still refresh.
+- **Quality:** minimum body length ~400 chars; DOM extractions (non–JSON-LD) require minimum **block density** (text in `<p>` + `<li>` vs total). `techcrunch_ai` uses a lower threshold (0.08) than other adapters (0.12). `raw_meta.full_fetch.parser_version` tags the extractor revision for future re-runs.
 - **Encoding:** HTML uses `Content-Type` charset when present, then optional `<meta charset>` sniff.
 - **Boilerplate:** nav/header/footer/aside and common “related/social” blocks are stripped before text extraction (Day 4 can extend).
-- **403 backoff:** after **three** HTTP 403 responses for the same normalized URL, `ingest_url_states.ingestion_status` becomes `permanent_failure` and the script **skips** further fetches until you delete the row or reset counts. Successful fetches reset the counter.
+- **403 backoff:** after **three** HTTP 403s, status becomes `permanent_failure` with `retry_at = now + 7 days`; until then the URL is skipped. After `retry_at`, fetches are allowed again. Use **`--force-retry-failures`** to wipe `ingest_url_states` immediately (e.g. after changing VPN/region). Successful fetches reset counters.
 - **`word_count`:** stored as an indexed integer column (not only JSONB) for cheap SQL filters.
 - **Skips:** failures are logged with `adapter_key` and URL; outcomes include `inserted`, `updated`, `rejected`, `duplicate`, `skipped_blocked`, `fetch_failed`.
 - **Scanning:** walks the index until `--per-source-limit` successes or attempts are exhausted.
 - **`--dry-run`:** no database access — useful without Postgres.
-- **Frontend / XSS:** `raw_text` and `cleaned_text` are **plain text** (tags removed by BeautifulSoup `get_text`). If you ever render publisher HTML, sanitize explicitly; do not treat stored strings as HTML by default.
+- **Frontend / XSS:** `raw_text` / `cleaned_text` are **plain text** (BeautifulSoup `get_text` + `bleach.clean` with no allowed tags at persistence). Render as text nodes or escape; never as raw HTML unless you add a separate audited sanitizer pipeline.
 - **Normalized model:** `app/schemas/normalized_article.py`, `app/services/article_ingest.py`.
 
-**Manual QA ideas:** (1) a URL with multiple redirects — `articles.url` should stay the normalized index permalink while `canonical_url` reflects the page’s declared canonical / `og:url`. (2) Re-run ingestion after editing `cleaned_text` — expect overwrite on same `url`. (3) Local HTML fixture with broken `ld+json` — should log JSON parse skip and still run DOM fallback without aborting the script.
+**Manual QA ideas:** (1) Redirect chain — index `url` vs `canonical_url` / `og:url`. (2) **Canonical swap** — seed a row with `url` A; ingest a page whose canonical equals A; expect merge/update, not a second row. (3) Re-run after hand-editing `cleaned_text` — a **longer** re-fetch overwrites; a **much shorter** re-fetch triggers **body preserve** guard. (4) **403 counter** — hit a 403 URL three times, inspect `ingest_url_states`; after `retry_at` or `--force-retry-failures`, retries resume. (5) **Word count** — compare `word_count` to an external tool (~few % diff from whitespace rules). (6) Broken `ld+json` in a local HTML file — INFO log + DOM fallback, no crash.
 
 ## Adapters and scripts (ingestion)
 

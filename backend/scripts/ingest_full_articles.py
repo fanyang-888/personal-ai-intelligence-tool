@@ -20,6 +20,7 @@ from uuid import UUID
 from app.adapters import get_adapter
 from app.adapters.registry import AdapterNotRegisteredError
 from app.crud.ingest_url_state import (
+    force_reset_ingest_url_failures,
     is_url_ingest_blocked,
     record_fetch_success,
     record_http_403,
@@ -36,7 +37,17 @@ from app.source_catalog.loader import load_trusted_sources
 logger = logging.getLogger(__name__)
 
 
-async def _run(slug: str | None, per_source_limit: int, dry_run: bool) -> int:
+async def _run(
+    slug: str | None,
+    per_source_limit: int,
+    dry_run: bool,
+    force_retry_failures: bool,
+) -> int:
+    if force_retry_failures and not dry_run:
+        with session_scope() as db:
+            n = force_reset_ingest_url_failures(db)
+        logger.warning("ingest --force-retry-failures cleared ingest_url_states rows=%s", n)
+
     configs = load_trusted_sources()
     if slug:
         configs = [c for c in configs if c.slug == slug]
@@ -186,8 +197,20 @@ def main() -> None:
         action="store_true",
         help="Fetch and parse only; do not write to the database",
     )
+    parser.add_argument(
+        "--force-retry-failures",
+        action="store_true",
+        help="Delete all rows in ingest_url_states (403 counters / bans) before running",
+    )
     args = parser.parse_args()
-    code = asyncio.run(_run(args.slug, args.per_source_limit, args.dry_run))
+    code = asyncio.run(
+        _run(
+            args.slug,
+            args.per_source_limit,
+            args.dry_run,
+            args.force_retry_failures,
+        )
+    )
     sys.exit(code)
 
 
