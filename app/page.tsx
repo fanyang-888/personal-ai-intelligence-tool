@@ -56,10 +56,12 @@ export default function HomePage() {
               variant="aside"
             />
           ) : (
-            <EmptyState
-              title={t.home.emptyDraftTitle}
-              description={t.home.emptyDraftDesc}
-            />
+            <div id="draft-of-the-day" className="scroll-mt-24">
+              <EmptyState
+                title={t.home.emptyDraftTitle}
+                description={t.home.emptyDraftDesc}
+              />
+            </div>
           )}
         </div>
       </div>
