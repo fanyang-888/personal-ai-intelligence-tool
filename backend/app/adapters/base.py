@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from datetime import datetime, timezone
-from email.utils import parsedate_to_datetime
 from typing import Any
 
 from app.schemas.trusted_source_config import TrustedSourceConfig
+from app.utils.datetime_parse import published_raw_to_utc_datetime, utc_datetime_to_iso
+from app.utils.url_normalize import normalize_article_url
 
 
 class BaseSourceAdapter(ABC):
@@ -36,10 +36,13 @@ class BaseSourceAdapter(ABC):
     def normalize(self, raw: dict[str, Any]) -> dict[str, Any]:
         """Map parser-specific ``raw`` into the shared candidate schema."""
         title = (raw.get("title") or "").strip() or "Untitled"
-        url = (raw.get("link") or "").strip()
+        link = (raw.get("link") or "").strip()
+        base = str(self.source_config.base_url)
+        url = normalize_article_url(link, base=base) if link else ""
         author = raw.get("author")
         author_name = author.strip() if isinstance(author, str) and author.strip() else None
-        published_at = _published_at_iso(raw)
+        dt = published_raw_to_utc_datetime(raw)
+        published_at = utc_datetime_to_iso(dt)
         raw_meta = {
             "summary": raw.get("summary"),
             "tags": raw.get("tags") or [],
@@ -53,28 +56,3 @@ class BaseSourceAdapter(ABC):
             "author_name": author_name,
             "raw_meta": raw_meta,
         }
-
-
-def _published_at_iso(raw: dict[str, Any]) -> str | None:
-    pub = raw.get("published")
-    if isinstance(pub, str) and pub.strip():
-        try:
-            return parsedate_to_datetime(pub).isoformat()
-        except (TypeError, ValueError):
-            return pub.strip()
-    tup = raw.get("published_parsed")
-    if tup:
-        try:
-            dt = datetime(
-                tup.tm_year,
-                tup.tm_mon,
-                tup.tm_mday,
-                tup.tm_hour,
-                tup.tm_min,
-                tup.tm_sec,
-                tzinfo=timezone.utc,
-            )
-            return dt.isoformat()
-        except (TypeError, ValueError, AttributeError):
-            pass
-    return None

@@ -7,6 +7,7 @@ from typing import Any
 
 from app.adapters.base import BaseSourceAdapter
 from app.adapters.http_client import ingestion_http_client
+from app.adapters.ingestion_limits import apply_entry_limits
 from app.adapters.rss import fetch_feed_entries
 
 logger = logging.getLogger(__name__)
@@ -23,9 +24,12 @@ class OpenAINewsAdapter(BaseSourceAdapter):
             logger.error("fetch_index failure source=%s reason=no_feed_url", slug)
             raise ValueError("openai_news requires feed_url")
         try:
-            async with ingestion_http_client() as client:
+            async with ingestion_http_client(self.source_config) as client:
                 raw_entries = await fetch_feed_entries(str(self.source_config.feed_url), client)
-            rows = [r for r in raw_entries if r.get("link")]
+            rows = apply_entry_limits(
+                [r for r in raw_entries if r.get("link")],
+                self.source_config,
+            )
             if not rows and self.source_config.ingestion_method == "rss_primary_html_fallback":
                 logger.warning(
                     "fetch_index rss empty source=%s; HTML fallback not implemented for OpenAI (Day 3)",

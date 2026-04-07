@@ -8,6 +8,8 @@ from typing import Any
 from app.adapters.base import BaseSourceAdapter
 from app.adapters.html_index import extract_anthropic_news_candidates
 from app.adapters.http_client import ingestion_http_client
+from app.adapters.http_fetch import get_with_retry
+from app.adapters.ingestion_limits import apply_entry_limits
 from app.adapters.rss import fetch_feed_entries
 
 logger = logging.getLogger(__name__)
@@ -22,7 +24,7 @@ class AnthropicNewsroomAdapter(BaseSourceAdapter):
         logger.info("fetch_index start source=%s slug=%s", self.source_name, slug)
         raw_entries: list[dict[str, Any]] = []
         try:
-            async with ingestion_http_client() as client:
+            async with ingestion_http_client(self.source_config) as client:
                 if self.source_config.feed_url:
                     try:
                         raw_entries = await fetch_feed_entries(
@@ -44,10 +46,14 @@ class AnthropicNewsroomAdapter(BaseSourceAdapter):
                         slug,
                         self.source_config.index_url,
                     )
-                    resp = await client.get(str(self.source_config.index_url))
-                    resp.raise_for_status()
-                    raw_entries = extract_anthropic_news_candidates(resp.text)
-            candidates = [self.normalize(r) for r in raw_entries if r.get("link")]
+                    resp = await get_with_retry(client, str(self.source_config.index_url))
+                    base = str(self.source_config.base_url).rstrip("/")
+                    raw_entries = extract_anthropic_news_candidates(resp.text, base_url=base)
+            rows = apply_entry_limits(
+                [r for r in raw_entries if r.get("link")],
+                self.source_config,
+            )
+            candidates = [self.normalize(r) for r in rows]
             logger.info(
                 "fetch_index success source=%s slug=%s items=%s",
                 self.source_name,

@@ -8,10 +8,11 @@ from typing import Any
 import feedparser
 import httpx
 
+from app.adapters.http_fetch import get_with_retry
+
 
 async def fetch_feed_entries(url: str, client: httpx.AsyncClient) -> list[dict[str, Any]]:
-    resp = await client.get(url)
-    resp.raise_for_status()
+    resp = await get_with_retry(client, url)
     return await asyncio.to_thread(_parse_feed_text, resp.text)
 
 

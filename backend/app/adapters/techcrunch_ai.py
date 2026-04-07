@@ -7,6 +7,7 @@ from typing import Any
 
 from app.adapters.base import BaseSourceAdapter
 from app.adapters.http_client import ingestion_http_client
+from app.adapters.ingestion_limits import apply_entry_limits
 from app.adapters.rss import fetch_feed_entries
 
 logger = logging.getLogger(__name__)
@@ -23,9 +24,12 @@ class TechCrunchAIAdapter(BaseSourceAdapter):
             logger.error("fetch_index failure source=%s reason=no_feed_url", slug)
             raise ValueError("techcrunch_ai requires feed_url")
         try:
-            async with ingestion_http_client() as client:
+            async with ingestion_http_client(self.source_config) as client:
                 raw_entries = await fetch_feed_entries(str(self.source_config.feed_url), client)
-            rows = [r for r in raw_entries if r.get("link")]
+            rows = apply_entry_limits(
+                [r for r in raw_entries if r.get("link")],
+                self.source_config,
+            )
             candidates = [self.normalize(r) for r in rows]
             logger.info(
                 "fetch_index success source=%s slug=%s items=%s",

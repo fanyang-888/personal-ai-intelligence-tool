@@ -93,9 +93,12 @@ python -m scripts.fetch_index_dry_run
 python -m scripts.fetch_index_dry_run --slug anthropic-newsroom
 python -m scripts.fetch_index_dry_run --json --slug techcrunch-ai   # full candidate list
 python -m scripts.fetch_index_dry_run --json   # all sources, counts only (no huge item arrays)
+python -m scripts.fetch_index_dry_run --allow-empty   # exit 0 even when a source returns 0 rows
 ```
 
-Requires `SOURCE_FETCH_USER_AGENT` and the usual `.env` (imports `app.config.settings`). Each run logs start/success/failure per source and prints candidate counts.
+Requires `SOURCE_FETCH_USER_AGENT` and the usual `.env` (imports `app.config.settings`). Each successful source prints a freshness line: `[Dry Run] Source: … | Found: … | Newest: YYYY-MM-DD` (or `n/a` when no dates). By default the script exits with a non-zero code if any source returns **zero** candidates (catches empty SPA shells); use `--allow-empty` to override.
+
+Per-source YAML fields (optional): `user_agent` (browser-like string for WAFs), `import_limit` (cap after newest-first sort), `since_date` (UTC calendar day — drops older RSS rows). RSS fetches use small HTTP retries with backoff; Anthropic’s index is parsed with BeautifulSoup, not regex.
 
 **Candidate shape** (after `normalize`): `title`, `url`, `published_at`, `author_name`, `raw_meta` (parser hints, summary snippet, tags).
 
@@ -104,7 +107,7 @@ Requires `SOURCE_FETCH_USER_AGENT` and the usual `.env` (imports `app.config.set
 | Source | Slug | Ingestion |
 |--------|------|-----------|
 | OpenAI News | `openai-news` | RSS (`openai.com/news/rss.xml`); HTML fallback logged only if RSS empty |
-| Anthropic Newsroom | `anthropic-newsroom` | No public RSS in config → HTML index link extraction on `/news` |
+| Anthropic Newsroom | `anthropic-newsroom` | No public RSS in config → HTML index on `/news` (BS4 + `urljoin` / normalized URLs) |
 | TechCrunch AI | `techcrunch-ai` | RSS category feed only |
 
 `fetch_article` on `BaseSourceAdapter` returns a stub (`html: null`) until Day 3.

@@ -14,6 +14,9 @@ sources:
     fetch_frequency_minutes: 60
     source_priority: 10
     default_language: en
+    user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+    import_limit: 50
+    # since_date: "2025-01-01"  # optional UTC calendar day — drop older RSS rows
 
   - name: Anthropic Newsroom
     slug: anthropic-newsroom
@@ -27,6 +30,8 @@ sources:
     fetch_frequency_minutes: 60
     source_priority: 10
     default_language: en
+    user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+    import_limit: 80
 
   - name: TechCrunch AI
     slug: techcrunch-ai
@@ -40,3 +45,5 @@ sources:
     fetch_frequency_minutes: 30
     source_priority: 20
     default_language: en
+    user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+    import_limit: 40

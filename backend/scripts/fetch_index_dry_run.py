@@ -5,6 +5,7 @@ Requires the same env as the API (``DATABASE_URL``, etc.) because ``app.config``
     cd backend && python -m scripts.fetch_index_dry_run
     python -m scripts.fetch_index_dry_run --slug anthropic-newsroom
     python -m scripts.fetch_index_dry_run --json --slug openai-news
+    python -m scripts.fetch_index_dry_run --allow-empty   # if a source returns 0 candidates
 """
 
 from __future__ import annotations
@@ -14,16 +15,30 @@ import asyncio
 import json
 import logging
 import sys
+from typing import Any
 
 from app.adapters import get_adapter
 from app.adapters.registry import AdapterNotRegisteredError
 from app.logging_config import configure_logging
 from app.source_catalog.loader import load_trusted_sources
+from app.utils.datetime_parse import iso_to_utc_datetime
 
 logger = logging.getLogger(__name__)
 
 
-async def _run(slug: str | None, json_out: bool) -> int:
+def _newest_date_label(items: list[dict[str, Any]]) -> str:
+    best: Any = None
+    for it in items:
+        p = it.get("published_at")
+        if not p or not isinstance(p, str):
+            continue
+        dt = iso_to_utc_datetime(p)
+        if dt is not None and (best is None or dt > best):
+            best = dt
+    return best.date().isoformat() if best is not None else "n/a"
+
+
+async def _run(slug: str | None, json_out: bool, allow_empty: bool) -> int:
     configs = load_trusted_sources()
     if slug:
         configs = [c for c in configs if c.slug == slug]
@@ -31,23 +46,41 @@ async def _run(slug: str | None, json_out: bool) -> int:
             logger.error("no active source with slug=%r", slug)
             return 1
 
-    results: list[dict] = []
+    results: list[dict[str, Any]] = []
     exit_code = 0
     for cfg in configs:
         try:
             adapter = get_adapter(cfg)
             items = await adapter.fetch_index()
+            err: str | None = None
+            if not items and not allow_empty:
+                exit_code = 1
+                err = "empty_candidates"
+                logger.error(
+                    "fetch_index returned 0 candidates slug=%s (pass --allow-empty to accept)",
+                    cfg.slug,
+                )
             results.append(
                 {
                     "slug": cfg.slug,
                     "name": cfg.name,
                     "count": len(items),
-                    "error": None,
+                    "error": err,
                     "items": items,
                 }
             )
             if not json_out:
                 print(f"{cfg.slug}\t{len(items)} candidates")
+                if err is None:
+                    print(
+                        f"[Dry Run] Source: {cfg.name} | Found: {len(items)} | "
+                        f"Newest: {_newest_date_label(items)}"
+                    )
+                else:
+                    print(
+                        f"[Dry Run] Source: {cfg.name} | Found: {len(items)} | "
+                        f"Newest: n/a (empty index)"
+                    )
         except (AdapterNotRegisteredError, Exception) as e:
             exit_code = 1
             results.append(
@@ -84,8 +117,13 @@ def main() -> None:
         action="store_true",
         help="JSON to stdout (full items only when exactly one source is selected)",
     )
+    parser.add_argument(
+        "--allow-empty",
+        action="store_true",
+        help="Do not fail when a source returns zero candidates (SPA / outage debugging)",
+    )
     args = parser.parse_args()
-    code = asyncio.run(_run(args.slug, args.json))
+    code = asyncio.run(_run(args.slug, args.json, args.allow_empty))
     sys.exit(code)
 
 
