@@ -16,7 +16,7 @@ class ArticleCreate(BaseModel):
     )
     canonical_url: str | None = Field(
         default=None,
-        description="Optional; not used for dedupe unless schema is extended later.",
+        description="Optional metadata; service layer may merge/update by canonical when set.",
     )
     published_at: datetime | None = None
     fetched_at: datetime | None = None
@@ -28,6 +28,7 @@ class ArticleCreate(BaseModel):
     author_name: str | None = None
     organization_name: str | None = None
     raw_meta: dict[str, Any] = Field(default_factory=dict)
+    word_count: int | None = Field(default=None, ge=0)
 
 
 class ArticleRead(BaseModel):
@@ -50,5 +51,6 @@ class ArticleRead(BaseModel):
     author_name: str | None
     organization_name: str | None
     raw_meta: dict[str, Any]
+    word_count: int | None
     created_at: datetime
     updated_at: datetime

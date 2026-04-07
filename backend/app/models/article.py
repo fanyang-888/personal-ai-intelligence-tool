@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, func, text
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, func, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -15,10 +15,8 @@ if TYPE_CHECKING:
 
 
 class Article(Base):
-    """Row identity for ingestion dedupe is ``url`` only (DB UNIQUE + ``create_article`` conflict target).
-
-    ``canonical_url`` is optional metadata (e.g. after redirects); it is **not** unique and must not
-    be used as the duplicate key unless we add a separate migration and change ``create_article``.
+    """``url`` is the UNIQUE dedupe key. Persistence also merges rows by matching ``canonical_url``
+    (see :func:`app.services.article_ingest.persist_fetched_article`).
     """
 
     __tablename__ = "articles"
@@ -48,6 +46,7 @@ class Article(Base):
     raw_meta: Mapped[dict[str, Any]] = mapped_column(
         JSONB, nullable=False, server_default=text("'{}'::jsonb")
     )
+    word_count: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

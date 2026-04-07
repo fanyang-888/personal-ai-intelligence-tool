@@ -8,7 +8,7 @@ load_dotenv()
 
 from app.config import settings
 from app.db import Base
-from app.models import Article, Source  # noqa: F401
+from app.models import Article, IngestUrlState, Source  # noqa: F401
 
 config = context.config
 
