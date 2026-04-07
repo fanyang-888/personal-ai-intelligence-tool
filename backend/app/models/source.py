@@ -26,6 +26,8 @@ class Source(Base):
     feed_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     fetch_frequency_minutes: Mapped[int] = mapped_column(Integer, nullable=False)
+    last_polled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    etag: Mapped[str | None] = mapped_column(String(512), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

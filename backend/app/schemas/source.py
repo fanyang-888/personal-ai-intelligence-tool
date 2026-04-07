@@ -16,5 +16,7 @@ class SourceRead(BaseModel):
     feed_url: str | None
     is_active: bool
     fetch_frequency_minutes: int
+    last_polled_at: datetime | None
+    etag: str | None
     created_at: datetime
     updated_at: datetime
