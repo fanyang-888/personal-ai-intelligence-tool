@@ -14,7 +14,11 @@ logger = logging.getLogger(__name__)
 
 
 def create_article(db: Session, article_in: ArticleCreate) -> Article | None:
-    """Insert an article. Returns ``None`` if ``url`` already exists (unique constraint)."""
+    """Insert an article. Returns ``None`` if ``url`` already exists (unique constraint).
+
+    Does not commit. With :func:`app.db.session_scope`, the scope commits on exit.
+    With FastAPI :func:`app.db.get_db`, call ``db.commit()`` in the route after success.
+    """
     data = article_in.model_dump()
     stmt = (
         insert(Article)
