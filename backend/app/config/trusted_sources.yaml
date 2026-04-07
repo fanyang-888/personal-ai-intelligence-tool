@@ -1,0 +1,42 @@
+# Trusted public sources only (Week 2 Day 2). Adapters read this file at runtime.
+# Paths are verified periodically; if a feed moves, update URLs here.
+
+sources:
+  - name: OpenAI News
+    slug: openai-news
+    type: company_news
+    base_url: https://openai.com/
+    feed_url: https://openai.com/news/rss.xml
+    index_url: https://openai.com/news
+    adapter_key: openai_news
+    ingestion_method: rss_primary_html_fallback
+    is_active: true
+    fetch_frequency_minutes: 60
+    source_priority: 10
+    default_language: en
+
+  - name: Anthropic Newsroom
+    slug: anthropic-newsroom
+    type: company_news
+    base_url: https://www.anthropic.com/
+    feed_url: null
+    index_url: https://www.anthropic.com/news
+    adapter_key: anthropic_newsroom
+    ingestion_method: rss_primary_html_fallback
+    is_active: true
+    fetch_frequency_minutes: 60
+    source_priority: 10
+    default_language: en
+
+  - name: TechCrunch AI
+    slug: techcrunch-ai
+    type: tech_press
+    base_url: https://techcrunch.com/
+    feed_url: https://techcrunch.com/category/artificial-intelligence/feed/
+    index_url: https://techcrunch.com/category/artificial-intelligence/
+    adapter_key: techcrunch_ai
+    ingestion_method: rss
+    is_active: true
+    fetch_frequency_minutes: 30
+    source_priority: 20
+    default_language: en
