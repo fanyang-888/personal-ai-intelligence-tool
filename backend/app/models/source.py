@@ -15,6 +15,8 @@ if TYPE_CHECKING:
 
 
 class Source(Base):
+    """Ingestion target: use ``feed_url`` and/or ``base_url`` plus ``type`` for adapter routing."""
+
     __tablename__ = "sources"
 
     id: Mapped[uuid.UUID] = mapped_column(
