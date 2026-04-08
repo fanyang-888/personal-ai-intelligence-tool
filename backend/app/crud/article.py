@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import logging
+import uuid
+from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import or_, select
@@ -52,6 +54,30 @@ def find_article_by_canonical_or_url(db: Session, canonical: str) -> Article | N
 
 def get_article_by_url(db: Session, url: str) -> Article | None:
     return db.execute(select(Article).where(Article.url == url)).scalar_one_or_none()
+
+
+def get_unscored_articles(db: Session, limit: int = 500) -> list[Article]:
+    """Return articles that have not yet been scored (``signal_score IS NULL``)."""
+    return list(
+        db.execute(
+            select(Article).where(Article.signal_score.is_(None)).limit(limit)
+        ).scalars().all()
+    )
+
+
+def mark_article_scored(
+    db: Session,
+    article_id: uuid.UUID,
+    signal_score: float,
+    score_components: dict[str, Any],
+) -> None:
+    """Write score fields onto an existing article row. Does not commit."""
+    article = db.get(Article, article_id)
+    if article is None:
+        return
+    article.signal_score = signal_score
+    article.score_components = score_components
+    article.scored_at = datetime.now(timezone.utc)
 
 
 def apply_article_create_to_row(row: Article, data: dict[str, Any]) -> None:
