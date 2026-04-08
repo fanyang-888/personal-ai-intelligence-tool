@@ -4,7 +4,8 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, func, text
+import sqlalchemy as sa
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text, func, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -58,6 +59,12 @@ class Article(Base):
         onupdate=func.now(),
         nullable=False,
     )
+
+    # ---------- Filtering ----------
+    # NULL = not yet assessed | False = keep | True = excluded from pipeline
+    is_filtered_out: Mapped[bool | None] = mapped_column(sa.Boolean, nullable=True)
+    # Short tag: "short_body" | "short_title" | "off_topic" | "duplicate_hash"
+    filter_reason: Mapped[str | None] = mapped_column(String(64), nullable=True)
 
     # ---------- Scoring ----------
     # 0–100 composite signal score; NULL = not yet scored.
