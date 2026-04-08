@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, func, text
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, func, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -58,5 +58,12 @@ class Article(Base):
         onupdate=func.now(),
         nullable=False,
     )
+
+    # ---------- Scoring ----------
+    # 0–100 composite signal score; NULL = not yet scored.
+    signal_score: Mapped[float | None] = mapped_column(Float, nullable=True, index=True)
+    # Per-dimension breakdown: {"source_credibility": 5.0, "recency": 4.0, ...}
+    score_components: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    scored_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     source: Mapped[Source] = relationship("Source", back_populates="articles")
