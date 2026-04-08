@@ -38,12 +38,17 @@ class Cluster(Base):
         DateTime(timezone=True), nullable=True, index=True
     )
 
-    tags: Mapped[list[Any]] = mapped_column(
-        JSONB, nullable=False, default=list
-    )
-    meta: Mapped[dict[str, Any]] = mapped_column(
-        JSONB, nullable=False, default=dict
-    )
+    tags: Mapped[list[Any]] = mapped_column(JSONB, nullable=False, default=list)
+    meta: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
+
+    # ---------- LLM Summary ----------
+    summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    takeaways: Mapped[list[Any] | None] = mapped_column(JSONB, nullable=True)  # list[str]
+    why_it_matters: Mapped[str | None] = mapped_column(Text, nullable=True)
+    why_it_matters_pm: Mapped[str | None] = mapped_column(Text, nullable=True)
+    why_it_matters_dev: Mapped[str | None] = mapped_column(Text, nullable=True)
+    why_it_matters_students: Mapped[str | None] = mapped_column(Text, nullable=True)
+    summarized_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

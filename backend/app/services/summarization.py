@@ -1,0 +1,269 @@
+"""LLM Summarization Service.
+
+Generates two levels of summaries using the OpenAI Chat Completions API:
+
+  Article-level (per article that passed filtering):
+    - short_summary   — 2–3 sentence objective summary
+    - takeaways       — list of 3 concise takeaways
+    - tags            — topic tags (e.g. "model release", "benchmark", "safety")
+    - entities        — named entities (companies, models, people)
+    - themes          — broader themes (e.g. "inference cost", "open-source competition")
+    - why_it_matters  — 1 paragraph for PMs / devs / students
+
+  Cluster-level (per cluster, after its articles are summarized):
+    - summary                — narrative cluster summary
+    - takeaways              — 3 cluster-level takeaways
+    - why_it_matters         — general "why it matters"
+    - why_it_matters_pm      — PM-specific interpretation
+    - why_it_matters_dev     — developer-specific interpretation
+    - why_it_matters_students — student / job-seeker interpretation
+
+Token control:
+  - Article text is truncated to MAX_ARTICLE_WORDS before sending to LLM.
+  - Cluster summarization uses article short_summaries, not raw text.
+  - All prompts request JSON output to allow reliable parsing.
+
+Error handling:
+  - If the API call fails or JSON parsing fails, the article/cluster is
+    skipped (summarized_at is NOT set) so it can be retried next run.
+  - If OPENAI_API_KEY is not configured, the service logs a warning and exits.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+from datetime import datetime, timezone
+from typing import Any
+
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.config import settings
+from app.models.article import Article
+from app.models.cluster import Cluster
+
+logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Config
+# ---------------------------------------------------------------------------
+ARTICLE_MODEL = "gpt-4o-mini"
+CLUSTER_MODEL = "gpt-4o-mini"
+MAX_ARTICLE_WORDS = 1200   # truncate article text before sending
+MAX_CLUSTER_ARTICLES = 8   # max articles summaries to include in cluster prompt
+
+
+# ---------------------------------------------------------------------------
+# OpenAI client (lazy init)
+# ---------------------------------------------------------------------------
+
+def _get_client():
+    from openai import OpenAI
+    key = settings.openai_api_key
+    if not key:
+        raise RuntimeError("OPENAI_API_KEY is not configured")
+    return OpenAI(api_key=key.get_secret_value())
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _truncate_words(text: str, max_words: int) -> str:
+    words = text.split()
+    if len(words) <= max_words:
+        return text
+    return " ".join(words[:max_words]) + " [...]"
+
+
+def _call_llm(client, model: str, system: str, user: str) -> dict[str, Any]:
+    """Call the OpenAI API and return parsed JSON. Raises on failure."""
+    response = client.chat.completions.create(
+        model=model,
+        response_format={"type": "json_object"},
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ],
+        temperature=0.3,
+        max_tokens=800,
+    )
+    raw = response.choices[0].message.content or "{}"
+    return json.loads(raw)
+
+
+# ---------------------------------------------------------------------------
+# Article summarization
+# ---------------------------------------------------------------------------
+
+_ARTICLE_SYSTEM = """You are an AI intelligence analyst. Given an article, return a JSON object with:
+{
+  "short_summary": "2-3 sentence objective summary of what happened",
+  "takeaways": ["takeaway 1", "takeaway 2", "takeaway 3"],
+  "tags": ["tag1", "tag2"],
+  "entities": ["Company A", "Model X"],
+  "themes": ["theme 1", "theme 2"],
+  "why_it_matters": "1-2 sentence explanation of why this matters for PMs, developers, or students in AI"
+}
+Be concise. No fluff. JSON only."""
+
+
+def _article_user_prompt(article: Article) -> str:
+    body = (article.cleaned_text or article.excerpt or "").strip()
+    body = _truncate_words(body, MAX_ARTICLE_WORDS)
+    source = article.organization_name or "Unknown source"
+    return f"Source: {source}\nTitle: {article.title}\n\n{body}"
+
+
+def summarize_article(client, article: Article) -> dict[str, Any]:
+    """Call LLM and return summary dict. Does not write to DB."""
+    return _call_llm(client, ARTICLE_MODEL, _ARTICLE_SYSTEM, _article_user_prompt(article))
+
+
+def _apply_article_summary(article: Article, data: dict[str, Any]) -> None:
+    article.short_summary = (data.get("short_summary") or "").strip() or None
+    article.takeaways = data.get("takeaways") or []
+    article.tags = data.get("tags") or []
+    article.entities = data.get("entities") or []
+    article.themes = data.get("themes") or []
+    article.why_it_matters = (data.get("why_it_matters") or "").strip() or None
+    article.summarized_at = datetime.now(timezone.utc)
+
+
+# ---------------------------------------------------------------------------
+# Cluster summarization
+# ---------------------------------------------------------------------------
+
+_CLUSTER_SYSTEM = """You are an AI intelligence analyst specializing in synthesizing multiple sources.
+Given a cluster of related AI news articles (each as a short summary), return a JSON object with:
+{
+  "summary": "2-3 paragraph narrative explaining what happened across all sources",
+  "takeaways": ["cluster takeaway 1", "cluster takeaway 2", "cluster takeaway 3"],
+  "why_it_matters": "1-2 sentences on the broader significance",
+  "why_it_matters_pm": "1-2 sentences specifically for product managers",
+  "why_it_matters_dev": "1-2 sentences specifically for developers / engineers",
+  "why_it_matters_students": "1-2 sentences specifically for students and job-seekers"
+}
+JSON only. Be concrete and actionable."""
+
+
+def _cluster_user_prompt(cluster: Cluster, articles: list[Article]) -> str:
+    article_summaries = []
+    for i, a in enumerate(articles[:MAX_CLUSTER_ARTICLES], 1):
+        summary = a.short_summary or a.excerpt or (a.cleaned_text or "")[:200]
+        source = a.organization_name or "Unknown"
+        article_summaries.append(f"{i}. [{source}] {a.title}\n   {summary}")
+
+    joined = "\n\n".join(article_summaries)
+    return (
+        f"Cluster title: {cluster.representative_title}\n"
+        f"Type: {cluster.type} | Articles: {cluster.article_count} | Sources: {cluster.source_count}\n\n"
+        f"Article summaries:\n{joined}"
+    )
+
+
+def summarize_cluster(client, cluster: Cluster, articles: list[Article]) -> dict[str, Any]:
+    """Call LLM and return cluster summary dict. Does not write to DB."""
+    return _call_llm(client, CLUSTER_MODEL, _CLUSTER_SYSTEM, _cluster_user_prompt(cluster, articles))
+
+
+def _apply_cluster_summary(cluster: Cluster, data: dict[str, Any]) -> None:
+    cluster.summary = (data.get("summary") or "").strip() or None
+    cluster.takeaways = data.get("takeaways") or []
+    cluster.why_it_matters = (data.get("why_it_matters") or "").strip() or None
+    cluster.why_it_matters_pm = (data.get("why_it_matters_pm") or "").strip() or None
+    cluster.why_it_matters_dev = (data.get("why_it_matters_dev") or "").strip() or None
+    cluster.why_it_matters_students = (data.get("why_it_matters_students") or "").strip() or None
+    cluster.summarized_at = datetime.now(timezone.utc)
+
+
+# ---------------------------------------------------------------------------
+# Batch runners
+# ---------------------------------------------------------------------------
+
+def summarize_unsummarized_articles(db: Session, batch_size: int = 50) -> dict[str, int]:
+    """Summarize articles that passed filtering but have no LLM summary yet."""
+    key = settings.openai_api_key
+    if not key:
+        logger.warning("summarization skipped: OPENAI_API_KEY not set")
+        return {"processed": 0, "skipped": 0}
+
+    client = _get_client()
+
+    articles = list(
+        db.execute(
+            select(Article).where(
+                Article.is_filtered_out.is_not(True),
+                Article.summarized_at.is_(None),
+            ).limit(batch_size)
+        ).scalars().all()
+    )
+
+    processed = skipped = 0
+    for article in articles:
+        try:
+            data = summarize_article(client, article)
+            _apply_article_summary(article, data)
+            processed += 1
+            logger.info("summarized article id=%s title=%.60s", article.id, article.title)
+        except Exception:
+            logger.exception("failed to summarize article id=%s", article.id)
+            skipped += 1
+
+    if processed:
+        db.commit()
+    logger.info("article summarization done: processed=%d skipped=%d", processed, skipped)
+    return {"processed": processed, "skipped": skipped}
+
+
+def summarize_unsummarized_clusters(db: Session, batch_size: int = 20) -> dict[str, int]:
+    """Summarize clusters whose articles have been summarized but the cluster itself has not."""
+    key = settings.openai_api_key
+    if not key:
+        logger.warning("cluster summarization skipped: OPENAI_API_KEY not set")
+        return {"processed": 0, "skipped": 0}
+
+    client = _get_client()
+
+    clusters = list(
+        db.execute(
+            select(Cluster).where(Cluster.summarized_at.is_(None)).limit(batch_size)
+        ).scalars().all()
+    )
+
+    processed = skipped = 0
+    for cluster in clusters:
+        try:
+            articles = list(
+                db.execute(
+                    select(Article)
+                    .where(Article.cluster_id == cluster.id)
+                    .order_by(Article.signal_score.desc().nullslast())
+                ).scalars().all()
+            )
+            if not articles:
+                logger.warning("cluster id=%s has no articles, skipping", cluster.id)
+                skipped += 1
+                continue
+
+            data = summarize_cluster(client, cluster, articles)
+            _apply_cluster_summary(cluster, data)
+
+            # Propagate tags/entities from articles to cluster if not set
+            if not cluster.tags:
+                all_tags: list[str] = []
+                for a in articles:
+                    all_tags.extend(a.tags or [])
+                cluster.tags = list(dict.fromkeys(all_tags))[:10]
+
+            processed += 1
+            logger.info("summarized cluster id=%s title=%.60s", cluster.id, cluster.representative_title)
+        except Exception:
+            logger.exception("failed to summarize cluster id=%s", cluster.id)
+            skipped += 1
+
+    if processed:
+        db.commit()
+    logger.info("cluster summarization done: processed=%d skipped=%d", processed, skipped)
+    return {"processed": processed, "skipped": skipped}

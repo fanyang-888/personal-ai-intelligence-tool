@@ -61,6 +61,15 @@ class Article(Base):
         nullable=False,
     )
 
+    # ---------- LLM Summary ----------
+    short_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    takeaways: Mapped[list | None] = mapped_column(JSONB, nullable=True)   # list[str]
+    tags: Mapped[list | None] = mapped_column(JSONB, nullable=True)        # list[str]
+    entities: Mapped[list | None] = mapped_column(JSONB, nullable=True)    # list[str]
+    themes: Mapped[list | None] = mapped_column(JSONB, nullable=True)      # list[str]
+    why_it_matters: Mapped[str | None] = mapped_column(Text, nullable=True)
+    summarized_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
     # ---------- Filtering ----------
     # NULL = not yet assessed | False = keep | True = excluded from pipeline
     is_filtered_out: Mapped[bool | None] = mapped_column(sa.Boolean, nullable=True)
