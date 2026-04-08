@@ -4,13 +4,15 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, func, text
+import sqlalchemy as sa
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text, func, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db import Base
 
 if TYPE_CHECKING:
+    from app.models.cluster import Cluster
     from app.models.source import Source
 
 
@@ -59,6 +61,21 @@ class Article(Base):
         nullable=False,
     )
 
+    # ---------- LLM Summary ----------
+    short_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    takeaways: Mapped[list | None] = mapped_column(JSONB, nullable=True)   # list[str]
+    tags: Mapped[list | None] = mapped_column(JSONB, nullable=True)        # list[str]
+    entities: Mapped[list | None] = mapped_column(JSONB, nullable=True)    # list[str]
+    themes: Mapped[list | None] = mapped_column(JSONB, nullable=True)      # list[str]
+    why_it_matters: Mapped[str | None] = mapped_column(Text, nullable=True)
+    summarized_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    # ---------- Filtering ----------
+    # NULL = not yet assessed | False = keep | True = excluded from pipeline
+    is_filtered_out: Mapped[bool | None] = mapped_column(sa.Boolean, nullable=True)
+    # Short tag: "short_body" | "short_title" | "off_topic" | "duplicate_hash"
+    filter_reason: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
     # ---------- Scoring ----------
     # 0–100 composite signal score; NULL = not yet scored.
     signal_score: Mapped[float | None] = mapped_column(Float, nullable=True, index=True)
@@ -66,4 +83,13 @@ class Article(Base):
     score_components: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     scored_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
+    # ---------- Cluster ----------
+    cluster_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("clusters.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+
+    cluster: Mapped[Cluster | None] = relationship("Cluster", back_populates="articles")
     source: Mapped[Source] = relationship("Source", back_populates="articles")

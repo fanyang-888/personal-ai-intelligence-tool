@@ -56,11 +56,37 @@ def get_article_by_url(db: Session, url: str) -> Article | None:
     return db.execute(select(Article).where(Article.url == url)).scalar_one_or_none()
 
 
-def get_unscored_articles(db: Session, limit: int = 500) -> list[Article]:
-    """Return articles that have not yet been scored (``signal_score IS NULL``)."""
+def get_unassessed_articles(db: Session, limit: int = 500) -> list[Article]:
+    """Return articles not yet assessed by the filter service (``is_filtered_out IS NULL``)."""
     return list(
         db.execute(
-            select(Article).where(Article.signal_score.is_(None)).limit(limit)
+            select(Article).where(Article.is_filtered_out.is_(None)).limit(limit)
+        ).scalars().all()
+    )
+
+
+def mark_article_filter_result(
+    db: Session,
+    article_id: uuid.UUID,
+    is_filtered_out: bool,
+    filter_reason: str | None,
+) -> None:
+    """Persist filter verdict on an article row. Does not commit."""
+    article = db.get(Article, article_id)
+    if article is None:
+        return
+    article.is_filtered_out = is_filtered_out
+    article.filter_reason = filter_reason
+
+
+def get_unscored_articles(db: Session, limit: int = 500) -> list[Article]:
+    """Return articles that passed filtering but have not yet been scored."""
+    return list(
+        db.execute(
+            select(Article).where(
+                Article.signal_score.is_(None),
+                Article.is_filtered_out.is_not(True),
+            ).limit(limit)
         ).scalars().all()
     )
 
