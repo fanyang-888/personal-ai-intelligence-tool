@@ -12,6 +12,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db import Base
 
 if TYPE_CHECKING:
+    from app.models.cluster import Cluster
     from app.models.source import Source
 
 
@@ -73,4 +74,13 @@ class Article(Base):
     score_components: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     scored_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
+    # ---------- Cluster ----------
+    cluster_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("clusters.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+
+    cluster: Mapped[Cluster | None] = relationship("Cluster", back_populates="articles")
     source: Mapped[Source] = relationship("Source", back_populates="articles")
