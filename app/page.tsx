@@ -10,6 +10,7 @@ import { FeaturedStoryCard } from "@/components/digest/featured-story-card";
 import { ClusterCard } from "@/components/digest/cluster-card";
 import { DraftPreviewCard } from "@/components/digest/draft-preview-card";
 import { DiscoverArchiveCta } from "@/components/digest/quick-archive-entry";
+import { AIBasicCard } from "@/components/digest/ai-basic-card";
 import { PageHeader } from "@/components/shared/page-header";
 import { SectionBlock } from "@/components/shared/section-block";
 import { SectionTitle } from "@/components/shared/section-title";
@@ -143,6 +144,10 @@ export default function HomePage() {
             }
           />
         )}
+      </SectionBlock>
+
+      <SectionBlock>
+        <AIBasicCard />
       </SectionBlock>
 
       <DiscoverArchiveCta />
