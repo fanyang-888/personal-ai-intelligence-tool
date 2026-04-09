@@ -1,0 +1,91 @@
+/**
+ * TypeScript types matching the FastAPI response schemas.
+ * These are API wire types — components use the existing domain types
+ * (Cluster, Draft) after mapping.
+ */
+
+import type { LocalizedString } from "@/types/localized";
+
+export type ApiLocalizedStr = { en: string; zh: string | null };
+
+export type ApiAudienceBlocks = {
+  pm: ApiLocalizedStr;
+  developer: ApiLocalizedStr;
+  studentJobSeeker: ApiLocalizedStr;
+};
+
+export type ApiCluster = {
+  id: string;
+  clusterType: string;
+  title: ApiLocalizedStr;
+  theme: string;
+  themes: string[];
+  tags: string[];
+  storyStatus: string;
+  clusterScore: number | null;
+  freshnessLabel: string;
+  firstSeenAt: string | null;
+  lastSeenAt: string | null;
+  summary: ApiLocalizedStr;
+  takeaways: ApiLocalizedStr[];
+  whyItMatters: ApiLocalizedStr;
+  audience: ApiAudienceBlocks;
+  articleIds: string[];
+  relatedClusterIds: string[];
+  draftId: string | null;
+  articleCount: number;
+  sourceCount: number;
+};
+
+export type ApiDigest = {
+  date: string;
+  featured: ApiCluster | null;
+  topClusters: ApiCluster[];
+  draftId: string | null;
+};
+
+export type ApiDraft = {
+  id: string;
+  clusterId: string | null;
+  draftType: string;
+  title: ApiLocalizedStr;
+  generatedAt: string | null;
+  hook: ApiLocalizedStr;
+  summaryBlock: ApiLocalizedStr;
+  takeaways: ApiLocalizedStr[];
+  careerInterpretationBlock: ApiLocalizedStr;
+  audienceWhyItMattersBlock: ApiLocalizedStr;
+  closingBlock: ApiLocalizedStr | null;
+  fullText: string;
+};
+
+export type ApiSearchResponse = {
+  query: string;
+  resultType: string;
+  clusters: ApiArchiveClusterRow[];
+  articles: ApiArchiveArticleRow[];
+  total: number;
+};
+
+export type ApiArchiveClusterRow = {
+  id: string;
+  type: "cluster";
+  title: string;
+  summary: string | null;
+  tags: string[];
+  theme: string;
+  storyStatus: string;
+  clusterScore: number | null;
+  lastSeenAt: string | null;
+  sourceCount: number;
+};
+
+export type ApiArchiveArticleRow = {
+  id: string;
+  type: "article";
+  title: string;
+  excerpt: string | null;
+  sourceName: string | null;
+  publishedAt: string | null;
+  url: string;
+};
