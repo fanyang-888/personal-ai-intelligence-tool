@@ -1,40 +1,85 @@
-import { notFound } from "next/navigation";
-import { drafts, getDraftById } from "@/lib/mock-data/drafts";
-import {
-  getClusterById,
-  getFeaturedCluster,
-} from "@/lib/mock-data/clusters";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { DraftPageView } from "@/components/draft/draft-page-view";
+import { LoadingState } from "@/components/shared/loading-state";
+import { ErrorState } from "@/components/shared/error-state";
+import { fetchDraft, regenerateDraft } from "@/lib/api";
+import { apiDraftToDraft, apiClusterToCluster } from "@/lib/api/mappers";
+import type { Draft } from "@/types/draft";
+import type { LocalizedString } from "@/types/localized";
 
-type DraftPageProps = {
-  params: Promise<{ id: string }>;
-};
-
-export const dynamicParams = false;
-
+// Required for Next.js output: export with dynamic [id] segments.
 export function generateStaticParams() {
-  return drafts.map((d) => ({ id: d.id }));
+  return [];
 }
 
-export default async function DraftPage({ params }: DraftPageProps) {
-  const { id } = await params;
-  const draft = getDraftById(id);
-  if (!draft) notFound();
+export default function DraftPage() {
+  const { id } = useParams<{ id: string }>();
 
-  const cluster = getClusterById(draft.clusterId);
-  const featured = getFeaturedCluster();
-  const isDraftOfDay = featured?.draftId === draft.id;
-  const clusterTitle = cluster?.title ?? draft.clusterId;
-  const clusterTags = cluster?.tags ?? cluster?.themes ?? [];
+  const [draft, setDraft] = useState<Draft | null>(null);
+  const [clusterTitle, setClusterTitle] = useState<LocalizedString>({ en: "", zh: "" });
+  const [clusterSummary, setClusterSummary] = useState<string>("");
+  const [clusterTags, setClusterTags] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  async function load(draftId: string) {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await fetchDraft(draftId);
+      setDraft(apiDraftToDraft(data));
+      setClusterTitle({ en: data.title.en, zh: data.title.zh ?? "" });
+      // Cluster info is embedded in the draft response title
+      setClusterTags([]);
+      setClusterSummary("");
+    } catch (e) {
+      setError((e as Error).message ?? "Draft not found");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!id) return;
+    load(id);
+  }, [id]);
+
+  async function handleRegenerate() {
+    if (!id) return;
+    try {
+      setLoading(true);
+      const data = await regenerateDraft(id);
+      setDraft(apiDraftToDraft(data));
+    } catch (e) {
+      setError((e as Error).message ?? "Regeneration failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (loading) return <LoadingState layout="detail" />;
+
+  if (error || !draft) {
+    return (
+      <ErrorState
+        title="Draft not found"
+        message={error ?? "This draft does not exist or could not be loaded."}
+        onRetry={() => id && load(id)}
+      />
+    );
+  }
 
   return (
     <DraftPageView
       draft={draft}
-      isDraftOfDay={isDraftOfDay}
+      isDraftOfDay={false}
       clusterId={draft.clusterId}
       clusterTitle={clusterTitle}
-      clusterExists={!!cluster}
-      clusterSummary={cluster?.summary ?? ""}
+      clusterExists={!!draft.clusterId}
+      clusterSummary={clusterSummary}
       clusterTags={clusterTags}
     />
   );

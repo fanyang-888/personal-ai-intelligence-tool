@@ -1,8 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { buildDigestView } from "@/lib/mappers/digest";
-import { getClusterById } from "@/lib/mock-data/clusters";
 import { formatDigestDate } from "@/lib/utils/format-date";
 import { useI18n } from "@/lib/i18n";
 import { pickLocalized } from "@/lib/utils/localized-string";
@@ -15,17 +14,69 @@ import { PageHeader } from "@/components/shared/page-header";
 import { SectionBlock } from "@/components/shared/section-block";
 import { SectionTitle } from "@/components/shared/section-title";
 import { EmptyState } from "@/components/shared/empty-state";
+import { LoadingState } from "@/components/shared/loading-state";
+import { ErrorState } from "@/components/shared/error-state";
+import { fetchTodayDigest, fetchTodayDraft } from "@/lib/api";
+import { apiClusterToCluster, apiDraftToDraft } from "@/lib/api/mappers";
+import type { Cluster } from "@/types/cluster";
+import type { Draft } from "@/types/draft";
 
 export default function HomePage() {
   const { t, lang } = useI18n();
-  const { featured, topClusters, draftOfDay } = buildDigestView();
   const dateLabel = formatDigestDate(new Date(), lang);
-  const relatedCluster = draftOfDay
-    ? getClusterById(draftOfDay.clusterId)
+
+  const [featured, setFeatured] = useState<Cluster | null>(null);
+  const [topClusters, setTopClusters] = useState<Cluster[]>([]);
+  const [draftOfDay, setDraftOfDay] = useState<Draft | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const [digest, draft] = await Promise.all([
+          fetchTodayDigest(),
+          fetchTodayDraft().catch(() => null),
+        ]);
+
+        if (cancelled) return;
+
+        setFeatured(digest.featured ? apiClusterToCluster(digest.featured) : null);
+        setTopClusters(digest.topClusters.map(apiClusterToCluster));
+        setDraftOfDay(draft ? apiDraftToDraft(draft) : null);
+      } catch (e) {
+        if (!cancelled) setError((e as Error).message ?? "Failed to load digest");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
+  const relatedStoryTitle = draftOfDay && featured
+    ? pickLocalized(featured.title, lang)
     : undefined;
-  const relatedStoryTitle = relatedCluster
-    ? pickLocalized(relatedCluster.title, lang)
-    : undefined;
+
+  if (loading) {
+    return <LoadingState layout="digest" />;
+  }
+
+  if (error) {
+    return (
+      <ErrorState
+        title="Could not load today's digest"
+        message={error}
+        onRetry={() => window.location.reload()}
+      />
+    );
+  }
 
   return (
     <div>
