@@ -18,9 +18,9 @@ def health_db(db: Session = Depends(get_db)) -> dict[str, str]:
     """Full readiness check including database connectivity."""
     try:
         db.execute(text("SELECT 1"))
-    except Exception:
+    except Exception as e:
         raise HTTPException(
             status_code=503,
-            detail="Database connection failed",
+            detail=f"Database connection failed: {type(e).__name__}: {e}",
         ) from None
     return {"status": "healthy"}
