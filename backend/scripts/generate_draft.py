@@ -28,6 +28,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--print", dest="print_draft", action="store_true", help="Print draft to stdout")
     args = parser.parse_args(argv)
 
+    draft_id = None
+    draft_cluster_id = None
+    draft_full_text = None
+
     with session_scope() as db:
         if args.cluster_id:
             try:
@@ -43,14 +47,19 @@ def main(argv: list[str] | None = None) -> int:
         else:
             draft = generate_daily_draft(db)
 
-    if draft is None:
+        if draft is not None:
+            draft_id = draft.id
+            draft_cluster_id = draft.cluster_id
+            draft_full_text = draft.full_text
+
+    if draft_id is None:
         print("No eligible cluster found for draft generation.")
         return 0
 
-    print(f"Draft generated — id={draft.id} cluster_id={draft.cluster_id}")
+    print(f"Draft generated — id={draft_id} cluster_id={draft_cluster_id}")
     if args.print_draft:
         print("\n" + "=" * 60)
-        print(draft.full_text)
+        print(draft_full_text)
         print("=" * 60)
 
     return 0

@@ -47,8 +47,8 @@ def upgrade() -> None:
         sa.Column("source_count", sa.Integer(), nullable=False, server_default="1"),
         sa.Column("first_seen_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("last_seen_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("tags", JSONB, nullable=False, server_default="'[]'::jsonb"),
-        sa.Column("meta", JSONB, nullable=False, server_default="'{}'::jsonb"),
+        sa.Column("tags", JSONB, nullable=False, server_default=sa.text("'[]'::jsonb")),
+        sa.Column("meta", JSONB, nullable=False, server_default=sa.text("'{}'::jsonb")),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
