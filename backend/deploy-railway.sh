@@ -1,64 +1,73 @@
 #!/usr/bin/env bash
-# Railway deployment script for personal-ai-intelligence-tool backend
-# Usage: RAILWAY_TOKEN=<your-token> ./deploy-railway.sh
-# Get your token from: https://railway.com/account/tokens
+# One-shot Railway deployment for personal-ai-intelligence-tool backend.
+# Run from the backend/ directory.
+# Usage:
+#   cd backend/
+#   bash deploy-railway.sh
 
 set -euo pipefail
+cd "$(dirname "$0")"
 
-BACKEND_DIR="$(cd "$(dirname "$0")" && pwd)"
-
-if [ -z "${RAILWAY_TOKEN:-}" ]; then
-  echo "ERROR: RAILWAY_TOKEN is not set."
-  echo "  1. Go to https://railway.com/account/tokens"
-  echo "  2. Create a new token"
-  echo "  3. Run: RAILWAY_TOKEN=<your-token> ./deploy-railway.sh"
+# Read OPENAI_API_KEY from .env file (never hard-code secrets in scripts)
+if [ -f .env ]; then
+  OPENAI_KEY=$(grep '^OPENAI_API_KEY=' .env | cut -d'=' -f2- | tr -d "'" | tr -d '"')
+fi
+if [ -z "${OPENAI_KEY:-}" ]; then
+  echo "ERROR: OPENAI_API_KEY not found in .env. Please add it."
   exit 1
 fi
 
-export RAILWAY_TOKEN
+echo "==> Checking Railway login..."
+if ! railway whoami &>/dev/null; then
+  echo "    Not logged in. Opening browser login..."
+  railway login
+fi
 
-cd "$BACKEND_DIR"
-echo "Working in: $BACKEND_DIR"
+echo "==> Creating Railway project..."
+railway init --name personal-ai-intelligence-tool-backend 2>/dev/null || true
 
-# --- Step 1: Create or link project ---
-echo ""
-echo "==> Initializing Railway project..."
-railway init --name personal-ai-intelligence-tool-backend
+echo "==> Adding Postgres..."
+railway add --database postgres 2>/dev/null || echo "    (may already exist)"
 
-# --- Step 2: Add PostgreSQL plugin ---
-echo ""
-echo "==> Adding PostgreSQL database..."
-railway add --database postgres
-
-# --- Step 3: Set environment variables ---
-echo ""
-echo "==> Setting environment variables..."
+echo "==> Setting env vars..."
 railway variables --set "APP_ENV=production"
 railway variables --set "SOURCE_FETCH_USER_AGENT=PersonalAIIntelligenceTool/0.1 (+local-dev)"
-railway variables --set "OPENAI_API_KEY=${OPENAI_API_KEY:?ERROR: OPENAI_API_KEY env var is not set}"
-# DATABASE_URL is set automatically by Railway from the Postgres plugin as ${{Postgres.DATABASE_URL}}
-# We need to map it to what our app expects (postgresql+psycopg:// format)
-echo "  Note: DATABASE_URL will be set from the Postgres plugin variable reference."
-echo "  After deploy, set it manually if needed:"
-echo "    railway variables --set 'DATABASE_URL=\${{Postgres.DATABASE_URL}}'"
+railway variables --set "OPENAI_API_KEY=${OPENAI_KEY}"
 
-# --- Step 4: Deploy ---
-echo ""
-echo "==> Deploying to Railway..."
+echo "==> Deploying..."
 railway up --detach
 
-echo ""
-echo "==> Deployment triggered. Getting service URL..."
-sleep 10
-railway domain
+echo "==> Waiting 45s for first boot..."
+sleep 45
+
+echo "==> Setting DATABASE_URL with psycopg driver..."
+RAW=$(railway variables 2>/dev/null | grep DATABASE_URL | head -1 | sed 's/.*= //')
+if [[ "$RAW" == postgresql://* ]]; then
+  railway variables --set "DATABASE_URL=${RAW/postgresql:\/\//postgresql+psycopg://}"
+  echo "    DATABASE_URL updated."
+else
+  echo "    Could not auto-fix DATABASE_URL. Check Railway dashboard."
+fi
+
+echo "==> Running migrations..."
+railway run --service personal-ai-intelligence-tool-backend alembic upgrade head
+
+echo "==> Seeding sources..."
+railway run --service personal-ai-intelligence-tool-backend python -m scripts.seed_sources
+
+echo "==> Ingesting articles..."
+railway run --service personal-ai-intelligence-tool-backend python -m scripts.ingest_full_articles
+
+echo "==> Filter / score / cluster / summarize / draft..."
+railway run --service personal-ai-intelligence-tool-backend python -m scripts.filter_articles
+railway run --service personal-ai-intelligence-tool-backend python -m scripts.score_articles
+railway run --service personal-ai-intelligence-tool-backend python -m scripts.cluster_articles
+railway run --service personal-ai-intelligence-tool-backend python -m scripts.summarize
+railway run --service personal-ai-intelligence-tool-backend python -m scripts.generate_draft
 
 echo ""
-echo "==> Done! Now run post-deploy steps:"
-echo "  railway run alembic upgrade head"
-echo "  railway run python -m scripts.seed_sources"
-echo "  railway run python -m scripts.ingest_full_articles"
-echo "  railway run python -m scripts.filter_articles"
-echo "  railway run python -m scripts.score_articles"
-echo "  railway run python -m scripts.cluster_articles"
-echo "  railway run python -m scripts.summarize"
-echo "  railway run python -m scripts.generate_draft"
+echo "==> All done! Your Railway service URL:"
+railway status
+echo ""
+echo "==> FINAL STEP: Go to Vercel and update NEXT_PUBLIC_API_URL to the URL above."
+echo "    https://vercel.com/fanyang-888s-projects/personal-ai-intelligence-tool/settings/environment-variables"
