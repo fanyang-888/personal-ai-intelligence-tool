@@ -35,6 +35,7 @@ class Base(DeclarativeBase):
 engine = create_engine(
     settings.database_url.get_secret_value(),
     pool_pre_ping=True,
+    connect_args={"connect_timeout": 10},
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
