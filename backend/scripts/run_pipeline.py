@@ -88,6 +88,7 @@ def main() -> int:
         score_articles,
         cluster_articles,
         update_cluster_status,
+        dedup_clusters,
         summarize,
         translate_clusters,
         translate_drafts,
@@ -95,14 +96,15 @@ def main() -> int:
     )
 
     stages: list[tuple[str, Callable[[], int]]] = [
-        ("filter_articles",      lambda: filter_articles.main([])),
-        ("score_articles",       lambda: score_articles.main([])),
-        ("cluster_articles",     lambda: cluster_articles.main([])),
+        ("filter_articles",       lambda: filter_articles.main([])),
+        ("score_articles",        lambda: score_articles.main([])),
+        ("cluster_articles",      lambda: cluster_articles.main([])),
         ("update_cluster_status", lambda: update_cluster_status.main([])),
-        ("summarize",            lambda: summarize.main([])),
-        ("translate_clusters",   lambda: translate_clusters.main([])),
-        ("generate_draft",       lambda: generate_draft.main([])),
-        ("translate_drafts",     lambda: translate_drafts.main([])),
+        ("dedup_clusters",        lambda: dedup_clusters.main([])),
+        ("summarize",             lambda: summarize.main([])),
+        ("translate_clusters",    lambda: translate_clusters.main([])),
+        ("generate_draft",        lambda: generate_draft.main([])),
+        ("translate_drafts",      lambda: translate_drafts.main([])),
     ]
 
     failures: list[str] = []
