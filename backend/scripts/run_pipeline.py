@@ -88,6 +88,7 @@ def main() -> int:
         score_articles,
         cluster_articles,
         summarize,
+        translate_clusters,
         generate_draft,
     )
 
@@ -96,6 +97,7 @@ def main() -> int:
         ("score_articles",    lambda: score_articles.main([])),
         ("cluster_articles",  lambda: cluster_articles.main([])),
         ("summarize",         lambda: summarize.main([])),
+        ("translate_clusters", lambda: translate_clusters.main([])),
         ("generate_draft",    lambda: generate_draft.main([])),
     ]
 
