@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 
 from app.adapters.anthropic import AnthropicNewsroomAdapter
+from app.adapters.arxiv import ArxivRSSAdapter
 from app.adapters.base import BaseSourceAdapter
 from app.adapters.generic_rss import GenericRSSAdapter
 from app.adapters.openai_news import OpenAINewsAdapter
@@ -23,6 +24,7 @@ ADAPTER_REGISTRY: dict[str, type[BaseSourceAdapter]] = {
     AnthropicNewsroomAdapter.adapter_key: AnthropicNewsroomAdapter,
     TechCrunchAIAdapter.adapter_key: TechCrunchAIAdapter,
     GenericRSSAdapter.adapter_key: GenericRSSAdapter,
+    ArxivRSSAdapter.adapter_key: ArxivRSSAdapter,
 }
 
 
