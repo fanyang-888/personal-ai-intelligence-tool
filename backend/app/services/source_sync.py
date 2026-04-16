@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import datetime, timezone
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -46,3 +47,19 @@ def upsert_source_from_trusted_config(db: Session, config: TrustedSourceConfig) 
     db.flush()
     logger.info("inserted source slug=%s id=%s", config.slug, src.id)
     return src
+
+
+def update_source_poll_state(
+    db: Session,
+    source_id: int,
+    *,
+    etag: str | None = None,
+) -> None:
+    """Stamp ``last_polled_at`` and optionally update ``etag`` for the given source."""
+    row = db.get(Source, source_id)
+    if row is None:
+        return
+    row.last_polled_at = datetime.now(timezone.utc)
+    if etag is not None:
+        row.etag = etag
+    db.commit()

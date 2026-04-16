@@ -107,10 +107,12 @@ class AnthropicNewsroomAdapter(BaseSourceAdapter):
             async with ingestion_http_client(self.source_config) as client:
                 if self.source_config.feed_url:
                     try:
-                        raw_entries = await fetch_feed_entries(
-                            str(self.source_config.feed_url), client
+                        etag: str | None = getattr(self.source_config, "etag", None)
+                        feed_entries, new_etag = await fetch_feed_entries(
+                            str(self.source_config.feed_url), client, etag=etag
                         )
-                        raw_entries = [r for r in raw_entries if r.get("link")]
+                        self._new_etag: str | None = new_etag
+                        raw_entries = [r for r in feed_entries if r.get("link")]
                     except Exception as e:
                         logger.warning(
                             "fetch_index rss skipped source=%s slug=%s type=%s msg=%s",

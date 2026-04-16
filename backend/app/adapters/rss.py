@@ -11,9 +11,30 @@ import httpx
 from app.adapters.http_fetch import get_with_retry
 
 
-async def fetch_feed_entries(url: str, client: httpx.AsyncClient) -> list[dict[str, Any]]:
-    resp = await get_with_retry(client, url)
-    return await asyncio.to_thread(_parse_feed_text, resp.text)
+async def fetch_feed_entries(
+    url: str,
+    client: httpx.AsyncClient,
+    *,
+    etag: str | None = None,
+) -> tuple[list[dict[str, Any]], str | None]:
+    """Fetch and parse an RSS/Atom feed.
+
+    Sends ``If-None-Match`` when ``etag`` is provided.  Returns
+    ``(entries, new_etag)``.  If the server responds 304 Not Modified,
+    returns ``([], None)`` — caller should keep the existing etag.
+    """
+    req_headers: dict[str, str] = {}
+    if etag:
+        req_headers["If-None-Match"] = etag
+
+    resp = await get_with_retry(client, url, headers=req_headers)
+
+    if resp.status_code == 304:
+        return [], None
+
+    new_etag: str | None = resp.headers.get("ETag") or resp.headers.get("etag") or None
+    entries = await asyncio.to_thread(_parse_feed_text, resp.text)
+    return entries, new_etag
 
 
 def _parse_feed_text(xml_or_text: str) -> list[dict[str, Any]]:

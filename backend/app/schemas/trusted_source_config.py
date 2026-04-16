@@ -47,6 +47,10 @@ class TrustedSourceConfig(BaseModel):
         default=None,
         description="Drop entries older than this UTC calendar day (RSS); undated rows kept.",
     )
+    etag: str | None = Field(
+        default=None,
+        description="Last ETag received from the RSS feed; used for conditional requests.",
+    )
 
     def effective_user_agent(self, fallback: str) -> str:
         for candidate in (self.user_agent, fallback, DEFAULT_TRUSTED_BROWSER_USER_AGENT):

@@ -15,6 +15,7 @@ import asyncio
 import logging
 import sys
 from collections import defaultdict
+from datetime import datetime, timezone
 from uuid import UUID
 
 from app.adapters import get_adapter
@@ -31,7 +32,7 @@ from app.services.article_ingest import (
     normalized_from_candidate_fetch,
     persist_fetched_article,
 )
-from app.services.source_sync import upsert_source_from_trusted_config
+from app.services.source_sync import update_source_poll_state, upsert_source_from_trusted_config
 from app.source_catalog.loader import load_trusted_sources
 
 logger = logging.getLogger(__name__)
@@ -70,10 +71,26 @@ async def _run(
 
         if dry_run:
             source_id = UUID(int=0)
+            source = None
         else:
             with session_scope() as db:
                 source = upsert_source_from_trusted_config(db, cfg)
                 source_id = source.id
+                # Poll frequency gate — skip if fetched too recently
+                if source.last_polled_at and cfg.fetch_frequency_minutes:
+                    now = datetime.now(timezone.utc)
+                    elapsed_min = (now - source.last_polled_at).total_seconds() / 60
+                    if elapsed_min < cfg.fetch_frequency_minutes:
+                        logger.info(
+                            "skip source=%s (polled %.0fm ago, freq=%dm)",
+                            slug_label,
+                            elapsed_min,
+                            cfg.fetch_frequency_minutes,
+                        )
+                        totals["skipped_poll_gate"] += 1
+                        continue
+                # Thread etag into config so adapter can use it
+                cfg.etag = source.etag
 
         try:
             index_items = await adapter.fetch_index()
@@ -87,6 +104,12 @@ async def _run(
             totals["index_failed"] += 1
             st["index_failed"] += 1
             continue
+
+        # Persist last_polled_at + new etag (even on 304 / empty index)
+        if not dry_run and source is not None:
+            new_etag = getattr(adapter, "_new_etag", None)
+            with session_scope() as db:
+                update_source_poll_state(db, source_id, etag=new_etag)
 
         # Walk index in order until we get ``per_source_limit`` successful fetches (skips 403/parse).
         max_attempts = max(len(index_items), per_source_limit * 5)
@@ -170,7 +193,7 @@ async def _run(
 
         logger.info("[ingest summary] slug=%s %s", slug_label, dict(st))
 
-    if candidates_seen == 0:
+    if candidates_seen == 0 and totals.get("skipped_poll_gate", 0) == 0:
         logger.error("no candidates processed (empty index or no sources)")
         return 1
 

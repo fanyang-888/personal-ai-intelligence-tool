@@ -18,10 +18,14 @@ async def get_with_retry(
     *,
     max_attempts: int = 4,
     base_delay_sec: float = 0.5,
+    headers: dict[str, str] | None = None,
 ) -> httpx.Response:
     for attempt in range(max_attempts):
         try:
-            resp = await client.get(url)
+            resp = await client.get(url, headers=headers or {})
+            # 304 Not Modified is a valid success — return immediately
+            if resp.status_code == 304:
+                return resp
             if resp.status_code in _RETRY_STATUS and attempt < max_attempts - 1:
                 delay = base_delay_sec * (2**attempt)
                 logger.warning(
