@@ -1,8 +1,9 @@
 """Pydantic response schemas that match the frontend TypeScript types.
 
 The frontend expects LocalizedString = { en: string; zh?: string }.
-Since the backend only generates English content (LLM in English),
-zh is always null. The frontend falls back to `en` when `zh` is absent.
+Cluster and draft fields are translated to Chinese by the pipeline
+(translate_clusters.py, translate_drafts.py) and returned as bilingual
+LocalizedStr objects. The frontend falls back to `en` when `zh` is absent.
 """
 
 from __future__ import annotations

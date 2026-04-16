@@ -77,28 +77,36 @@ def cluster_to_response(
 
 def draft_to_response(draft: Draft) -> DraftResponse:
     takeaways_raw: list[str] = draft.takeaways or []
-    takeaways = [localized(t) for t in takeaways_raw]
+    takeaways_zh: list[str] = getattr(draft, "takeaways_zh", None) or []
+    takeaways = []
+    for i, t in enumerate(takeaways_raw):
+        zh_t = takeaways_zh[i] if i < len(takeaways_zh) else None
+        takeaways.append(localized_bilingual(t, zh_t))
     while len(takeaways) < 3:
         takeaways.append(localized(""))
 
     cluster_title = ""
+    cluster_title_zh = None
+    cluster_why_it_matters = None
+    cluster_why_it_matters_zh = None
     if draft.cluster:
         cluster_title = draft.cluster.representative_title or ""
+        cluster_title_zh = getattr(draft.cluster, "representative_title_zh", None)
+        cluster_why_it_matters = draft.cluster.why_it_matters
+        cluster_why_it_matters_zh = getattr(draft.cluster, "why_it_matters_zh", None)
 
     return DraftResponse(
         id=str(draft.id),
         clusterId=str(draft.cluster_id) if draft.cluster_id else None,
         draftType="linkedin",
-        title=localized(cluster_title or "Draft"),
+        title=localized_bilingual(cluster_title or "Draft", cluster_title_zh),
         generatedAt=format_dt(draft.generated_at),
-        hook=localized(draft.hook, ""),
-        summaryBlock=localized(draft.summary_text, ""),
+        hook=localized_bilingual(draft.hook, getattr(draft, "hook_zh", None), ""),
+        summaryBlock=localized_bilingual(draft.summary_text, getattr(draft, "summary_text_zh", None), ""),
         takeaways=takeaways,
-        careerInterpretationBlock=localized(draft.career_take, ""),
-        audienceWhyItMattersBlock=localized(
-            draft.cluster.why_it_matters if draft.cluster else None, ""
-        ),
-        closingBlock=localized(draft.closing) if draft.closing else None,
+        careerInterpretationBlock=localized_bilingual(draft.career_take, getattr(draft, "career_take_zh", None), ""),
+        audienceWhyItMattersBlock=localized_bilingual(cluster_why_it_matters, cluster_why_it_matters_zh, ""),
+        closingBlock=localized_bilingual(draft.closing, getattr(draft, "closing_zh", None)) if draft.closing else None,
         fullText=draft.full_text or "",
     )
 
