@@ -10,7 +10,7 @@ export function isBilingual(
 
 export function pickLocalized(v: LocalizedString, lang: Lang): string {
   if (typeof v === "string") return v;
-  return lang === "zh" ? (v.zh ?? v.en) : v.en;
+  return lang === "zh" ? (v.zh || v.en) : v.en;
 }
 
 export function flattenLocalized(v: LocalizedString): string {
