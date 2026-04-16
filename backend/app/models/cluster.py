@@ -42,7 +42,7 @@ class Cluster(Base):
     tags: Mapped[list[Any]] = mapped_column(JSONB, nullable=False, default=list)
     meta: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
 
-    # ---------- LLM Summary ----------
+    # ---------- LLM Summary (English) ----------
     summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     takeaways: Mapped[list[Any] | None] = mapped_column(JSONB, nullable=True)  # list[str]
     why_it_matters: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -50,6 +50,16 @@ class Cluster(Base):
     why_it_matters_dev: Mapped[str | None] = mapped_column(Text, nullable=True)
     why_it_matters_students: Mapped[str | None] = mapped_column(Text, nullable=True)
     summarized_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    # ---------- Chinese translations ----------
+    representative_title_zh: Mapped[str | None] = mapped_column(Text, nullable=True)
+    summary_zh: Mapped[str | None] = mapped_column(Text, nullable=True)
+    takeaways_zh: Mapped[list[Any] | None] = mapped_column(JSONB, nullable=True)  # list[str]
+    why_it_matters_zh: Mapped[str | None] = mapped_column(Text, nullable=True)
+    why_it_matters_pm_zh: Mapped[str | None] = mapped_column(Text, nullable=True)
+    why_it_matters_dev_zh: Mapped[str | None] = mapped_column(Text, nullable=True)
+    why_it_matters_students_zh: Mapped[str | None] = mapped_column(Text, nullable=True)
+    translated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

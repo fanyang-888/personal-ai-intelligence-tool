@@ -42,29 +42,32 @@ export function LocalizedBody({
   );
 }
 
-/** In zh mode with bilingual data: English block then Chinese block. */
+/** In zh mode with bilingual data: Chinese block first (primary), English block below (reference). */
 export function BilingualAssistBody({
   value,
   lang,
   className = "space-y-3 text-sm leading-relaxed text-foreground",
 }: BodyProps) {
-  if (lang !== "zh" || !isBilingual(value)) {
+  if (lang !== "zh" || !isBilingual(value) || !value.zh) {
     return <LocalizedBody value={value} lang={lang} className={className} />;
   }
-  const enParas = splitParas(value.en);
   const zhParas = splitParas(value.zh);
+  const enParas = splitParas(value.en);
+  if (zhParas.length === 0) {
+    return <LocalizedBody value={value} lang="en" className={className} />;
+  }
   return (
     <div className={className}>
-      <div className={`space-y-3 ${enMuted}`}>
-        {enParas.map((p, i) => (
-          <p key={`en-${i}`}>{p}</p>
+      <div className={`space-y-3 ${zhPrimary}`}>
+        {zhParas.map((p, i) => (
+          <p key={`zh-${i}`}>{p}</p>
         ))}
       </div>
       <div
-        className={`mt-3 space-y-3 border-t border-zinc-100 pt-3 ${zhPrimary} ${zhBlockContinuity}`}
+        className={`mt-3 space-y-3 border-t border-zinc-100 pt-3 ${enMuted} ${zhBlockContinuity}`}
       >
-        {zhParas.map((p, i) => (
-          <p key={`zh-${i}`}>{p}</p>
+        {enParas.map((p, i) => (
+          <p key={`en-${i}`}>{p}</p>
         ))}
       </div>
     </div>
@@ -77,16 +80,16 @@ type TakeawayProps = {
 };
 
 export function BilingualAssistTakeawayItem({ value, lang }: TakeawayProps) {
-  if (lang !== "zh" || !isBilingual(value)) {
+  if (lang !== "zh" || !isBilingual(value) || !value.zh) {
     return <>{pickLocalized(value, lang)}</>;
   }
   return (
     <div className="space-y-2">
-      <p className={enMuted}>{value.en}</p>
+      <p className={zhPrimary}>{value.zh}</p>
       <p
-        className={`border-t border-zinc-100 pt-2 ${zhPrimary} ${zhBlockContinuity}`}
+        className={`border-t border-zinc-100 pt-2 ${enMuted} ${zhBlockContinuity}`}
       >
-        {value.zh}
+        {value.en}
       </p>
     </div>
   );
@@ -102,22 +105,22 @@ export function BilingualAssistLead({
   lang: Lang;
   className?: string;
 }) {
-  if (lang !== "zh" || !isBilingual(value)) {
+  if (lang !== "zh" || !isBilingual(value) || !value.zh) {
     return <p className={className}>{pickLocalized(value, lang)}</p>;
   }
   return (
     <div className={className}>
-      <p className={`leading-snug ${enMuted}`}>{value.en}</p>
+      <p className={`leading-snug ${zhPrimary}`}>{value.zh}</p>
       <p
-        className={`mt-2 border-t border-zinc-100 pt-2 leading-snug ${zhPrimary} ${zhBlockContinuity}`}
+        className={`mt-2 border-t border-zinc-100 pt-2 leading-snug ${enMuted} ${zhBlockContinuity}`}
       >
-        {value.zh}
+        {value.en}
       </p>
     </div>
   );
 }
 
-/** Page title: EN then ZH in Chinese mode. */
+/** Page title: ZH first (primary), EN below (muted reference) in Chinese mode. */
 export function BilingualAssistHeading({
   value,
   lang,
@@ -125,16 +128,18 @@ export function BilingualAssistHeading({
   value: LocalizedString;
   lang: Lang;
 }) {
-  if (lang !== "zh" || !isBilingual(value)) {
+  if (lang !== "zh" || !isBilingual(value) || !value.zh) {
     return <>{pickLocalized(value, lang)}</>;
   }
   return (
     <>
-      <span className={`block ${enMuted}`}>{value.en}</span>
       <span
-        className={`mt-2 block border-t border-zinc-100 pt-2 text-xl font-semibold tracking-tight sm:text-2xl ${zhPrimary} ${zhBlockContinuity}`}
+        className={`block text-xl font-semibold tracking-tight sm:text-2xl ${zhPrimary}`}
       >
         {value.zh}
+      </span>
+      <span className={`mt-2 block border-t border-zinc-100 pt-2 ${enMuted} ${zhBlockContinuity}`}>
+        {value.en}
       </span>
     </>
   );
@@ -148,16 +153,16 @@ export function BilingualAssistSubline({
   value: LocalizedString;
   lang: Lang;
 }) {
-  if (lang !== "zh" || !isBilingual(value)) {
+  if (lang !== "zh" || !isBilingual(value) || !value.zh) {
     return <>{pickLocalized(value, lang)}</>;
   }
   return (
     <>
-      <span className={`block ${enMuted}`}>{value.en}</span>
+      <span className={`block text-sm ${zhPrimary}`}>{value.zh}</span>
       <span
-        className={`mt-1 block border-t border-dashed border-zinc-200 pt-1 text-sm ${zhPrimary} ${zhBlockContinuity}`}
+        className={`mt-1 block border-t border-dashed border-zinc-200 pt-1 text-sm ${enMuted} ${zhBlockContinuity}`}
       >
-        {value.zh}
+        {value.en}
       </span>
     </>
   );

@@ -36,6 +36,11 @@ def localized(text: str | None, fallback: str = "") -> LocalizedStr:
     return LocalizedStr(en=(text or fallback) or fallback)
 
 
+def localized_bilingual(en: str | None, zh: str | None, fallback: str = "") -> LocalizedStr:
+    """Build a LocalizedStr with both en and zh populated when available."""
+    return LocalizedStr(en=(en or fallback) or fallback, zh=zh or None)
+
+
 def freshness_label(dt: datetime | None) -> str:
     if dt is None:
         return "Recently"
