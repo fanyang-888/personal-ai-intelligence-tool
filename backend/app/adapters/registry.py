@@ -7,7 +7,9 @@ import logging
 from app.adapters.anthropic import AnthropicNewsroomAdapter
 from app.adapters.arxiv import ArxivRSSAdapter
 from app.adapters.base import BaseSourceAdapter
+from app.adapters.deepmind import DeepMindBlogAdapter
 from app.adapters.generic_rss import GenericRSSAdapter
+from app.adapters.meta_ai import MetaAIBlogAdapter
 from app.adapters.openai_news import OpenAINewsAdapter
 from app.adapters.techcrunch_ai import TechCrunchAIAdapter
 from app.schemas.trusted_source_config import TrustedSourceConfig
@@ -25,6 +27,8 @@ ADAPTER_REGISTRY: dict[str, type[BaseSourceAdapter]] = {
     TechCrunchAIAdapter.adapter_key: TechCrunchAIAdapter,
     GenericRSSAdapter.adapter_key: GenericRSSAdapter,
     ArxivRSSAdapter.adapter_key: ArxivRSSAdapter,
+    DeepMindBlogAdapter.adapter_key: DeepMindBlogAdapter,
+    MetaAIBlogAdapter.adapter_key: MetaAIBlogAdapter,
 }
 
 

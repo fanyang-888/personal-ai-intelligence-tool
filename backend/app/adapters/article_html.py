@@ -273,6 +273,18 @@ def extract_techcrunch_article(html: str, final_url: str) -> dict[str, Any]:
     )
 
 
+def extract_deepmind_article(html: str, final_url: str) -> dict[str, Any]:
+    soup = BeautifulSoup(html, "html.parser")
+    strip_boilerplate_tags(soup)
+    return _extract_with_logging("deepmind.google", soup, final_url, site_hint="deepmind")
+
+
+def extract_meta_ai_article(html: str, final_url: str) -> dict[str, Any]:
+    soup = BeautifulSoup(html, "html.parser")
+    strip_boilerplate_tags(soup)
+    return _extract_with_logging("ai.meta.com", soup, final_url, site_hint="meta_ai")
+
+
 def extract_generic_article(html: str, final_url: str) -> dict[str, Any]:
     """Generic extractor for any site: JSON-LD → article/main → heuristic divs."""
     soup = BeautifulSoup(html, "html.parser")
