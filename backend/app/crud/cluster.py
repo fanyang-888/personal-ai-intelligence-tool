@@ -59,6 +59,13 @@ def get_cluster_by_id(db: Session, cluster_id: uuid.UUID) -> Cluster | None:
     return db.get(Cluster, cluster_id)
 
 
+def delete_cluster(db: Session, cluster_id: uuid.UUID) -> None:
+    """Delete a cluster row by id. Does not commit."""
+    cluster = db.get(Cluster, cluster_id)
+    if cluster:
+        db.delete(cluster)
+
+
 def get_top_clusters(db: Session, limit: int = 10) -> list[Cluster]:
     """Return top clusters ordered by cluster_score desc, most recent first."""
     from sqlalchemy import select
