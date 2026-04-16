@@ -36,6 +36,17 @@ class Draft(Base):
     closing: Mapped[str | None] = mapped_column(Text, nullable=True)
     full_text: Mapped[str] = mapped_column(Text, nullable=False)
 
+    # Chinese translations (set by translate_drafts.py)
+    hook_zh: Mapped[str | None] = mapped_column(Text, nullable=True)
+    summary_text_zh: Mapped[str | None] = mapped_column(Text, nullable=True)
+    takeaways_zh: Mapped[list[Any] | None] = mapped_column(JSONB, nullable=True)
+    career_take_zh: Mapped[str | None] = mapped_column(Text, nullable=True)
+    closing_zh: Mapped[str | None] = mapped_column(Text, nullable=True)
+    full_text_zh: Mapped[str | None] = mapped_column(Text, nullable=True)
+    translated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
     # "draft" | "approved" | "published"
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="draft")
 
