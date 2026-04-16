@@ -47,3 +47,63 @@ sources:
     default_language: en
     user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
     import_limit: 40
+
+  - name: VentureBeat AI
+    slug: venturebeat-ai
+    type: tech_press
+    base_url: https://venturebeat.com/
+    feed_url: https://venturebeat.com/category/ai/feed/
+    index_url: https://venturebeat.com/category/ai/
+    adapter_key: generic_rss
+    ingestion_method: rss
+    is_active: true
+    fetch_frequency_minutes: 30
+    source_priority: 20
+    default_language: en
+    user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+    import_limit: 30
+
+  - name: Import AI
+    slug: import-ai
+    type: newsletter
+    base_url: https://importai.substack.com/
+    feed_url: https://importai.substack.com/feed
+    index_url: https://importai.substack.com/
+    adapter_key: generic_rss
+    ingestion_method: rss
+    is_active: true
+    fetch_frequency_minutes: 1440
+    source_priority: 15
+    default_language: en
+    user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+    import_limit: 10
+
+  - name: TLDR AI
+    slug: tldr-ai
+    type: newsletter
+    base_url: https://tldr.tech/
+    feed_url: https://tldr.tech/api/rss/ai
+    index_url: https://tldr.tech/ai
+    adapter_key: generic_rss
+    ingestion_method: rss
+    is_active: true
+    fetch_frequency_minutes: 1440
+    source_priority: 15
+    default_language: en
+    user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+    import_limit: 20
+
+  - name: Hugging Face Blog
+    slug: huggingface-blog
+    type: company_news
+    base_url: https://huggingface.co/
+    feed_url: https://huggingface.co/blog/feed.xml
+    index_url: https://huggingface.co/blog
+    adapter_key: generic_rss
+    ingestion_method: rss
+    is_active: true
+    fetch_frequency_minutes: 60
+    source_priority: 15
+    default_language: en
+    user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+    import_limit: 20
