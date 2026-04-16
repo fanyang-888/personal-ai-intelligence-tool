@@ -1,0 +1,7 @@
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "python -m scripts.run_pipeline"
+cronSchedule = "0 2 * * *"
+restartPolicyType = "NEVER"

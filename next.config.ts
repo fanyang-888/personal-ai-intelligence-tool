@@ -4,7 +4,6 @@ import path from "path";
 const pagesBasePath = process.env.PAGES_BASE_PATH ?? "";
 
 const nextConfig: NextConfig = {
-  output: "export",
   ...(pagesBasePath
     ? { basePath: pagesBasePath, assetPrefix: pagesBasePath }
     : {}),

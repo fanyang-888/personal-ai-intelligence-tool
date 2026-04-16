@@ -1,72 +1,142 @@
 # Personal AI Intelligence Tool
 
-A **frontend-only MVP** for browsing a daily digest, story clusters, an archive with search, and LinkedIn-style drafts. All content lives in [`lib/mock-data/`](lib/mock-data/); there is **no backend, API, or authentication**.
+A full-stack AI news aggregator that ingests articles from trusted sources, clusters and summarises them with OpenAI, and surfaces a daily digest with newsletter-style drafts.
 
-## Known limitations
+**Live:** [personal-ai-intelligence-tool.vercel.app](https://personal-ai-intelligence-tool.vercel.app)
 
-- **Mock data only** — nothing is persisted or fetched from a network.
-- **Static export** — `next build` writes to `out/`; there are no server routes or SSR APIs. Use `npm run dev` for development; **`npm run start` is not used** for the static `out/` output.
-- **GitHub Pages** — production builds set `PAGES_BASE_PATH` (see workflow). Local dev uses `/` — do not set `PAGES_BASE_PATH` when running `npm run dev`.
-- **Draft “Regenerate”** — cycles a few **local** text variants; there is no model call.
-- **Document titles** on cluster/draft pages are set client-side (`DocumentTitle`) so they work with static export.
+---
 
-**Requirements:** Node **20+**, npm.
+## Architecture
 
-## Quick start
+```
+Vercel (Next.js frontend)
+    └── NEXT_PUBLIC_API_URL
+            │
+            ▼
+Railway (FastAPI backend)          Railway (Cron job)
+    ├── /api/digest/today              └── runs daily at 02:00 UTC
+    ├── /api/clusters                        ingest → filter → score
+    ├── /api/search                          → cluster → summarize
+    └── /api/drafts                          → generate_draft
+            │
+            ▼
+    Railway PostgreSQL
+```
+
+---
+
+## Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Frontend | Next.js (App Router), React, TypeScript, Tailwind CSS |
+| Backend | FastAPI, SQLAlchemy (async-ready), Alembic |
+| Database | PostgreSQL (psycopg3) |
+| AI | OpenAI GPT-4o (filtering, clustering, summarisation, draft generation) |
+| Deployment | Vercel (frontend), Railway (backend + DB + cron) |
+
+---
+
+## Local development
+
+### Frontend
 
 ```bash
-cd personal-ai-intelligence-tool
 npm install
-npm run dev
+npm run dev        # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Set `NEXT_PUBLIC_API_URL=http://localhost:8000` in `.env.local` to point at a local backend.
 
-## Live site (GitHub Pages)
-
-**https://fanyang-888.github.io/personal-ai-intelligence-tool/**
-
-Enable **Settings → Pages → Source: GitHub Actions**, then pushes to `main` run [`.github/workflows/deploy-github-pages.yml`](.github/workflows/deploy-github-pages.yml) (build uses `PAGES_BASE_PATH=/personal-ai-intelligence-tool`). If you **rename the repo**, update that path in the workflow and in local preview commands below.
-
-| Page | URL |
-|------|-----|
-| Daily Digest | [/](https://fanyang-888.github.io/personal-ai-intelligence-tool/) |
-| Cluster | [/cluster/cluster-1](https://fanyang-888.github.io/personal-ai-intelligence-tool/cluster/cluster-1) |
-| Archive | [/archive](https://fanyang-888.github.io/personal-ai-intelligence-tool/archive) |
-| Draft | [/draft/draft-1](https://fanyang-888.github.io/personal-ai-intelligence-tool/draft/draft-1), `/draft/draft-2` |
-
-## Build (static export)
+### Backend
 
 ```bash
-npm run build
+cd backend/
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env   # fill in DATABASE_URL, OPENAI_API_KEY
+alembic upgrade head
+uvicorn app.main:app --reload   # http://localhost:8000
 ```
 
-Output: `out/`. To match GitHub Pages paths locally:
+### Run the pipeline locally
 
 ```bash
-PAGES_BASE_PATH=/personal-ai-intelligence-tool npm run build
-npx --yes serve out
+cd backend/
+python -m scripts.ingest_full_articles
+python -m scripts.filter_articles
+python -m scripts.score_articles
+python -m scripts.cluster_articles
+python -m scripts.summarize
+python -m scripts.generate_draft
 ```
 
-Use the URL `serve` prints (paths include `/personal-ai-intelligence-tool/...`).
+Or run all stages at once:
 
-## Routes (local)
+```bash
+python -m scripts.run_pipeline
+```
 
-| Route | Example |
-|--------|---------|
-| Daily Digest | `/` |
-| Cluster | `/cluster/cluster-1` |
-| Archive | `/archive` |
-| Draft | `/draft/draft-1`, `/draft/draft-2` |
+---
+
+## Pipeline stages
+
+| Stage | Script | What it does |
+|-------|--------|-------------|
+| Ingest | `ingest_full_articles` | Fetches full article text from OpenAI News, Anthropic Newsroom, TechCrunch AI |
+| Filter | `filter_articles` | GPT-4o removes off-topic articles |
+| Score | `score_articles` | Rule-based signal score (0–100) based on source quality, recency, word count |
+| Cluster | `cluster_articles` | Groups related articles into story clusters using TF-IDF + cosine similarity + GPT-4o titles |
+| Summarise | `summarize` | GPT-4o writes per-article and per-cluster summaries, takeaways, audience context |
+| Draft | `generate_draft` | GPT-4o writes a full newsletter draft for the top cluster |
+
+---
 
 ## Project layout
 
-- `app/` — App Router pages and layouts
-- `components/` — UI (`layout`, `digest`, `cluster`, `archive`, `draft`, `shared`)
-- `lib/mock-data/` — sources, articles, clusters, drafts
-- `lib/mappers/` — digest and archive view shaping
-- `lib/utils/` — dates, search, scoring, archive URLs
-- `types/` — shared TypeScript types
-- `public/` — static assets (includes `.nojekyll` for GitHub Pages)
+```
+├── app/                    Next.js pages and layouts
+├── components/             UI components (digest, cluster, archive, draft, shared)
+├── lib/api/                Backend API client
+├── lib/i18n/               EN/ZH localisation
+├── types/                  Shared TypeScript types
+├── backend/
+│   ├── app/
+│   │   ├── adapters/       Source adapters (OpenAI, Anthropic, TechCrunch)
+│   │   ├── api/routes/     FastAPI route handlers
+│   │   ├── models/         SQLAlchemy ORM models
+│   │   ├── services/       Pipeline business logic
+│   │   └── source_catalog/ trusted_sources.yaml
+│   ├── migrations/         Alembic migration scripts
+│   └── scripts/            Pipeline scripts + run_pipeline.py orchestrator
+└── docs/                   BACKLOG.md
+```
 
-**Stack:** Next.js (App Router), React, TypeScript, Tailwind CSS.
+---
+
+## Deployment
+
+### Backend (Railway)
+
+The backend auto-deploys from `main`. On startup, `alembic upgrade head` runs in a background thread so Railway's healthcheck passes immediately.
+
+Environment variables required on the Railway service:
+
+| Variable | Value |
+|----------|-------|
+| `DATABASE_URL` | Railway internal Postgres URL (`postgresql://...@postgres.railway.internal/railway`) |
+| `OPENAI_API_KEY` | OpenAI API key |
+| `APP_ENV` | `production` |
+| `SOURCE_FETCH_USER_AGENT` | User-agent string for HTTP fetching |
+
+### Daily cron (Railway)
+
+A separate Railway service (`daily-pipeline-cron`) runs `python -m scripts.run_pipeline` at **02:00 UTC every day**. It uses the same env vars as the web service and shares the same Railway project / Postgres instance.
+
+### Frontend (Vercel)
+
+The frontend auto-deploys from `main`. Set one environment variable in the Vercel project settings:
+
+| Variable | Value |
+|----------|-------|
+| `NEXT_PUBLIC_API_URL` | `https://personal-ai-intelligence-tool-production.up.railway.app` |

@@ -1,4 +1,4 @@
-from pydantic import SecretStr
+from pydantic import SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -13,6 +13,15 @@ class Settings(BaseSettings):
 
     openai_api_key: SecretStr | None = None
     redis_url: SecretStr | None = None
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def ensure_psycopg_driver(cls, v: object) -> object:
+        """Auto-convert postgresql:// → postgresql+psycopg:// so Railway's default URL works."""
+        raw = v if isinstance(v, str) else str(v)
+        if raw.startswith("postgresql://"):
+            return raw.replace("postgresql://", "postgresql+psycopg://", 1)
+        return v
 
 
 settings = Settings()

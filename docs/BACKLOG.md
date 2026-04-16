@@ -1,31 +1,63 @@
-# Backlog — 通过但不阻塞（Day 3 前可不交付）
+# Backlog
 
-以下条目 **不卡** Week 2 Day 2 / Day 3 起步验收；仅作后续工程债与风险备忘。
-
----
-
-## 1. `sources` 表与 YAML 配置仍分离
-
-**现状**：可信源在 [`backend/app/source_catalog/trusted_sources.yaml`](../backend/app/source_catalog/trusted_sources.yaml) 中定义并驱动适配器；PostgreSQL `sources` 由 seed / 迁移维护。当前分工清晰。
-
-**风险**：长期 **双源**（file config ↔ DB）可能 **漂移**（slug、`feed_url` / `index_url`、是否启用等与运行时不一致）。
-
-**后续方向（择一或组合）**：确立单一事实来源（SSOT）；或增加显式同步（例如 YAML → `sources` upsert、或 DB 为权威 + 导出给运维）。
+Engineering debt and future improvements, roughly prioritised.
 
 ---
 
-## 2. OpenAI / Anthropic 的 HTML fallback 未完整实现
+## High priority
 
-**现状**：Day 2 验收以 **index items（候选列表）** 为主。OpenAI 在 RSS 为空时目前仅 **打日志**，未实现等价 HTML 索引抓取。Anthropic 以 HTML index 为主路径；若将来配置 RSS 后 RSS 失败，再回落 HTML 的路径需与产品预期对齐。
+### More data sources
+Currently ingesting from 3 sources (OpenAI News, Anthropic Newsroom, TechCrunch AI). High-value additions:
+- The Gradient, Import AI, Ahead of AI (newsletters)
+- arXiv cs.AI/cs.LG abstracts
+- Hacker News AI threads (top-N by score)
+- Google DeepMind, Meta AI blogs
 
-**风险**：公开 **RSS 失效或改版** 时，仅依赖「不完整 HTML fallback」会变成生产风险点。
+### Chinese (ZH) summaries
+The frontend has a ZH/EN language toggle and the schema supports `LocalizedString` with `en`/`zh` fields, but the pipeline currently only generates English content. Need to either:
+- Add a second GPT-4o summarisation pass with ZH prompts
+- Or translate in-place if the target audience warrants it
 
-**后续**：Day 3+ 补齐与 RSS 对等的 **HTML index（及必要时正文）** 抓取与解析，并在 dry run / 监控中覆盖该路径。
+### Search quality
+Current search is PostgreSQL `ILIKE` over titles and summaries. Upgrade path:
+- `tsvector` + `tsquery` for proper full-text search with ranking
+- Or embeddings-based semantic search (pgvector)
 
 ---
 
-## 3. 尚非「增量抓取完整闭环」
+## Medium priority
 
-**现状**：当前重点是 **抓到规范化后的 candidate list**；YAML 层已有 `since_date`、`import_limit` 等 **非持久化** 的欠账控制，不等于增量状态机。
+### Incremental ingestion
+Current ingest fetches a fixed `--per-source-limit` per run and relies on `articles.url` deduplication to skip already-seen items. A proper incremental loop would:
+- Store `last_polled_at` per source
+- Use HTTP `ETag` / `Last-Modified` conditional requests
+- Only process articles newer than last run
 
-**后续（典型拼图）**：`last_polled_at`、HTTP **`ETag` / `Last-Modified`**、按源游标、与 `articles` 持久化及全文拉取（`fetch_article`）串联，形成可观测的端到端增量闭环。
+### OpenAI News HTML fallback
+OpenAI's RSS sometimes lags behind the website. Implement an HTML index scrape (equivalent to the Anthropic adapter) as a fallback when RSS returns 0 items.
+
+### Pipeline observability
+- Per-run summary stats stored in a `pipeline_runs` table (articles processed, clusters created, errors, duration)
+- Optional webhook/email alert on pipeline failure
+
+### Cluster deduplication across days
+Today, the same story can produce a new cluster on day 2 if it gets new coverage. Add logic to merge new articles into an existing open cluster when similarity is high enough, instead of always creating new ones.
+
+---
+
+## Low priority / Nice to have
+
+### `sources` table as single source of truth
+Currently, trusted sources are defined in `trusted_sources.yaml` (drives adapters) and mirrored into the `sources` table. A future refactor could make the DB the canonical source, with YAML only as an import format.
+
+### Draft personalisation
+The draft prompt currently targets a generic "AI professional" audience. Support per-user tone/audience configuration stored in a user profile.
+
+### Authentication
+The API is currently public. Add JWT auth if the tool is ever multi-user or exposed more broadly.
+
+### Redis caching
+`redis_url` is already in `Settings` as an optional field. Wire up response caching for `/api/digest/today` and `/api/clusters` so repeated frontend loads don't re-query the DB.
+
+### Re-run pipeline via API
+Expose `POST /api/pipeline/run` (admin-auth required) to trigger a pipeline run on demand without needing Railway CLI access.
