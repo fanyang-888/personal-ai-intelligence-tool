@@ -271,3 +271,10 @@ def extract_techcrunch_article(html: str, final_url: str) -> dict[str, Any]:
         site_hint="techcrunch",
         techcrunch_selectors_first=True,
     )
+
+
+def extract_generic_article(html: str, final_url: str) -> dict[str, Any]:
+    """Generic extractor for any site: JSON-LD → article/main → heuristic divs."""
+    soup = BeautifulSoup(html, "html.parser")
+    strip_boilerplate_tags(soup)
+    return _extract_with_logging("generic", soup, final_url, site_hint="generic")

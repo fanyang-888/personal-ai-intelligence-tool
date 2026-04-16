@@ -29,6 +29,14 @@ def _parse_feed_text(xml_or_text: str) -> list[dict[str, Any]]:
         tags: list[str] = []
         if e.get("tags"):
             tags = [str(t.get("term", "")) for t in e.tags if t.get("term")]
+        # Capture full content if present (e.g. Substack, VentureBeat inline HTML)
+        rss_content: str | None = None
+        content_list = e.get("content")
+        if content_list and isinstance(content_list, list):
+            rss_content = (content_list[0].get("value") or "").strip() or None
+        if not rss_content:
+            summary_val = (e.get("summary") or "").strip()
+            rss_content = summary_val if len(summary_val) > 400 else None
         out.append(
             {
                 "title": e.get("title") or "",
@@ -37,6 +45,7 @@ def _parse_feed_text(xml_or_text: str) -> list[dict[str, Any]]:
                 "published_parsed": e.get("published_parsed"),
                 "author": e.get("author"),
                 "summary": (e.get("summary") or "")[:4000],
+                "rss_content": rss_content,
                 "tags": tags,
                 "feed_title": parsed.feed.get("title"),
                 "_parser": "feedparser",

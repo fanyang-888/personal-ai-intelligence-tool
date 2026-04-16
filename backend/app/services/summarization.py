@@ -53,6 +53,38 @@ CLUSTER_MODEL = "gpt-4o-mini"
 MAX_ARTICLE_WORDS = 1200   # truncate article text before sending
 MAX_CLUSTER_ARTICLES = 8   # max articles summaries to include in cluster prompt
 
+# Prompt E: patterns that signal a generic / low-quality summary
+_GENERIC_PATTERNS = (
+    "this article ",
+    "the article ",
+    "in this article",
+    "this piece ",
+    "this post ",
+    "the post ",
+    "this blog post",
+    "this is about",
+    "this covers",
+    "this discusses",
+    "we discuss",
+    "we explore",
+    "in this post",
+)
+
+
+def _is_low_quality(text: str) -> bool:
+    """Return True if the summary looks generic or templated."""
+    if not text or len(text) < 40:
+        return True
+    lower = text.lower().strip()
+    return any(lower.startswith(p) or f". {p}" in lower for p in _GENERIC_PATTERNS)
+
+
+_REWRITE_SYSTEM = """You are an AI intelligence analyst. The following summary is too generic — it describes the article rather than reporting the news.
+
+Rewrite it to start directly with the key fact or development (e.g. "OpenAI released...", "Meta announced...", "Researchers showed...").
+Return JSON: {"short_summary": "rewritten 2-3 sentence summary", "why_it_matters": "rewritten 1-2 sentence significance"}
+JSON only."""
+
 
 # ---------------------------------------------------------------------------
 # OpenAI client (lazy init)
@@ -117,8 +149,27 @@ def _article_user_prompt(article: Article) -> str:
 
 
 def summarize_article(client, article: Article) -> dict[str, Any]:
-    """Call LLM and return summary dict. Does not write to DB."""
-    return _call_llm(client, ARTICLE_MODEL, _ARTICLE_SYSTEM, _article_user_prompt(article))
+    """Call LLM and return summary dict. Applies Prompt E quality rewrite if needed."""
+    data = _call_llm(client, ARTICLE_MODEL, _ARTICLE_SYSTEM, _article_user_prompt(article))
+    short = (data.get("short_summary") or "").strip()
+    why = (data.get("why_it_matters") or "").strip()
+    if _is_low_quality(short) or _is_low_quality(why):
+        logger.info("prompt_e rewrite triggered article id=%s", article.id)
+        try:
+            rewrite_user = (
+                f"Original summary: {short}\n"
+                f"Why it matters: {why}\n\n"
+                f"Source: {article.organization_name or 'Unknown'}\n"
+                f"Title: {article.title}"
+            )
+            rewrite = _call_llm(client, ARTICLE_MODEL, _REWRITE_SYSTEM, rewrite_user)
+            if rewrite.get("short_summary"):
+                data["short_summary"] = rewrite["short_summary"]
+            if rewrite.get("why_it_matters"):
+                data["why_it_matters"] = rewrite["why_it_matters"]
+        except Exception:
+            logger.warning("prompt_e rewrite failed article id=%s, keeping original", article.id)
+    return data
 
 
 def _apply_article_summary(article: Article, data: dict[str, Any]) -> None:
