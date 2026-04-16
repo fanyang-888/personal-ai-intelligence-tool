@@ -139,3 +139,33 @@ sources:
     user_agent: "PersonalAIIntelligenceTool/0.1"
     import_limit: 25
     since_date: "2026-04-16"
+
+  - name: Google DeepMind Blog
+    slug: deepmind-blog
+    type: company_news
+    base_url: https://deepmind.google/
+    feed_url: null
+    index_url: https://deepmind.google/blog/
+    adapter_key: deepmind_blog
+    ingestion_method: rss_primary_html_fallback
+    is_active: true
+    fetch_frequency_minutes: 120
+    source_priority: 10
+    default_language: en
+    user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+    import_limit: 20
+
+  - name: Meta AI Blog
+    slug: meta-ai-blog
+    type: company_news
+    base_url: https://ai.meta.com/
+    feed_url: null
+    index_url: https://ai.meta.com/blog/
+    adapter_key: meta_ai_blog
+    ingestion_method: rss_primary_html_fallback
+    is_active: false  # ai.meta.com returns 400 — JS-rendered, cannot scrape without browser
+    fetch_frequency_minutes: 120
+    source_priority: 10
+    default_language: en
+    user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+    import_limit: 20
