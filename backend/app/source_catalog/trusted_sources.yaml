@@ -107,3 +107,35 @@ sources:
     default_language: en
     user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
     import_limit: 20
+
+  - name: arXiv cs.AI
+    slug: arxiv-cs-ai
+    type: research
+    base_url: https://arxiv.org/
+    feed_url: http://rss.arxiv.org/rss/cs.AI
+    index_url: https://arxiv.org/list/cs.AI/recent
+    adapter_key: arxiv
+    ingestion_method: rss
+    is_active: true
+    fetch_frequency_minutes: 1440
+    source_priority: 15
+    default_language: en
+    user_agent: "PersonalAIIntelligenceTool/0.1"
+    import_limit: 25
+    since_date: "2026-04-16"
+
+  - name: arXiv cs.LG
+    slug: arxiv-cs-lg
+    type: research
+    base_url: https://arxiv.org/
+    feed_url: http://rss.arxiv.org/rss/cs.LG
+    index_url: https://arxiv.org/list/cs.LG/recent
+    adapter_key: arxiv
+    ingestion_method: rss
+    is_active: true
+    fetch_frequency_minutes: 1440
+    source_priority: 15
+    default_language: en
+    user_agent: "PersonalAIIntelligenceTool/0.1"
+    import_limit: 25
+    since_date: "2026-04-16"
