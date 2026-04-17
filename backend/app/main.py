@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import health
-from app.api.routes import digest, clusters, search, drafts, pipeline_runs
+from app.api.routes import digest, clusters, search, drafts, pipeline_runs, admin
 from app.logging_config import configure_logging
 
 configure_logging()
@@ -69,3 +69,4 @@ app.include_router(clusters.router)
 app.include_router(search.router)
 app.include_router(drafts.router)
 app.include_router(pipeline_runs.router)
+app.include_router(admin.router)

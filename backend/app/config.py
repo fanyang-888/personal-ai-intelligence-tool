@@ -13,6 +13,7 @@ class Settings(BaseSettings):
 
     openai_api_key: SecretStr | None = None
     redis_url: SecretStr | None = None
+    admin_api_key: SecretStr | None = None
 
     @field_validator("database_url", mode="before")
     @classmethod
