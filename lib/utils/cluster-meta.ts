@@ -1,6 +1,5 @@
 import type { Article } from "@/types/article";
 import type { Cluster } from "@/types/cluster";
-import { clusters } from "@/lib/mock-data/clusters";
 import { flattenLocalized } from "@/lib/utils/localized-string";
 
 const WORDS_PER_MINUTE = 200;
@@ -9,7 +8,7 @@ function wordCount(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
-/** Rough digest read time from cluster narrative fields (mock-only). */
+/** Rough digest read time from cluster narrative fields. */
 export function estimateClusterReadMinutes(cluster: Cluster): number {
   const blob = [
     cluster.summary,
@@ -39,12 +38,11 @@ export function getOutletDiversityFromArticles(articles: Article[]): OutletDiver
   };
 }
 
-/** Next cluster in score-ranked digest order; undefined if last or not found. */
-export function getNextClusterInRankOrder(clusterId: string): Cluster | undefined {
-  const sorted = [...clusters].sort(
-    (a, b) => (b.clusterScore ?? 0) - (a.clusterScore ?? 0),
-  );
-  const i = sorted.findIndex((c) => c.id === clusterId);
-  if (i === -1) return undefined;
-  return sorted[i + 1];
+/**
+ * Next cluster in score-ranked order.
+ * Returns undefined — real-time cluster ordering requires a server-side
+ * query and is not available in the frontend without an additional API call.
+ */
+export function getNextClusterInRankOrder(_clusterId: string): Cluster | undefined {
+  return undefined;
 }
