@@ -66,8 +66,9 @@ export async function fetchTodayDraft(): Promise<ApiDraft | null> {
   return apiFetch<ApiDraft | null>("/api/drafts/today");
 }
 
-export async function fetchDraft(id: string): Promise<ApiDraft> {
-  return apiFetch<ApiDraft>(`/api/drafts/${id}`);
+export async function fetchDraft(id: string, role?: string): Promise<ApiDraft> {
+  const qs = role ? `?role=${encodeURIComponent(role)}` : "";
+  return apiFetch<ApiDraft>(`/api/drafts/${id}${qs}`);
 }
 
 export async function generateDraft(): Promise<ApiDraft> {
