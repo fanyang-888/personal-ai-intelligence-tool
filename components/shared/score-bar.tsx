@@ -18,15 +18,19 @@ export function ScoreBar({ score, className = "" }: ScoreBarProps) {
         ? "bg-amber-400"
         : "bg-zinc-300";
 
+  const label =
+    pct >= 70 ? "High signal" : pct >= 40 ? "Mid signal" : "Low signal";
+
   return (
     <div className={`mt-3 flex items-center gap-2 ${className}`}>
-      <div className="h-1 flex-1 overflow-hidden rounded-full bg-zinc-100">
+      <span className="shrink-0 text-[10px] text-zinc-400">{label}</span>
+      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-zinc-100">
         <div
           className={`h-full rounded-full ${barColor} transition-all duration-500`}
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="w-6 text-right font-mono text-[10px] tabular-nums text-zinc-400">
+      <span className="w-6 shrink-0 text-right font-mono text-[10px] tabular-nums text-zinc-400">
         {Math.round(pct)}
       </span>
     </div>
