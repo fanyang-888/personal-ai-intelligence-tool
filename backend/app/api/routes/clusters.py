@@ -47,6 +47,7 @@ def list_clusters(
     clusters = db.execute(
         select(Cluster)
         .options(selectinload(Cluster.articles), selectinload(Cluster.drafts))
+        .where(Cluster.representative_title_zh.isnot(None))
         .order_by(Cluster.cluster_score.desc().nullslast(), Cluster.last_seen_at.desc().nullslast())
         .offset(offset)
         .limit(limit)
