@@ -1,4 +1,5 @@
 import type { LocalizedString } from "@/types/localized";
+import type { Article } from "@/types/article";
 
 export type AudienceBlocks = {
   pm: LocalizedString;
@@ -27,6 +28,7 @@ export type Cluster = {
   whyItMatters: LocalizedString;
   audience: AudienceBlocks;
   articleIds: string[];
+  articles?: Article[];
   relatedClusterIds: string[];
   draftId?: string;
 };

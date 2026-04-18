@@ -14,6 +14,15 @@ export type ApiAudienceBlocks = {
   studentJobSeeker: ApiLocalizedStr;
 };
 
+export type ApiArticleInCluster = {
+  id: string;
+  title: string;
+  url: string;
+  sourceName: string | null;
+  publishedAt: string | null;
+  excerpt: string | null;
+};
+
 export type ApiCluster = {
   id: string;
   clusterType: string;
@@ -31,6 +40,7 @@ export type ApiCluster = {
   whyItMatters: ApiLocalizedStr;
   audience: ApiAudienceBlocks;
   articleIds: string[];
+  articles: ApiArticleInCluster[];
   relatedClusterIds: string[];
   draftId: string | null;
   articleCount: number;

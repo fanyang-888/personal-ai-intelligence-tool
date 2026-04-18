@@ -48,6 +48,8 @@ export async function fetchSearch(params: {
   theme?: string;
   type?: "cluster" | "article" | "mixed";
   limit?: number;
+  offset?: number;
+  sortBy?: "score" | "date";
 }): Promise<ApiSearchResponse> {
   const qs = new URLSearchParams();
   if (params.q) qs.set("q", params.q);
@@ -55,6 +57,8 @@ export async function fetchSearch(params: {
   if (params.theme) qs.set("theme", params.theme);
   if (params.type) qs.set("type", params.type);
   if (params.limit != null) qs.set("limit", String(params.limit));
+  if (params.offset != null && params.offset > 0) qs.set("offset", String(params.offset));
+  if (params.sortBy && params.sortBy !== "score") qs.set("sort_by", params.sortBy);
   return apiFetch<ApiSearchResponse>(`/api/search?${qs.toString()}`);
 }
 

@@ -50,5 +50,5 @@ export function ClusterPageClient() {
     );
   }
 
-  return <ClusterPageView cluster={cluster} articles={[]} related={[]} />;
+  return <ClusterPageView cluster={cluster} articles={cluster.articles ?? []} related={[]} />;
 }
