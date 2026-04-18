@@ -67,11 +67,16 @@ def delete_cluster(db: Session, cluster_id: uuid.UUID) -> None:
 
 
 def get_top_clusters(db: Session, limit: int = 10) -> list[Cluster]:
-    """Return top clusters ordered by cluster_score desc, most recent first."""
+    """Return translated top clusters ordered by cluster_score desc, most recent first.
+
+    Only clusters with a Chinese title are returned so untranslated content
+    never surfaces on the frontend.
+    """
     from sqlalchemy import select
     return list(
         db.execute(
             select(Cluster)
+            .where(Cluster.representative_title_zh.isnot(None))
             .order_by(Cluster.cluster_score.desc().nullslast(), Cluster.last_seen_at.desc().nullslast())
             .limit(limit)
         ).scalars().all()
