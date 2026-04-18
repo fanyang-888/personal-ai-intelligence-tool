@@ -83,7 +83,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     from openai import OpenAI
-    client = OpenAI(api_key=key.get_secret_value())
+    client = OpenAI(api_key=key.get_secret_value(), timeout=60.0)
 
     with SessionLocal() as db:
         clusters = list(
