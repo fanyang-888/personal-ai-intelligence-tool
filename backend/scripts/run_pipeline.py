@@ -171,6 +171,15 @@ def main(triggered_by: str = "cron") -> int:
     final_status = "failed" if failures else "success"
     _finish_run(run_id, status=final_status, stage_results=stage_results, total_elapsed_sec=elapsed_total)
 
+    # Bust API cache so next request reflects fresh data
+    if not failures:
+        try:
+            from app.cache import cache_delete_pattern
+            n = cache_delete_pattern("ai_tool:*")
+            logger.info("pipeline cache invalidated keys=%s", n)
+        except Exception:
+            logger.warning("pipeline cache invalidation failed", exc_info=True)
+
     if failures:
         logger.error(
             "========== daily pipeline DONE  failures=%s  total=%.1fs ==========",
