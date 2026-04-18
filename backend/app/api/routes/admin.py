@@ -1,7 +1,8 @@
 """Admin routes: protected pipeline trigger.
 
 POST /api/admin/trigger-pipeline
-  - Requires: Authorization: Bearer <ADMIN_API_KEY>
+  - Requires valid JWT: Authorization: Bearer <token>
+  - Get a token via POST /api/auth/login
   - Launches the full pipeline in a background thread
   - Returns immediately; poll GET /api/pipeline-runs for progress
 """
@@ -11,29 +12,14 @@ from __future__ import annotations
 import asyncio
 import logging
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends
 from pydantic import BaseModel
 
-from app.config import settings
+from app.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
-
-
-def _check_auth(request: Request) -> None:
-    """Raise 401/403 if the Bearer token doesn't match ADMIN_API_KEY."""
-    configured_key = settings.admin_api_key
-    if configured_key is None:
-        raise HTTPException(status_code=503, detail="ADMIN_API_KEY not configured")
-
-    auth_header = request.headers.get("Authorization", "")
-    if not auth_header.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Missing Bearer token")
-
-    token = auth_header.removeprefix("Bearer ").strip()
-    if token != configured_key.get_secret_value():
-        raise HTTPException(status_code=403, detail="Invalid token")
 
 
 class TriggerResponse(BaseModel):
@@ -52,15 +38,14 @@ async def _run_pipeline_bg(triggered_by: str) -> None:
 
 @router.post("/trigger-pipeline", response_model=TriggerResponse)
 async def trigger_pipeline(
-    request: Request,
     background_tasks: BackgroundTasks,
+    _user: str = Depends(get_current_user),
 ) -> TriggerResponse:
     """Trigger the full daily pipeline immediately.
 
-    Requires ``Authorization: Bearer <ADMIN_API_KEY>`` header.
-    Returns 202-style accepted response; check ``GET /api/pipeline-runs`` for progress.
+    Requires a valid JWT Bearer token (obtain via POST /api/auth/login).
+    Returns 202-style accepted response; check GET /api/pipeline-runs for progress.
     """
-    _check_auth(request)
     background_tasks.add_task(_run_pipeline_bg, triggered_by="api")
     return TriggerResponse(
         status="accepted",

@@ -15,6 +15,11 @@ class Settings(BaseSettings):
     redis_url: SecretStr | None = None
     admin_api_key: SecretStr | None = None
 
+    # JWT auth
+    jwt_secret: SecretStr | None = None
+    admin_username: str = "admin"
+    admin_password: SecretStr | None = None
+
     @field_validator("database_url", mode="before")
     @classmethod
     def ensure_psycopg_driver(cls, v: object) -> object:
