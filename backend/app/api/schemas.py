@@ -142,6 +142,7 @@ class ArchiveClusterRow(BaseModel):
     title: str
     title_zh: str | None = None
     summary: str | None
+    summary_zh: str | None = None
     tags: list[str]
     theme: str
     storyStatus: str
