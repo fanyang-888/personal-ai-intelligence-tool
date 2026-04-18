@@ -3,7 +3,6 @@
 import { SectionTitle } from "@/components/shared/section-title";
 import { useI18n } from "@/lib/i18n";
 import { formatShortDateTime } from "@/lib/utils/format-date";
-import { getSourceById } from "@/lib/mock-data/sources";
 import type { Article } from "@/types/article";
 
 type CoveredSourcesListProps = {
@@ -30,8 +29,7 @@ export function CoveredSourcesList({ articles }: CoveredSourcesListProps) {
       </p>
       <ul className="space-y-4 text-sm">
         {articles.map((art) => {
-          const source = getSourceById(art.sourceId);
-          const outlet = source?.publisher ?? source?.name ?? "—";
+          const outlet = (art as { organizationName?: string }).organizationName ?? "—";
           const published = formatShortDateTime(art.publishedAt, lang);
 
           return (
