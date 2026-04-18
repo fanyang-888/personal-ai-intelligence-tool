@@ -95,7 +95,7 @@ def _get_client():
     key = settings.openai_api_key
     if not key:
         raise RuntimeError("OPENAI_API_KEY is not configured")
-    return OpenAI(api_key=key.get_secret_value())
+    return OpenAI(api_key=key.get_secret_value(), timeout=60.0)
 
 
 # ---------------------------------------------------------------------------

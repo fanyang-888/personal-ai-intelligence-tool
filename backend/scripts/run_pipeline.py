@@ -151,9 +151,9 @@ def main(triggered_by: str = "cron") -> int:
         ("update_cluster_status", lambda: update_cluster_status.main([])),
         ("dedup_clusters",        lambda: dedup_clusters.main([])),
         ("summarize",             lambda: summarize.main([])),
-        ("translate_clusters",    lambda: translate_clusters.main([])),
+        ("translate_clusters",    lambda: translate_clusters.main(["--batch-size", "50"])),
         ("generate_draft",        lambda: generate_draft.main([])),
-        ("translate_drafts",      lambda: translate_drafts.main([])),
+        ("translate_drafts",      lambda: translate_drafts.main(["--batch-size", "20"])),
     ]
 
     failures: list[str] = []
