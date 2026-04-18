@@ -75,7 +75,14 @@ def cluster_to_response(
     )
 
 
-def draft_to_response(draft: Draft) -> DraftResponse:
+_ROLE_FIELDS: dict[str, tuple[str, str]] = {
+    "pm":        ("why_it_matters_pm",       "why_it_matters_pm_zh"),
+    "developer": ("why_it_matters_dev",      "why_it_matters_dev_zh"),
+    "student":   ("why_it_matters_students", "why_it_matters_students_zh"),
+}
+
+
+def draft_to_response(draft: Draft, role: str | None = None) -> DraftResponse:
     takeaways_raw: list[str] = draft.takeaways or []
     takeaways_zh: list[str] = getattr(draft, "takeaways_zh", None) or []
     takeaways = []
@@ -87,13 +94,27 @@ def draft_to_response(draft: Draft) -> DraftResponse:
 
     cluster_title = ""
     cluster_title_zh = None
-    cluster_why_it_matters = None
-    cluster_why_it_matters_zh = None
+    cluster_why_it_matters: str | None = None
+    cluster_why_it_matters_zh: str | None = None
+
     if draft.cluster:
         cluster_title = draft.cluster.representative_title or ""
         cluster_title_zh = getattr(draft.cluster, "representative_title_zh", None)
-        cluster_why_it_matters = draft.cluster.why_it_matters
-        cluster_why_it_matters_zh = getattr(draft.cluster, "why_it_matters_zh", None)
+
+        # Role-specific audience block — fall back to generic if field is empty
+        if role and role in _ROLE_FIELDS:
+            en_field, zh_field = _ROLE_FIELDS[role]
+            cluster_why_it_matters = (
+                getattr(draft.cluster, en_field, None)
+                or draft.cluster.why_it_matters
+            )
+            cluster_why_it_matters_zh = (
+                getattr(draft.cluster, zh_field, None)
+                or getattr(draft.cluster, "why_it_matters_zh", None)
+            )
+        else:
+            cluster_why_it_matters = draft.cluster.why_it_matters
+            cluster_why_it_matters_zh = getattr(draft.cluster, "why_it_matters_zh", None)
 
     return DraftResponse(
         id=str(draft.id),
@@ -108,6 +129,7 @@ def draft_to_response(draft: Draft) -> DraftResponse:
         audienceWhyItMattersBlock=localized_bilingual(cluster_why_it_matters, cluster_why_it_matters_zh, ""),
         closingBlock=localized_bilingual(draft.closing, getattr(draft, "closing_zh", None)) if draft.closing else None,
         fullText=draft.full_text or "",
+        role=role,
     )
 
 

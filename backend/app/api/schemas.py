@@ -129,6 +129,7 @@ class DraftResponse(BaseModel):
     audienceWhyItMattersBlock: LocalizedStr
     closingBlock: LocalizedStr | None
     fullText: str
+    role: str | None = None  # "pm" | "developer" | "student" | None (generic)
 
 
 # ---------------------------------------------------------------------------
