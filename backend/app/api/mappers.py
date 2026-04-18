@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from app.api.schemas import (
+    ArticleInCluster,
     AudienceBlocks,
     ArchiveArticleRow,
     ArchiveClusterRow,
@@ -47,8 +48,22 @@ def cluster_to_response(
     while len(bilingual_takeaways) < 3:
         bilingual_takeaways.append(localized(""))
 
-    article_ids = [
-        str(a.id) for a in (cluster.articles or [])
+    article_ids = [str(a.id) for a in (cluster.articles or [])]
+
+    articles_in_cluster = [
+        ArticleInCluster(
+            id=str(a.id),
+            title=a.title or "",
+            url=a.url or "",
+            sourceName=a.organization_name,
+            publishedAt=format_dt(a.published_at),
+            excerpt=a.excerpt or a.short_summary,
+        )
+        for a in sorted(
+            cluster.articles or [],
+            key=lambda a: (a.signal_score or 0),
+            reverse=True,
+        )
     ]
 
     return ClusterResponse(
@@ -68,6 +83,7 @@ def cluster_to_response(
         whyItMatters=localized_bilingual(cluster.why_it_matters, getattr(cluster, "why_it_matters_zh", None), ""),
         audience=audience,
         articleIds=article_ids,
+        articles=articles_in_cluster,
         relatedClusterIds=[],
         draftId=draft_id,
         articleCount=cluster.article_count or 0,

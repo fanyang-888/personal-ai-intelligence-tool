@@ -29,7 +29,7 @@ export function CoveredSourcesList({ articles }: CoveredSourcesListProps) {
       </p>
       <ul className="space-y-4 text-sm">
         {articles.map((art) => {
-          const outlet = (art as { organizationName?: string }).organizationName ?? "—";
+          const outlet = art.organizationName ?? "—";
           const published = formatShortDateTime(art.publishedAt, lang);
 
           return (

@@ -3,6 +3,7 @@
  * (Cluster, Draft) used by existing components.
  */
 
+import type { Article } from "@/types/article";
 import type { Cluster } from "@/types/cluster";
 import type { Draft } from "@/types/draft";
 import type { LocalizedString } from "@/types/localized";
@@ -38,6 +39,18 @@ export function apiClusterToCluster(c: ApiCluster): Cluster {
       ),
     },
     articleIds: c.articleIds,
+    articles: (c.articles ?? []).map<Article>((a) => ({
+      id: a.id,
+      clusterId: c.id,
+      sourceId: "",
+      title: a.title,
+      url: a.url,
+      publishedAt: a.publishedAt ?? "",
+      excerpt: a.excerpt ?? "",
+      tags: [],
+      themes: [],
+      organizationName: a.sourceName ?? undefined,
+    })),
     relatedClusterIds: c.relatedClusterIds,
     draftId: c.draftId ?? undefined,
   };

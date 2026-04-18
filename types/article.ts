@@ -10,6 +10,7 @@ export type Article = {
   excerpt: string;
   tags: string[];
   themes: string[];
+  organizationName?: string;
   channel?: SourceChannel;
   credibilityLabel?: string;
 };

@@ -99,6 +99,7 @@ class ClusterResponse(BaseModel):
     whyItMatters: LocalizedStr
     audience: AudienceBlocks
     articleIds: list[str]
+    articles: list[ArticleInCluster] = []
     relatedClusterIds: list[str]
     draftId: str | None
     articleCount: int

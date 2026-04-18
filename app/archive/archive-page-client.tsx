@@ -29,6 +29,9 @@ import { LoadingState } from "@/components/shared/loading-state";
 
 const KEYWORD_URL_DEBOUNCE_MS = 350;
 const SEARCH_DEBOUNCE_MS = 400;
+const PAGE_SIZE = 20;
+
+type SortBy = "score" | "date";
 
 function toClusterRow(c: { id: string; title: string; title_zh: string | null; summary: string | null; summary_zh: string | null; tags: string[]; theme: string; storyStatus: string; clusterScore: number | null; lastSeenAt: string | null; sourceCount: number }): ArchiveClusterRow {
   return {
@@ -77,10 +80,13 @@ export function ArchivePageClient() {
   const [sourceId, setSourceId] = useState("");
   const [channel, setChannel] = useState("");
   const [resultMode, setResultMode] = useState<ArchiveResultMode>("clusters");
+  const [sortBy, setSortBy] = useState<SortBy>("score");
 
   const [rows, setRows] = useState<ArchiveResultRow[]>([]);
+  const [total, setTotal] = useState(0);
   const [allThemes, setAllThemes] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [initialLoaded, setInitialLoaded] = useState(false);
 
   const spKey = searchParams.toString();
@@ -105,8 +111,18 @@ export function ArchivePageClient() {
   // Search debounce
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const doSearch = useCallback(async (q: string, th: string, src: string, mode: ArchiveResultMode) => {
-    setLoading(true);
+  const doSearch = useCallback(async (
+    q: string,
+    th: string,
+    src: string,
+    mode: ArchiveResultMode,
+    sort: SortBy,
+    offset: number,
+    append: boolean,
+  ) => {
+    if (append) setLoadingMore(true);
+    else setLoading(true);
+
     try {
       const apiType = mode === "clusters" ? "cluster" : "article";
       const result = await fetchSearch({
@@ -114,32 +130,42 @@ export function ArchivePageClient() {
         theme: th || undefined,
         source: src || undefined,
         type: apiType,
-        limit: 30,
+        limit: PAGE_SIZE,
+        offset,
+        sortBy: sort,
       });
+
       if (mode === "clusters") {
-        setRows(result.clusters.map(toClusterRow));
-        // Collect unique themes from results
+        const newRows = result.clusters.map(toClusterRow);
+        setRows(prev => append ? [...prev, ...newRows] : newRows);
         const themes = [...new Set(result.clusters.map(c => c.theme).filter(Boolean))];
         if (themes.length) setAllThemes(themes);
       } else {
-        setRows(result.articles.map(toArticleRow));
+        const newRows = result.articles.map(toArticleRow);
+        setRows(prev => append ? [...prev, ...newRows] : newRows);
       }
+      setTotal(result.total);
     } catch {
-      setRows([]);
+      if (!append) setRows([]);
     } finally {
-      setLoading(false);
+      if (append) setLoadingMore(false);
+      else setLoading(false);
       setInitialLoaded(true);
     }
   }, []);
 
-  // Re-search when filters change
+  // Re-search when filters change (reset to page 1)
   useEffect(() => {
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     searchDebounceRef.current = setTimeout(() => {
-      doSearch(keyword, theme, sourceId, resultMode);
+      doSearch(keyword, theme, sourceId, resultMode, sortBy, 0, false);
     }, keyword ? SEARCH_DEBOUNCE_MS : 0);
     return () => { if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current); };
-  }, [keyword, theme, sourceId, resultMode, doSearch]);
+  }, [keyword, theme, sourceId, resultMode, sortBy, doSearch]);
+
+  const handleLoadMore = useCallback(() => {
+    doSearch(keyword, theme, sourceId, resultMode, sortBy, rows.length, true);
+  }, [keyword, theme, sourceId, resultMode, sortBy, rows.length, doSearch]);
 
   const scheduleKeywordUrlSync = useCallback((nextQ: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -157,6 +183,7 @@ export function ArchivePageClient() {
   const hasActiveFilters = Boolean(keyword.trim() || theme || sourceId || channel);
   const showNoResults = rows.length === 0 && hasActiveFilters && !loading && initialLoaded;
   const showAllEmpty = rows.length === 0 && !hasActiveFilters && !loading && initialLoaded;
+  const hasMore = rows.length < total && rows.length > 0;
 
   return (
     <div>
@@ -186,7 +213,41 @@ export function ArchivePageClient() {
       />
 
       <SectionBlock>
-        <SectionTitle>{t.archive.results}</SectionTitle>
+        <div className="flex items-center justify-between gap-4 mb-3">
+          <div className="flex items-baseline gap-2">
+            <SectionTitle>{t.archive.results}</SectionTitle>
+            {initialLoaded && !loading && total > 0 && (
+              <span className="text-sm text-zinc-500">
+                {total.toLocaleString()} {resultMode === "clusters" ? "stories" : "articles"}
+              </span>
+            )}
+          </div>
+          {initialLoaded && rows.length > 0 && (
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                onClick={() => setSortBy("score")}
+                className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+                  sortBy === "score"
+                    ? "bg-foreground text-background"
+                    : "text-zinc-500 hover:text-foreground"
+                }`}
+              >
+                Best match
+              </button>
+              <button
+                onClick={() => setSortBy("date")}
+                className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+                  sortBy === "date"
+                    ? "bg-foreground text-background"
+                    : "text-zinc-500 hover:text-foreground"
+                }`}
+              >
+                Newest
+              </button>
+            </div>
+          )}
+        </div>
+
         <div className="min-h-[min(45vh,22rem)]">
           {loading ? (
             <LoadingState layout="archive" />
@@ -199,11 +260,25 @@ export function ArchivePageClient() {
               <ArchiveThemeSuggestions themes={allThemes} onPickTheme={handleThemeChange} />
             </NoResultsState>
           ) : (
-            <ul className={resultMode === "clusters" ? "space-y-4" : "space-y-2.5"}>
-              {rows.map((row) => (
-                <ArchiveResultCard key={row.id} row={row} highlightQuery={keyword} />
-              ))}
-            </ul>
+            <>
+              <ul className={resultMode === "clusters" ? "space-y-4" : "space-y-2.5"}>
+                {rows.map((row) => (
+                  <ArchiveResultCard key={row.id} row={row} highlightQuery={keyword} />
+                ))}
+              </ul>
+
+              {hasMore && (
+                <div className="mt-6 flex justify-center">
+                  <button
+                    onClick={handleLoadMore}
+                    disabled={loadingMore}
+                    className="rounded-md border border-zinc-300 px-5 py-2 text-sm font-medium text-zinc-700 transition-colors hover:border-zinc-400 hover:text-foreground disabled:opacity-50"
+                  >
+                    {loadingMore ? "Loading…" : `Load more (${total - rows.length} remaining)`}
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </SectionBlock>
