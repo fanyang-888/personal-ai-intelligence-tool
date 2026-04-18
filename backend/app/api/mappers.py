@@ -140,6 +140,7 @@ def cluster_to_archive_row(cluster: Cluster) -> ArchiveClusterRow:
         title=cluster.representative_title or "",
         title_zh=getattr(cluster, "representative_title_zh", None),
         summary=cluster.summary,
+        summary_zh=getattr(cluster, "summary_zh", None),
         tags=cluster.tags or [],
         theme=cluster.type or "event",
         storyStatus=cluster.status or "new",

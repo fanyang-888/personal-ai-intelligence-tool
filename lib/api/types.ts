@@ -74,6 +74,7 @@ export type ApiArchiveClusterRow = {
   title: string;
   title_zh: string | null;
   summary: string | null;
+  summary_zh: string | null;
   tags: string[];
   theme: string;
   storyStatus: string;

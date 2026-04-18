@@ -30,14 +30,14 @@ import { LoadingState } from "@/components/shared/loading-state";
 const KEYWORD_URL_DEBOUNCE_MS = 350;
 const SEARCH_DEBOUNCE_MS = 400;
 
-function toClusterRow(c: { id: string; title: string; title_zh: string | null; summary: string | null; tags: string[]; theme: string; storyStatus: string; clusterScore: number | null; lastSeenAt: string | null; sourceCount: number }): ArchiveClusterRow {
+function toClusterRow(c: { id: string; title: string; title_zh: string | null; summary: string | null; summary_zh: string | null; tags: string[]; theme: string; storyStatus: string; clusterScore: number | null; lastSeenAt: string | null; sourceCount: number }): ArchiveClusterRow {
   return {
     kind: "cluster",
     id: c.id,
     title: c.title_zh || c.title,
     theme: c.theme,
     themeLabel: c.theme,
-    summarySnippet: (c.summary ?? "").slice(0, 160),
+    summarySnippet: (c.summary_zh || c.summary || "").slice(0, 160),
     sourceLabels: c.sourceCount > 0 ? `${c.sourceCount} source${c.sourceCount > 1 ? "s" : ""}` : "—",
     freshnessLabel: c.lastSeenAt
       ? (() => {
