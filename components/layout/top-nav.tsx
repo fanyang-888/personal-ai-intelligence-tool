@@ -15,7 +15,7 @@ export function TopNav() {
   const onDigest = pathname === "/";
 
   return (
-    <header className="border-b border-zinc-200 bg-white">
+    <header className="sticky top-0 z-40 border-b border-zinc-200 bg-white/90 backdrop-blur-sm">
       <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-4 gap-y-3 px-4 py-3 sm:px-6">
         <Link
           href="/"

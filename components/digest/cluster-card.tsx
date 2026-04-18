@@ -5,6 +5,7 @@ import { StoryBadge } from "@/components/digest/story-badge";
 import { IngestChannelRow } from "@/components/digest/ingest-channel-row";
 import { MetaRow } from "@/components/shared/meta-row";
 import { ResultCardFrame } from "@/components/shared/result-card-frame";
+import { ScoreBar } from "@/components/shared/score-bar";
 import { useI18n } from "@/lib/i18n";
 import { pickLocalized } from "@/lib/utils/localized-string";
 import { uiMetaText, uiTextLinkPrimary } from "@/lib/ui/classes";
@@ -46,7 +47,7 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
         />
       ) : null}
 
-      <p className="mt-2 line-clamp-1 text-sm text-zinc-600">
+      <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-zinc-600">
         {pickLocalized(cluster.summary, lang)}
       </p>
 
@@ -60,7 +61,9 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
       ) : null}
 
       <div className="mt-3 flex flex-wrap gap-1.5">
-        <StoryBadge variant="status">{status}</StoryBadge>
+        <StoryBadge variant="status" statusKey={cluster.storyStatus}>
+          {status}
+        </StoryBadge>
         {tags.map((tag) => (
           <StoryBadge key={tag} variant="tag">
             {tag}
@@ -95,6 +98,8 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
           {t.digest.viewStory}
         </Link>
       </div>
+
+      <ScoreBar score={cluster.clusterScore} />
     </ResultCardFrame>
   );
 }

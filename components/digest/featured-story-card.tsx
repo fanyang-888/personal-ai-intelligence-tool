@@ -71,7 +71,7 @@ export function FeaturedStoryCard({
       ) : null}
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <StoryBadge variant="status">{status}</StoryBadge>
+        <StoryBadge variant="status" statusKey={cluster.storyStatus}>{status}</StoryBadge>
         <StoryBadge variant="metric">
           {t.formatSourceCount(sourceCount)}
         </StoryBadge>

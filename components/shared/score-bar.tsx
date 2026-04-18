@@ -1,0 +1,34 @@
+/**
+ * Thin colored progress bar visualising a cluster's signal score (0–100).
+ * High ≥ 70 → emerald · Mid 40–69 → amber · Low < 40 → zinc
+ */
+type ScoreBarProps = {
+  score?: number | null;
+  className?: string;
+};
+
+export function ScoreBar({ score, className = "" }: ScoreBarProps) {
+  if (score == null || score <= 0) return null;
+
+  const pct = Math.min(100, Math.max(0, score));
+  const barColor =
+    pct >= 70
+      ? "bg-emerald-500"
+      : pct >= 40
+        ? "bg-amber-400"
+        : "bg-zinc-300";
+
+  return (
+    <div className={`mt-3 flex items-center gap-2 ${className}`}>
+      <div className="h-1 flex-1 overflow-hidden rounded-full bg-zinc-100">
+        <div
+          className={`h-full rounded-full ${barColor} transition-all duration-500`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+      <span className="w-6 text-right font-mono text-[10px] tabular-nums text-zinc-400">
+        {Math.round(pct)}
+      </span>
+    </div>
+  );
+}
