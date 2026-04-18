@@ -141,6 +141,7 @@ export const en: Translations = {
     draftStickyBadge: "Follow draft",
   },
   draft: {
+    roleGeneral: "General",
     draftOfDayPageTitle: "Draft of the Day",
     draftForStoryPageTitle: (storyTitle) => `Draft for ${storyTitle}`,
     workingTitleLabel: "Working title",

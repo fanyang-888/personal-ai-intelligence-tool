@@ -132,6 +132,7 @@ export type Translations = {
     draftStickyBadge: string;
   };
   draft: {
+    roleGeneral: string;
     draftOfDayPageTitle: string;
     draftForStoryPageTitle: (storyTitle: string) => string;
     workingTitleLabel: string;

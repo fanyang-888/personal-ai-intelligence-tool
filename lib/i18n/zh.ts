@@ -133,6 +133,7 @@ export const zh: Translations = {
     draftStickyBadge: "随页草稿",
   },
   draft: {
+    roleGeneral: "通用",
     draftOfDayPageTitle: "今日草稿",
     draftForStoryPageTitle: (storyTitle) => `「${storyTitle}」草稿`,
     workingTitleLabel: "工作标题",

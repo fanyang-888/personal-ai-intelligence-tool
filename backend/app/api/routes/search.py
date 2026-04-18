@@ -28,7 +28,8 @@ def search(
     article_rows = []
 
     if result_type in ("cluster", "mixed"):
-        cluster_q = select(Cluster)
+        # Only surface translated clusters (same rule as the main listing)
+        cluster_q = select(Cluster).where(Cluster.representative_title_zh.isnot(None))
 
         if q:
             kw = f"%{q}%"

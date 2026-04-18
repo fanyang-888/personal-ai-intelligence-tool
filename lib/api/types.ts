@@ -57,6 +57,7 @@ export type ApiDraft = {
   audienceWhyItMattersBlock: ApiLocalizedStr;
   closingBlock: ApiLocalizedStr | null;
   fullText: string;
+  role: string | null;
 };
 
 export type ApiSearchResponse = {
@@ -71,6 +72,7 @@ export type ApiArchiveClusterRow = {
   id: string;
   type: "cluster";
   title: string;
+  title_zh: string | null;
   summary: string | null;
   tags: string[];
   theme: string;

@@ -140,6 +140,7 @@ class ArchiveClusterRow(BaseModel):
     id: str
     type: str = "cluster"
     title: str
+    title_zh: str | None = None
     summary: str | None
     tags: list[str]
     theme: str
