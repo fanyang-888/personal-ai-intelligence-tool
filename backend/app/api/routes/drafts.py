@@ -1,8 +1,9 @@
 """Draft routes: GET /api/drafts/today, GET /api/drafts/{id}, POST generate."""
 
 import uuid
+from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
@@ -26,9 +27,22 @@ def _load_draft(db: Session, draft_id: uuid.UUID) -> Draft:
     return draft
 
 
+_VALID_ROLES = {"pm", "developer", "student"}
+
+
+def _parse_role(role: str | None) -> str | None:
+    if role is None:
+        return None
+    r = role.lower().strip()
+    return r if r in _VALID_ROLES else None
+
+
 @router.get("/today", response_model=DraftResponse | None)
-def get_today_draft(db: Session = Depends(get_db)) -> DraftResponse | None:
-    """Return the most recently generated draft."""
+def get_today_draft(
+    role: str | None = Query(default=None, description="Personalize for: pm | developer | student"),
+    db: Session = Depends(get_db),
+) -> DraftResponse | None:
+    """Return the most recently generated draft, optionally personalized by role."""
     draft = db.execute(
         select(Draft)
         .options(selectinload(Draft.cluster))
@@ -36,17 +50,22 @@ def get_today_draft(db: Session = Depends(get_db)) -> DraftResponse | None:
         .limit(1)
     ).scalar_one_or_none()
 
-    return draft_to_response(draft) if draft else None
+    return draft_to_response(draft, role=_parse_role(role)) if draft else None
 
 
 @router.get("/{draft_id}", response_model=DraftResponse)
-def get_draft(draft_id: str, db: Session = Depends(get_db)) -> DraftResponse:
+def get_draft(
+    draft_id: str,
+    role: str | None = Query(default=None, description="Personalize for: pm | developer | student"),
+    db: Session = Depends(get_db),
+) -> DraftResponse:
+    """Return a specific draft, optionally personalized by role."""
     try:
         did = uuid.UUID(draft_id)
     except ValueError:
         raise HTTPException(status_code=422, detail="Invalid draft id")
     draft = _load_draft(db, did)
-    return draft_to_response(draft)
+    return draft_to_response(draft, role=_parse_role(role))
 
 
 @router.post("/generate", response_model=DraftResponse)
