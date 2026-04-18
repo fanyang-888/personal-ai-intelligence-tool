@@ -1,11 +1,12 @@
 """
 Daily pipeline orchestrator.
 
-Runs all six pipeline stages in sequence.  Designed to be invoked by a
+Runs all pipeline stages in sequence.  Designed to be invoked by a
 Railway Cron service (see railway.cron.toml) but also works locally:
 
     cd backend/
     python -m scripts.run_pipeline
+    python -m scripts.run_pipeline --triggered-by manual
 
 Exit code 0 = all stages succeeded.
 Exit code 1 = one or more stages failed (details in logs).
@@ -13,20 +14,58 @@ Exit code 1 = one or more stages failed (details in logs).
 
 from __future__ import annotations
 
+import argparse
 import asyncio
 import logging
 import sys
 import time
-from typing import Callable
+import uuid
+from datetime import datetime, timezone
+from typing import Any, Callable
 
+from app.db import session_scope
 from app.logging_config import configure_logging
+from app.models.pipeline_run import PipelineRun
 
 configure_logging()
 logger = logging.getLogger(__name__)
 
 
-def _run_stage(name: str, fn: Callable[[], int]) -> bool:
-    """Run fn(), log timing and result.  Returns True on success (code == 0)."""
+def _create_run(triggered_by: str) -> uuid.UUID:
+    """Insert a new pipeline_run row with status=running; return its id."""
+    with session_scope() as db:
+        run = PipelineRun(
+            id=uuid.uuid4(),
+            started_at=datetime.now(timezone.utc),
+            status="running",
+            triggered_by=triggered_by,
+        )
+        db.add(run)
+        db.commit()
+        return run.id
+
+
+def _finish_run(
+    run_id: uuid.UUID,
+    *,
+    status: str,
+    stage_results: dict[str, Any],
+    total_elapsed_sec: float,
+) -> None:
+    """Update the pipeline_run row with final status and timing."""
+    with session_scope() as db:
+        run = db.get(PipelineRun, run_id)
+        if run is None:
+            return
+        run.finished_at = datetime.now(timezone.utc)
+        run.status = status
+        run.stage_results = stage_results
+        run.total_elapsed_sec = round(total_elapsed_sec, 2)
+        db.commit()
+
+
+def _run_stage(name: str, fn: Callable[[], int]) -> tuple[bool, float]:
+    """Run fn(), log timing and result.  Returns (success, elapsed_sec)."""
     logger.info("pipeline  stage=%-22s  status=STARTING", name)
     t0 = time.monotonic()
     try:
@@ -39,32 +78,36 @@ def _run_stage(name: str, fn: Callable[[], int]) -> bool:
         logger.error(
             "pipeline  stage=%-22s  status=FAILED    elapsed=%.1fs", name, elapsed
         )
-        return False
+        return False, elapsed
     elapsed = time.monotonic() - t0
     if code == 0:
         logger.info(
             "pipeline  stage=%-22s  status=OK        elapsed=%.1fs", name, elapsed
         )
-        return True
+        return True, elapsed
     logger.error(
         "pipeline  stage=%-22s  status=FAILED    elapsed=%.1fs  exit_code=%s",
         name,
         elapsed,
         code,
     )
-    return False
+    return False, elapsed
 
 
-def main() -> int:
+def main(triggered_by: str = "cron") -> int:
     logger.info("========== daily pipeline starting ==========")
     t_total = time.monotonic()
+
+    # Record run start
+    run_id = _create_run(triggered_by)
+    stage_results: dict[str, Any] = {}
 
     # ------------------------------------------------------------------
     # Stage 1: ingest  (async; call _run() directly to avoid sys.argv)
     # ------------------------------------------------------------------
     from scripts import ingest_full_articles
 
-    ingest_ok = _run_stage(
+    ingest_ok, ingest_elapsed = _run_stage(
         "ingest_full_articles",
         lambda: asyncio.run(
             ingest_full_articles._run(
@@ -75,13 +118,19 @@ def main() -> int:
             )
         ),
     )
+    stage_results["ingest_full_articles"] = {
+        "status": "ok" if ingest_ok else "failed",
+        "elapsed_sec": round(ingest_elapsed, 2),
+    }
 
     if not ingest_ok:
-        logger.error("pipeline ABORTED after ingest failure — total=%.1fs", time.monotonic() - t_total)
+        elapsed_total = time.monotonic() - t_total
+        logger.error("pipeline ABORTED after ingest failure — total=%.1fs", elapsed_total)
+        _finish_run(run_id, status="failed", stage_results=stage_results, total_elapsed_sec=elapsed_total)
         return 1
 
     # ------------------------------------------------------------------
-    # Stages 2–6: synchronous
+    # Stages 2–10: synchronous
     # ------------------------------------------------------------------
     from scripts import (
         filter_articles,
@@ -91,8 +140,8 @@ def main() -> int:
         dedup_clusters,
         summarize,
         translate_clusters,
-        translate_drafts,
         generate_draft,
+        translate_drafts,
     )
 
     stages: list[tuple[str, Callable[[], int]]] = [
@@ -109,12 +158,19 @@ def main() -> int:
 
     failures: list[str] = []
     for name, fn in stages:
-        ok = _run_stage(name, fn)
+        ok, elapsed = _run_stage(name, fn)
+        stage_results[name] = {
+            "status": "ok" if ok else "failed",
+            "elapsed_sec": round(elapsed, 2),
+        }
         if not ok:
             failures.append(name)
             # Continue — later stages can still run on already-processed rows.
 
     elapsed_total = time.monotonic() - t_total
+    final_status = "failed" if failures else "success"
+    _finish_run(run_id, status=final_status, stage_results=stage_results, total_elapsed_sec=elapsed_total)
+
     if failures:
         logger.error(
             "========== daily pipeline DONE  failures=%s  total=%.1fs ==========",
@@ -130,5 +186,16 @@ def main() -> int:
     return 0
 
 
+def _cli_main() -> None:
+    parser = argparse.ArgumentParser(description="Run the full daily pipeline")
+    parser.add_argument(
+        "--triggered-by",
+        default="cron",
+        help='Label stored in pipeline_runs.triggered_by (default: "cron")',
+    )
+    args = parser.parse_args()
+    sys.exit(main(triggered_by=args.triggered_by))
+
+
 if __name__ == "__main__":
-    sys.exit(main())
+    _cli_main()
