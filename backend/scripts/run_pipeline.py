@@ -17,15 +17,41 @@ from __future__ import annotations
 import argparse
 import asyncio
 import logging
+import os
+import signal
 import sys
 import time
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Callable
 
-from app.db import session_scope
-from app.logging_config import configure_logging
-from app.models.pipeline_run import PipelineRun
+# Hard wall-clock timeout for the entire pipeline run.
+# Default: 90 minutes.  Override via PIPELINE_TIMEOUT_MINUTES env var.
+_PIPELINE_TIMEOUT_SECONDS = int(os.getenv("PIPELINE_TIMEOUT_MINUTES", "90")) * 60
+
+
+def _install_timeout(timeout_sec: int) -> None:
+    """Set a SIGALRM to kill the process if it runs longer than timeout_sec."""
+    if not hasattr(signal, "SIGALRM"):
+        return  # Windows — skip
+
+    def _handler(signum, frame):  # noqa: ARG001
+        # Log before dying so Railway captures the message
+        logging.getLogger(__name__).critical(
+            "pipeline TIMED OUT after %d minutes — aborting process",
+            timeout_sec // 60,
+        )
+        # sys.exit triggers SystemExit which won't unwind cleanly from signal context;
+        # use os._exit to terminate immediately.
+        os._exit(2)
+
+    signal.signal(signal.SIGALRM, _handler)
+    signal.alarm(timeout_sec)
+
+
+from app.db import session_scope  # noqa: E402
+from app.logging_config import configure_logging  # noqa: E402
+from app.models.pipeline_run import PipelineRun  # noqa: E402
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -95,7 +121,12 @@ def _run_stage(name: str, fn: Callable[[], int]) -> tuple[bool, float]:
 
 
 def main(triggered_by: str = "cron") -> int:
-    logger.info("========== daily pipeline starting ==========")
+    # Arm the hard timeout FIRST — this caps the entire run regardless of what hangs
+    _install_timeout(_PIPELINE_TIMEOUT_SECONDS)
+    logger.info(
+        "========== daily pipeline starting  timeout=%dm ==========",
+        _PIPELINE_TIMEOUT_SECONDS // 60,
+    )
     t_total = time.monotonic()
 
     # Record run start

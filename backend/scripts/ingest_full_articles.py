@@ -112,7 +112,9 @@ async def _run(
                 update_source_poll_state(db, source_id, etag=new_etag)
 
         # Walk index in order until we get ``per_source_limit`` successful fetches (skips 403/parse).
-        max_attempts = max(len(index_items), per_source_limit * 5)
+        # Cap at per_source_limit*5 so a large RSS feed (100+ items) can't make us
+        # try every entry — each failing fetch can take up to 2 min with retries.
+        max_attempts = min(len(index_items), per_source_limit * 5)
         logger.info(
             "ingest source=%s adapter=%s index=%s target_successes=%s dry_run=%s",
             cfg.name,
