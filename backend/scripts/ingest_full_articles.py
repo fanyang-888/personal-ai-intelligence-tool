@@ -150,7 +150,7 @@ async def _run(
                         if get_article_by_url(db, cand_url) is not None:
                             totals["skipped_already_ingested"] += 1
                             st["skipped_already_ingested"] += 1
-                            successes += 1  # counts toward limit so we stop early
+                            # Do NOT count as success — we want to keep searching for new articles
                             continue
                     # ── Skip permanently blocked URLs (repeated 403s) ─────────────────
                     with session_scope() as db:
