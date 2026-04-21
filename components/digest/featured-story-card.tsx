@@ -43,7 +43,8 @@ export function FeaturedStoryCard({
     >
       <h2
         id="featured-story-title"
-        className="text-2xl font-semibold leading-tight tracking-tight text-foreground sm:text-[1.65rem]"
+        className="text-2xl leading-tight tracking-tight sm:text-[1.65rem]"
+        style={{ fontFamily: "'Fraunces', serif", fontWeight: 300, color: "var(--sp-navy)" }}
       >
         {pickLocalized(cluster.title, lang)}
       </h2>

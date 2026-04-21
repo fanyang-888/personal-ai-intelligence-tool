@@ -10,15 +10,20 @@ export type ResultCardVariant =
 
 const variantClass: Record<ResultCardVariant, string> = {
   digest:
-    "rounded-lg border border-zinc-200 bg-white p-4 shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md",
+    "rounded-xl border bg-white p-4 shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md cursor-pointer" +
+    " [border-color:var(--sp-border)] hover:[border-color:var(--sp-accent-mid)]",
   digestFeatured:
-    "rounded-lg border border-emerald-200 border-l-4 border-l-emerald-600 bg-gradient-to-br from-emerald-50 to-white p-6 shadow-sm sm:p-8 transition-all duration-200 hover:shadow-lg",
+    "rounded-xl border border-l-4 bg-white p-6 shadow-sm sm:p-8 transition-all duration-200 hover:shadow-lg" +
+    " [border-color:var(--sp-border)] [border-left-color:var(--sp-accent-mid)]",
   digestMuted:
-    "rounded-lg border border-zinc-200 bg-zinc-50/50 shadow-sm transition-colors duration-150 hover:bg-white hover:border-zinc-300",
+    "rounded-xl border bg-white/60 shadow-sm transition-colors duration-150 hover:bg-white" +
+    " [border-color:var(--sp-border)]",
   archiveCluster:
-    "rounded-lg border border-zinc-200 bg-white p-4 shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md",
+    "rounded-xl border bg-white p-4 shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md" +
+    " [border-color:var(--sp-border)] hover:[border-color:var(--sp-accent-mid)]",
   archiveArticle:
-    "rounded-md border border-zinc-200 bg-zinc-50/50 py-3 pl-4 pr-3 border-l-[3px] border-l-emerald-600/35 transition-colors duration-150 hover:bg-white hover:border-zinc-300",
+    "rounded-lg border border-l-[3px] bg-white/70 py-3 pl-4 pr-3 transition-colors duration-150 hover:bg-white" +
+    " [border-color:var(--sp-border)] [border-left-color:var(--sp-accent-mid)]",
 };
 
 type ResultCardFrameProps = {
