@@ -66,17 +66,24 @@ def delete_cluster(db: Session, cluster_id: uuid.UUID) -> None:
         db.delete(cluster)
 
 
-def get_top_clusters(db: Session, limit: int = 10) -> list[Cluster]:
+def get_top_clusters(db: Session, limit: int = 10, window_days: int = 14) -> list[Cluster]:
     """Return translated top clusters ordered by cluster_score desc, most recent first.
 
     Only clusters with a Chinese title are returned so untranslated content
-    never surfaces on the frontend.
+    never surfaces on the frontend.  Results are restricted to clusters whose
+    ``last_seen_at`` falls within ``window_days`` (default 14) to prevent old
+    high-scoring clusters from permanently dominating the digest.
     """
+    from datetime import timezone, timedelta
     from sqlalchemy import select
+    cutoff = datetime.now(timezone.utc) - timedelta(days=window_days)
     return list(
         db.execute(
             select(Cluster)
-            .where(Cluster.representative_title_zh.isnot(None))
+            .where(
+                Cluster.representative_title_zh.isnot(None),
+                Cluster.last_seen_at >= cutoff,
+            )
             .order_by(Cluster.cluster_score.desc().nullslast(), Cluster.last_seen_at.desc().nullslast())
             .limit(limit)
         ).scalars().all()
