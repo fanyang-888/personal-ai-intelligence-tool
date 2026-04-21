@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 const COOKIE_NAME = "admin_session";
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
+const COOKIE_MAX_AGE = 60 * 60 * 2; // 2 hours
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));

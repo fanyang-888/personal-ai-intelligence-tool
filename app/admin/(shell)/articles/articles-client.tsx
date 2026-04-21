@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { apiFetch } from "@/lib/api/client";
+import { useI18n } from "@/lib/i18n";
 
 type ArticleRow = {
   id: string;
@@ -31,6 +32,8 @@ function fmtDate(iso: string | null): string {
 function ArticlesInner() {
   const params = useSearchParams();
   const sourceId = params.get("source_id");
+  const { lang } = useI18n();
+  const zh = lang === "zh";
 
   const [articles, setArticles] = useState<ArticleRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,11 +70,15 @@ function ArticlesInner() {
             className="text-2xl font-light"
             style={{ fontFamily: "'Fraunces', serif", color: "var(--sp-navy)" }}
           >
-            文章
-            {sourceId && <span className="ml-2 text-base text-zinc-400">（已过滤信源）</span>}
+            {zh ? "文章" : "Articles"}
+            {sourceId && (
+              <span className="ml-2 text-base text-zinc-400">
+                {zh ? "（已过滤信源）" : "(filtered by source)"}
+              </span>
+            )}
           </h1>
           <p className="mt-0.5 text-sm text-zinc-400">
-            显示最新 {filtered.length} 篇
+            {zh ? `显示最新 ${filtered.length} 篇` : `Showing latest ${filtered.length} articles`}
           </p>
         </div>
 
@@ -87,7 +94,9 @@ function ArticlesInner() {
                 background: filterMode === m ? "var(--sp-chip)" : "white",
               }}
             >
-              {{ all: "全部", ok: "通过过滤", filtered: "已过滤" }[m]}
+              {zh
+                ? { all: "全部", ok: "通过过滤", filtered: "已过滤" }[m]
+                : { all: "All", ok: "Passed", filtered: "Filtered out" }[m]}
             </button>
           ))}
         </div>
@@ -100,19 +109,19 @@ function ArticlesInner() {
           ))}
         </div>
       ) : error ? (
-        <p className="text-sm text-red-600">加载失败：{error}</p>
+        <p className="text-sm text-red-600">{zh ? "加载失败：" : "Failed: "}{error}</p>
       ) : (
         <>
           <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white">
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-zinc-200 bg-zinc-50">
-                  <th className="py-2.5 pl-4 pr-2 text-xs font-medium text-zinc-500">标题</th>
-                  <th className="px-2 py-2.5 text-xs font-medium text-zinc-500">信源</th>
-                  <th className="px-2 py-2.5 text-xs font-medium text-zinc-500">过滤</th>
-                  <th className="px-2 py-2.5 text-xs font-medium text-zinc-500">评分</th>
-                  <th className="px-2 py-2.5 text-xs font-medium text-zinc-500">字数</th>
-                  <th className="px-2 py-2.5 pr-4 text-xs font-medium text-zinc-500">抓取时间</th>
+                  <th className="py-2.5 pl-4 pr-2 text-xs font-medium text-zinc-500">{zh ? "标题" : "Title"}</th>
+                  <th className="px-2 py-2.5 text-xs font-medium text-zinc-500">{zh ? "信源" : "Source"}</th>
+                  <th className="px-2 py-2.5 text-xs font-medium text-zinc-500">{zh ? "过滤" : "Filter"}</th>
+                  <th className="px-2 py-2.5 text-xs font-medium text-zinc-500">{zh ? "评分" : "Score"}</th>
+                  <th className="px-2 py-2.5 text-xs font-medium text-zinc-500">{zh ? "字数" : "Words"}</th>
+                  <th className="px-2 py-2.5 pr-4 text-xs font-medium text-zinc-500">{zh ? "抓取时间" : "Fetched"}</th>
                 </tr>
               </thead>
               <tbody>
@@ -133,14 +142,14 @@ function ArticlesInner() {
                     </td>
                     <td className="px-2 py-2.5">
                       {a.is_filtered_out === null ? (
-                        <span className="text-xs text-zinc-300">待处理</span>
+                        <span className="text-xs text-zinc-300">{zh ? "待处理" : "Pending"}</span>
                       ) : a.is_filtered_out ? (
                         <span className="inline-block rounded-full bg-red-50 px-2 py-0.5 text-xs text-red-600">
-                          {a.filter_reason ?? "过滤"}
+                          {a.filter_reason ?? (zh ? "过滤" : "filtered")}
                         </span>
                       ) : (
                         <span className="inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">
-                          通过
+                          {zh ? "通过" : "OK"}
                         </span>
                       )}
                     </td>
@@ -166,7 +175,7 @@ function ArticlesInner() {
                 disabled={page === 0}
                 className="rounded border px-3 py-1 disabled:opacity-40"
               >
-                ← 上一页
+                {zh ? "← 上一页" : "← Prev"}
               </button>
               <span>{page + 1} / {totalPages}</span>
               <button
@@ -174,7 +183,7 @@ function ArticlesInner() {
                 disabled={page >= totalPages - 1}
                 className="rounded border px-3 py-1 disabled:opacity-40"
               >
-                下一页 →
+                {zh ? "下一页 →" : "Next →"}
               </button>
             </div>
           )}
