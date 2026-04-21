@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api/client";
+import { useI18n } from "@/lib/i18n";
 
 type PipelineRunSummary = {
   id: string;
@@ -21,6 +22,63 @@ type Stats = {
   total_drafts: number;
   last_pipeline_run: PipelineRunSummary | null;
 };
+
+const L = {
+  en: {
+    title: "Dashboard",
+    totalArticles: "Total Articles",
+    todayNew: "New today",
+    totalClusters: "Total Clusters",
+    last7d: "Last 7 days",
+    sources: "Sources",
+    totalSources: "total",
+    drafts: "Drafts",
+    lastPipeline: "Last Pipeline Run",
+    viewAll: "View all →",
+    running: "Running",
+    success: "Success",
+    failed: "Failed",
+    elapsed: "took",
+    noRuns: "No runs recorded yet",
+    quickLinks: "Quick access",
+    links: [
+      { href: "/admin/sources",       label: "Source health" },
+      { href: "/admin/clusters",      label: "Cluster quality" },
+      { href: "/admin/articles",      label: "Browse articles" },
+      { href: "/admin/drafts",        label: "Manage drafts" },
+      { href: "/admin/pipeline-runs", label: "Pipeline history" },
+    ],
+    loadFailed: "Failed to load:",
+    beijingTime: "Beijing time",
+  },
+  zh: {
+    title: "仪表盘",
+    totalArticles: "总文章数",
+    todayNew: "今日新增",
+    totalClusters: "总 Clusters",
+    last7d: "近 7 天",
+    sources: "信源",
+    totalSources: "共",
+    drafts: "Drafts",
+    lastPipeline: "最近一次 Pipeline",
+    viewAll: "查看全部 →",
+    running: "运行中",
+    success: "成功",
+    failed: "失败",
+    elapsed: "耗时",
+    noRuns: "暂无运行记录",
+    quickLinks: "快捷操作",
+    links: [
+      { href: "/admin/sources",       label: "信源健康状态" },
+      { href: "/admin/clusters",      label: "Cluster 质量检查" },
+      { href: "/admin/articles",      label: "浏览文章" },
+      { href: "/admin/drafts",        label: "Draft 管理" },
+      { href: "/admin/pipeline-runs", label: "Pipeline 历史" },
+    ],
+    loadFailed: "加载失败：",
+    beijingTime: "北京时间",
+  },
+} as const;
 
 function fmt(sec: number) {
   if (sec < 60) return `${Math.round(sec)}s`;
@@ -65,6 +123,9 @@ function StatCard({ title, value, sub, href, accent }: CardProps) {
 }
 
 export function DashboardClient() {
+  const { lang } = useI18n();
+  const t = L[lang];
+
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -79,8 +140,10 @@ export function DashboardClient() {
   const run = stats?.last_pipeline_run;
   const runStatusColor =
     run?.status === "success" ? "#16a34a" :
-    run?.status === "failed" ? "#dc2626" :
-    "#d97706";
+    run?.status === "failed"  ? "#dc2626" : "#d97706";
+  const runStatusLabel =
+    run?.status === "success" ? t.success :
+    run?.status === "failed"  ? t.failed  : t.running;
 
   return (
     <div className="px-8 py-8 max-w-4xl">
@@ -88,40 +151,40 @@ export function DashboardClient() {
         className="mb-6 text-2xl font-light"
         style={{ fontFamily: "'Fraunces', serif", color: "var(--sp-navy)" }}
       >
-        仪表盘
+        {t.title}
       </h1>
 
       {loading ? (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {[...Array(8)].map((_, i) => (
+          {[...Array(4)].map((_, i) => (
             <div key={i} className="h-24 animate-pulse rounded-xl bg-zinc-100" />
           ))}
         </div>
       ) : error ? (
-        <p className="text-sm text-red-600">加载失败：{error}</p>
+        <p className="text-sm text-red-600">{t.loadFailed}{error}</p>
       ) : stats ? (
         <>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <StatCard
-              title="总文章数"
+              title={t.totalArticles}
               value={stats.total_articles.toLocaleString()}
-              sub={`今日新增 ${stats.articles_last_24h}`}
+              sub={`${t.todayNew} ${stats.articles_last_24h}`}
               href="/admin/articles"
             />
             <StatCard
-              title="总 Clusters"
+              title={t.totalClusters}
               value={stats.total_clusters.toLocaleString()}
-              sub={`近 7 天 ${stats.clusters_last_7d}`}
+              sub={`${t.last7d} ${stats.clusters_last_7d}`}
               href="/admin/clusters"
             />
             <StatCard
-              title="信源"
+              title={t.sources}
               value={stats.active_sources}
-              sub={`共 ${stats.total_sources} 个`}
+              sub={`${t.totalSources} ${stats.total_sources}`}
               href="/admin/sources"
             />
             <StatCard
-              title="Drafts"
+              title={t.drafts}
               value={stats.total_drafts}
               href="/admin/drafts"
             />
@@ -133,58 +196,41 @@ export function DashboardClient() {
             style={{ borderColor: "var(--sp-border)" }}
           >
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-zinc-700">最近一次 Pipeline</p>
-              <Link
-                href="/admin/pipeline-runs"
-                className="text-xs"
-                style={{ color: "var(--sp-accent-mid)" }}
-              >
-                查看全部 →
+              <p className="text-sm font-medium text-zinc-700">{t.lastPipeline}</p>
+              <Link href="/admin/pipeline-runs" className="text-xs" style={{ color: "var(--sp-accent-mid)" }}>
+                {t.viewAll}
               </Link>
             </div>
             {run ? (
               <div className="mt-3 flex flex-wrap items-center gap-4">
                 <span
                   className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium"
-                  style={{
-                    color: runStatusColor,
-                    background: `${runStatusColor}18`,
-                  }}
+                  style={{ color: runStatusColor, background: `${runStatusColor}18` }}
                 >
-                  <span
-                    className="h-1.5 w-1.5 rounded-full"
-                    style={{ background: runStatusColor }}
-                  />
-                  {run.status === "running" ? "运行中" :
-                   run.status === "success" ? "成功" : "失败"}
+                  <span className="h-1.5 w-1.5 rounded-full" style={{ background: runStatusColor }} />
+                  {runStatusLabel}
                 </span>
                 <span className="text-sm text-zinc-600">
-                  {fmtDate(run.started_at)}（北京时间）
+                  {fmtDate(run.started_at)}（{t.beijingTime}）
                 </span>
                 {run.total_elapsed_sec != null && (
                   <span className="text-sm text-zinc-500">
-                    耗时 {fmt(run.total_elapsed_sec)}
+                    {t.elapsed} {fmt(run.total_elapsed_sec)}
                   </span>
                 )}
               </div>
             ) : (
-              <p className="mt-2 text-sm text-zinc-400">暂无运行记录</p>
+              <p className="mt-2 text-sm text-zinc-400">{t.noRuns}</p>
             )}
           </div>
 
           {/* Quick links */}
           <div className="mt-6">
             <p className="mb-3 text-xs font-medium uppercase tracking-wider text-zinc-400">
-              快捷操作
+              {t.quickLinks}
             </p>
             <div className="flex flex-wrap gap-2">
-              {[
-                { href: "/admin/sources", label: "信源健康状态" },
-                { href: "/admin/clusters", label: "Cluster 质量检查" },
-                { href: "/admin/articles", label: "浏览文章" },
-                { href: "/admin/drafts", label: "Draft 管理" },
-                { href: "/admin/pipeline-runs", label: "Pipeline 历史" },
-              ].map(({ href, label }) => (
+              {t.links.map(({ href, label }) => (
                 <Link
                   key={href}
                   href={href}

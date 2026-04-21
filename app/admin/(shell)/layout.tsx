@@ -3,19 +3,21 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
+import { useI18n } from "@/lib/i18n";
 
 const NAV = [
-  { href: "/admin",               label: "仪表盘",     icon: "◈" },
-  { href: "/admin/pipeline-runs", label: "Pipeline",   icon: "⟳" },
-  { href: "/admin/sources",       label: "信源",        icon: "⊞" },
-  { href: "/admin/clusters",      label: "Clusters",   icon: "◉" },
-  { href: "/admin/drafts",        label: "Drafts",     icon: "✎" },
-  { href: "/admin/articles",      label: "文章",        icon: "≡" },
+  { href: "/admin",               en: "Dashboard",  zh: "仪表盘",  icon: "◈" },
+  { href: "/admin/pipeline-runs", en: "Pipeline",   zh: "Pipeline", icon: "⟳" },
+  { href: "/admin/sources",       en: "Sources",    zh: "信源",     icon: "⊞" },
+  { href: "/admin/clusters",      en: "Clusters",   zh: "Clusters", icon: "◉" },
+  { href: "/admin/drafts",        en: "Drafts",     zh: "Drafts",   icon: "✎" },
+  { href: "/admin/articles",      en: "Articles",   zh: "文章",     icon: "≡" },
 ];
 
 export default function AdminShellLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { lang } = useI18n();
 
   async function handleLogout() {
     await fetch("/api/admin-auth", { method: "DELETE" });
@@ -39,8 +41,10 @@ export default function AdminShellLayout({ children }: { children: ReactNode }) 
             style={{ fontFamily: "'Fraunces', serif", fontWeight: 300, color: "#a8d8f0" }}
           >
             Sip<span style={{ color: "#5dc8f5" }}>ply</span>
-            <span className="ml-1.5 text-[10px] tracking-[0.1em] uppercase"
-              style={{ color: "#3d7a9e", fontFamily: "sans-serif", fontWeight: 400 }}>
+            <span
+              className="ml-1.5 text-[10px] tracking-[0.1em] uppercase"
+              style={{ color: "#3d7a9e", fontFamily: "sans-serif", fontWeight: 400 }}
+            >
               Admin
             </span>
           </span>
@@ -48,7 +52,7 @@ export default function AdminShellLayout({ children }: { children: ReactNode }) 
 
         {/* Nav links */}
         <nav className="flex-1 py-3">
-          {NAV.map(({ href, label, icon }) => {
+          {NAV.map(({ href, en, zh, icon }) => {
             const active = href === "/admin"
               ? pathname === "/admin"
               : pathname.startsWith(href);
@@ -64,7 +68,7 @@ export default function AdminShellLayout({ children }: { children: ReactNode }) 
                 }}
               >
                 <span className="text-[12px] opacity-60">{icon}</span>
-                {label}
+                {lang === "zh" ? zh : en}
               </Link>
             );
           })}
@@ -76,7 +80,7 @@ export default function AdminShellLayout({ children }: { children: ReactNode }) 
             onClick={handleLogout}
             className="w-full rounded-md border px-3 py-1.5 text-xs text-zinc-500 transition-colors hover:border-zinc-300 hover:text-zinc-700"
           >
-            退出登录
+            {lang === "zh" ? "退出登录" : "Log out"}
           </button>
         </div>
       </aside>

@@ -36,7 +36,7 @@ export function AIBasicCard() {
       <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
         {/* Concept name */}
         <p className="mb-3 inline-block rounded-md bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-800">
-          {basic.concept}
+          {lang === "zh" ? basic.concept_zh : basic.concept}
         </p>
 
         {/* Definition */}
@@ -45,7 +45,7 @@ export function AIBasicCard() {
             {labels.definition}
           </p>
           <p className="text-sm leading-relaxed text-zinc-800">
-            {basic.definition}
+            {lang === "zh" ? basic.definition_zh : basic.definition}
           </p>
         </div>
 
@@ -55,7 +55,7 @@ export function AIBasicCard() {
             {labels.whyItMatters}
           </p>
           <p className="text-sm leading-relaxed text-zinc-800">
-            {basic.whyItMatters}
+            {lang === "zh" ? basic.whyItMatters_zh : basic.whyItMatters}
           </p>
         </div>
 
@@ -65,7 +65,7 @@ export function AIBasicCard() {
             {labels.example}
           </p>
           <p className="text-sm leading-relaxed text-zinc-600 italic">
-            {basic.example}
+            {lang === "zh" ? basic.example_zh : basic.example}
           </p>
         </div>
 
