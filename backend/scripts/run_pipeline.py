@@ -142,7 +142,7 @@ def main(triggered_by: str = "cron") -> int:
         lambda: asyncio.run(
             ingest_full_articles._run(
                 slug=None,
-                per_source_limit=3,
+                per_source_limit=10,
                 dry_run=False,
                 force_retry_failures=False,
             )

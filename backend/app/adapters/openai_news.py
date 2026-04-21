@@ -104,8 +104,15 @@ class OpenAINewsAdapter(BaseSourceAdapter):
             logger.error("fetch_index failure source=%s reason=no_feed_url", slug)
             raise ValueError("openai_news requires feed_url")
         try:
+            etag: str | None = getattr(self.source_config, "etag", None)
             async with ingestion_http_client(self.source_config) as client:
-                raw_entries = await fetch_feed_entries(str(self.source_config.feed_url), client)
+                raw_entries, new_etag = await fetch_feed_entries(
+                    str(self.source_config.feed_url), client, etag=etag
+                )
+            self._new_etag: str | None = new_etag
+            if not raw_entries:
+                logger.info("fetch_index 304_not_modified source=%s slug=%s", self.source_name, slug)
+                return []
             rows = apply_entry_limits(
                 [r for r in raw_entries if r.get("link")],
                 self.source_config,
