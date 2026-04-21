@@ -6,70 +6,92 @@ import { usePathname } from "next/navigation";
 import { useI18n } from "@/lib/i18n";
 import { TopNavSearch } from "@/components/layout/top-nav-search";
 import { LanguageToggle } from "@/components/layout/language-toggle";
-import { uiTextLinkNav } from "@/lib/ui/classes";
 
 export function TopNav() {
   const { t } = useI18n();
   const pathname = usePathname();
   const onArchive = pathname === "/archive";
   const onDigest = pathname === "/";
+  const onDraft = pathname.startsWith("/draft");
 
   return (
-    <header className="sticky top-0 z-40 border-b border-zinc-200 bg-white/90 backdrop-blur-sm">
-      <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-x-4 gap-y-3 px-4 py-3 sm:px-6">
-        <Link
-          href="/"
-          className="shrink-0 text-sm font-semibold tracking-tight text-foreground"
-        >
-          Personal AI Intelligence
+    <header className="sticky top-0 z-40" style={{ background: "var(--sp-navy)" }}>
+      <div className="mx-auto flex max-w-5xl items-center gap-6 px-6 py-0 h-14">
+
+        {/* Brand */}
+        <Link href="/" className="shrink-0 flex items-center gap-0 text-[22px] tracking-tight" style={{ fontFamily: "'Fraunces', serif", fontWeight: 300, color: "#a8d8f0" }}>
+          Sip
+          <span style={{ fontWeight: 400, color: "#5dc8f5" }}>ply</span>
+          <span
+            className="inline-block w-[7px] h-[7px] rounded-full ml-[2px] relative"
+            style={{
+              background: "#5dc8f5",
+              top: "-1px",
+              animation: "dropfall 2.4s ease-in-out infinite",
+            }}
+          />
         </Link>
-        <nav
-          className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm sm:gap-x-4"
-          aria-label={t.nav.mainAria}
-        >
+
+        {/* Nav links */}
+        <nav className="flex items-center gap-7" aria-label={t.nav.mainAria}>
           <Link
             href="/"
-            className={`shrink-0 ${uiTextLinkNav}${
-              onDigest ? " font-semibold text-emerald-900" : ""
-            }`}
+            className="text-[12px] tracking-[0.05em] transition-colors duration-200"
+            style={{ color: onDigest ? "#5dc8f5" : "#6aabcc" }}
           >
             {t.nav.dailyDigest}
           </Link>
           <Link
             href="/archive"
-            scroll
-            className={
-              onArchive
-                ? "shrink-0 rounded-md bg-emerald-100/90 px-2.5 py-1 text-sm font-semibold text-emerald-950 ring-1 ring-emerald-600/25"
-                : "shrink-0 rounded-md border border-emerald-600/35 bg-emerald-50/90 px-2.5 py-1 text-sm font-semibold text-emerald-900 shadow-sm hover:bg-emerald-100/80"
-            }
-            aria-current={onArchive ? "page" : undefined}
+            className="text-[12px] tracking-[0.05em] transition-colors duration-200"
+            style={{ color: onArchive ? "#5dc8f5" : "#6aabcc" }}
           >
             {t.nav.archive}
           </Link>
           <Link
             href="/#draft-of-the-day"
-            className={`shrink-0 ${uiTextLinkNav}`}
+            className="text-[12px] tracking-[0.05em] transition-colors duration-200"
+            style={{ color: onDraft ? "#5dc8f5" : "#6aabcc" }}
           >
             {t.nav.draftOfDay}
           </Link>
         </nav>
-        <div className="flex min-w-0 flex-1 basis-full flex-wrap items-center justify-end gap-2 sm:basis-[min(100%,12rem)]">
-          <div className="min-w-0 max-w-full flex-1 sm:max-w-xs">
+
+        {/* Spacer + Search + Lang */}
+        <div className="flex flex-1 items-center justify-end gap-3">
+          <div className="w-44 sm:w-56">
             <Suspense
               fallback={
                 <div
-                  className="h-9 w-full rounded-md border border-zinc-200 bg-zinc-50"
+                  className="h-8 w-full rounded-md"
+                  style={{ background: "#163f5c", border: "1px solid #1a5280" }}
                   aria-hidden
                 />
               }
             >
-              <TopNavSearch />
+              <TopNavSearchDark />
             </Suspense>
           </div>
-          <LanguageToggle />
+          <LanguageToggleDark />
         </div>
       </div>
     </header>
+  );
+}
+
+/* Thin wrappers that inject dark-theme classes onto the shared sub-components */
+function TopNavSearchDark() {
+  return (
+    <div className="[&_input]:!bg-[#163f5c] [&_input]:!border-[#1a5280] [&_input]:!text-[#a8d8f0] [&_input]:placeholder:!text-[#3d7a9e] [&_input]:focus:!border-[#5dc8f5] [&_input]:focus:!ring-[#5dc8f5]/20">
+      <TopNavSearch />
+    </div>
+  );
+}
+
+function LanguageToggleDark() {
+  return (
+    <div className="[&_button]:!text-[#3d7a9e] [&_button]:hover:!text-[#5dc8f5] [&_.active]:!text-[#5dc8f5] text-[11px] tracking-[0.08em]">
+      <LanguageToggle />
+    </div>
   );
 }

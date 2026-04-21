@@ -11,12 +11,12 @@ export function ScoreBar({ score, className = "" }: ScoreBarProps) {
   if (score == null || score <= 0) return null;
 
   const pct = Math.min(100, Math.max(0, score));
-  const barColor =
+  const barColorStyle =
     pct >= 70
-      ? "bg-emerald-500"
+      ? "var(--sp-accent-mid)"
       : pct >= 40
-        ? "bg-amber-400"
-        : "bg-zinc-300";
+        ? "var(--sp-accent)"
+        : "#d1d5db";
 
   const label =
     pct >= 70 ? "High signal" : pct >= 40 ? "Mid signal" : "Low signal";
@@ -26,8 +26,8 @@ export function ScoreBar({ score, className = "" }: ScoreBarProps) {
       <span className="shrink-0 text-[10px] text-zinc-400">{label}</span>
       <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-zinc-100">
         <div
-          className={`h-full rounded-full ${barColor} transition-all duration-500`}
-          style={{ width: `${pct}%` }}
+          className="h-full rounded-full transition-all duration-500"
+          style={{ width: `${pct}%`, background: barColorStyle }}
         />
       </div>
       <span className="w-6 shrink-0 text-right font-mono text-[10px] tabular-nums text-zinc-400">

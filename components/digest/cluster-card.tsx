@@ -35,7 +35,28 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
 
   return (
     <ResultCardFrame as="li" variant="digest">
-      <h3 className="text-base font-semibold leading-snug text-foreground">
+      {/* Water-drop icon + tag row */}
+      <div className="mb-3 flex items-center gap-2.5">
+        <span
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
+          style={{ background: "var(--sp-chip)" }}
+        >
+          <svg viewBox="0 0 14 14" fill="none" width="14" height="14">
+            <path d="M7 2C7 2 3 6 3 9a4 4 0 008 0c0-3-4-7-4-7z" fill="var(--sp-accent-mid)" />
+          </svg>
+        </span>
+        <span
+          className="text-[10px] uppercase tracking-[0.12em]"
+          style={{ color: "var(--sp-accent-dim)" }}
+        >
+          {tags[0] ?? cluster.theme}
+        </span>
+      </div>
+
+      <h3
+        className="text-base leading-snug"
+        style={{ fontFamily: "'Fraunces', serif", fontWeight: 300, color: "var(--sp-navy)" }}
+      >
         {pickLocalized(cluster.title, lang)}
       </h3>
 

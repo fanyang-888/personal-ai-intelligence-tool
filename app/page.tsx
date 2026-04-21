@@ -11,7 +11,7 @@ import { ClusterCard } from "@/components/digest/cluster-card";
 import { DraftPreviewCard } from "@/components/digest/draft-preview-card";
 import { DiscoverArchiveCta } from "@/components/digest/quick-archive-entry";
 import { AIBasicCard } from "@/components/digest/ai-basic-card";
-import { PageHeader } from "@/components/shared/page-header";
+import { SippyHero } from "@/components/layout/sipply-hero";
 import { SectionBlock } from "@/components/shared/section-block";
 import { SectionTitle } from "@/components/shared/section-title";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -81,13 +81,7 @@ export default function HomePage() {
 
   return (
     <div>
-      <PageHeader
-        variant="home"
-        bordered
-        title={t.home.title}
-        description={t.home.subtitle}
-        meta={dateLabel}
-      />
+      <SippyHero dateLabel={dateLabel} />
 
       <div className="mb-10 grid gap-8 lg:grid-cols-[1fr_min(18rem,34%)] lg:items-start">
         <div className="min-w-0">

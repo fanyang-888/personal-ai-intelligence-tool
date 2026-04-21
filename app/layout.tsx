@@ -1,26 +1,15 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import { AppProviders } from "@/components/app-providers";
 import { TopNav } from "@/components/layout/top-nav";
 import { PageShell } from "@/components/layout/page-shell";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
   title: {
-    default: "Personal AI Intelligence Tool",
-    template: "%s | Personal AI Intelligence",
+    default: "Sipply — Personal AI Intelligence",
+    template: "%s | Sipply",
   },
-  description: "Frontend-first local MVP — daily digest, clusters, archive, drafts",
+  description: "AI-curated insights served fresh each morning — drink in what matters, set aside the rest.",
 };
 
 export default function RootLayout({
@@ -29,11 +18,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="flex min-h-full flex-col font-sans">
+    <html lang="en" className="h-full antialiased">
+      <body className="flex min-h-full flex-col">
         <AppProviders>
           <TopNav />
           <PageShell>{children}</PageShell>

@@ -18,8 +18,8 @@ import argparse
 import asyncio
 import logging
 import os
-import signal
 import sys
+import threading
 import time
 import uuid
 from datetime import datetime, timezone
@@ -31,22 +31,21 @@ _PIPELINE_TIMEOUT_SECONDS = int(os.getenv("PIPELINE_TIMEOUT_MINUTES", "90")) * 6
 
 
 def _install_timeout(timeout_sec: int) -> None:
-    """Set a SIGALRM to kill the process if it runs longer than timeout_sec."""
-    if not hasattr(signal, "SIGALRM"):
-        return  # Windows — skip
+    """Start a daemon thread that kills the process after timeout_sec.
 
-    def _handler(signum, frame):  # noqa: ARG001
-        # Log before dying so Railway captures the message
+    Uses threading.Timer instead of SIGALRM so it works reliably in Docker
+    containers where signals may not be delivered to PID 1.
+    """
+    def _kill() -> None:
         logging.getLogger(__name__).critical(
             "pipeline TIMED OUT after %d minutes — aborting process",
             timeout_sec // 60,
         )
-        # sys.exit triggers SystemExit which won't unwind cleanly from signal context;
-        # use os._exit to terminate immediately.
         os._exit(2)
 
-    signal.signal(signal.SIGALRM, _handler)
-    signal.alarm(timeout_sec)
+    t = threading.Timer(timeout_sec, _kill)
+    t.daemon = True  # cleaned up automatically if pipeline finishes normally
+    t.start()
 
 
 from app.db import session_scope  # noqa: E402
