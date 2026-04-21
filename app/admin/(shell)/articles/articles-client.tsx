@@ -1,0 +1,201 @@
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+import { apiFetch } from "@/lib/api/client";
+
+type ArticleRow = {
+  id: string;
+  title: string;
+  url: string;
+  source_name: string | null;
+  published_at: string | null;
+  fetched_at: string | null;
+  signal_score: number | null;
+  is_filtered_out: boolean | null;
+  filter_reason: string | null;
+  cluster_id: string | null;
+  word_count: number | null;
+};
+
+function fmtDate(iso: string | null): string {
+  if (!iso) return "—";
+  return new Intl.DateTimeFormat("zh-CN", {
+    month: "numeric", day: "numeric",
+    hour: "2-digit", minute: "2-digit",
+    timeZone: "Asia/Shanghai",
+  }).format(new Date(iso));
+}
+
+function ArticlesInner() {
+  const params = useSearchParams();
+  const sourceId = params.get("source_id");
+
+  const [articles, setArticles] = useState<ArticleRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const [filterMode, setFilterMode] = useState<"all" | "ok" | "filtered">("all");
+  const PAGE_SIZE = 50;
+
+  const load = useCallback(() => {
+    setLoading(true);
+    const qs = new URLSearchParams({ limit: "200", offset: "0" });
+    if (sourceId) qs.set("source_id", sourceId);
+    apiFetch<ArticleRow[]>(`/api/admin/articles?${qs}`)
+      .then(setArticles)
+      .catch((e) => setError((e as Error).message))
+      .finally(() => setLoading(false));
+  }, [sourceId]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const filtered =
+    filterMode === "ok" ? articles.filter((a) => !a.is_filtered_out) :
+    filterMode === "filtered" ? articles.filter((a) => a.is_filtered_out) :
+    articles;
+
+  const paged = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+
+  return (
+    <div className="px-8 py-8 max-w-6xl">
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h1
+            className="text-2xl font-light"
+            style={{ fontFamily: "'Fraunces', serif", color: "var(--sp-navy)" }}
+          >
+            文章
+            {sourceId && <span className="ml-2 text-base text-zinc-400">（已过滤信源）</span>}
+          </h1>
+          <p className="mt-0.5 text-sm text-zinc-400">
+            显示最新 {filtered.length} 篇
+          </p>
+        </div>
+
+        <div className="flex gap-2">
+          {(["all", "ok", "filtered"] as const).map((m) => (
+            <button
+              key={m}
+              onClick={() => { setFilterMode(m); setPage(0); }}
+              className="rounded-md border px-3 py-1.5 text-xs transition-colors"
+              style={{
+                borderColor: filterMode === m ? "var(--sp-accent-mid)" : "#e4e4e7",
+                color: filterMode === m ? "var(--sp-accent-mid)" : "#71717a",
+                background: filterMode === m ? "var(--sp-chip)" : "white",
+              }}
+            >
+              {{ all: "全部", ok: "通过过滤", filtered: "已过滤" }[m]}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="space-y-2">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="h-10 animate-pulse rounded-md bg-zinc-100" />
+          ))}
+        </div>
+      ) : error ? (
+        <p className="text-sm text-red-600">加载失败：{error}</p>
+      ) : (
+        <>
+          <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-zinc-200 bg-zinc-50">
+                  <th className="py-2.5 pl-4 pr-2 text-xs font-medium text-zinc-500">标题</th>
+                  <th className="px-2 py-2.5 text-xs font-medium text-zinc-500">信源</th>
+                  <th className="px-2 py-2.5 text-xs font-medium text-zinc-500">过滤</th>
+                  <th className="px-2 py-2.5 text-xs font-medium text-zinc-500">评分</th>
+                  <th className="px-2 py-2.5 text-xs font-medium text-zinc-500">字数</th>
+                  <th className="px-2 py-2.5 pr-4 text-xs font-medium text-zinc-500">抓取时间</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paged.map((a) => (
+                  <tr key={a.id} className="border-t border-zinc-100 hover:bg-zinc-50">
+                    <td className="py-2.5 pl-4 pr-2 max-w-xs">
+                      <a
+                        href={a.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sm text-zinc-800 hover:underline line-clamp-1"
+                      >
+                        {a.title || a.url}
+                      </a>
+                    </td>
+                    <td className="px-2 py-2.5 text-xs text-zinc-500 whitespace-nowrap">
+                      {a.source_name ?? "—"}
+                    </td>
+                    <td className="px-2 py-2.5">
+                      {a.is_filtered_out === null ? (
+                        <span className="text-xs text-zinc-300">待处理</span>
+                      ) : a.is_filtered_out ? (
+                        <span className="inline-block rounded-full bg-red-50 px-2 py-0.5 text-xs text-red-600">
+                          {a.filter_reason ?? "过滤"}
+                        </span>
+                      ) : (
+                        <span className="inline-block rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">
+                          通过
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-2 py-2.5 text-sm tabular-nums text-zinc-600">
+                      {a.signal_score != null ? Math.round(a.signal_score) : "—"}
+                    </td>
+                    <td className="px-2 py-2.5 text-xs text-zinc-400 tabular-nums">
+                      {a.word_count != null ? a.word_count.toLocaleString() : "—"}
+                    </td>
+                    <td className="px-2 py-2.5 pr-4 text-xs text-zinc-400 whitespace-nowrap">
+                      {fmtDate(a.fetched_at)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {totalPages > 1 && (
+            <div className="mt-4 flex items-center gap-2 text-sm text-zinc-500">
+              <button
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={page === 0}
+                className="rounded border px-3 py-1 disabled:opacity-40"
+              >
+                ← 上一页
+              </button>
+              <span>{page + 1} / {totalPages}</span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                disabled={page >= totalPages - 1}
+                className="rounded border px-3 py-1 disabled:opacity-40"
+              >
+                下一页 →
+              </button>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+export function ArticlesClient() {
+  return (
+    <Suspense fallback={
+      <div className="px-8 py-8">
+        <div className="space-y-2">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="h-10 animate-pulse rounded-md bg-zinc-100" />
+          ))}
+        </div>
+      </div>
+    }>
+      <ArticlesInner />
+    </Suspense>
+  );
+}

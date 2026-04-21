@@ -53,22 +53,23 @@ function fmt(sec: number) {
 
 function fmtDate(iso: string) {
   return new Intl.DateTimeFormat("zh-CN", {
-    month: "numeric",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
+    month: "numeric", day: "numeric",
+    hour: "2-digit", minute: "2-digit",
     timeZone: "Asia/Shanghai",
   }).format(new Date(iso));
 }
 
 function StatusDot({ status }: { status: PipelineRun["status"] }) {
-  const cls =
-    status === "success"
-      ? "bg-emerald-500"
-      : status === "failed"
-        ? "bg-red-500"
-        : "bg-amber-400 animate-pulse";
-  return <span className={`inline-block h-2 w-2 rounded-full ${cls}`} />;
+  const style =
+    status === "success" ? { background: "#16a34a" } :
+    status === "failed"  ? { background: "#dc2626" } :
+    { background: "#d97706" };
+  return (
+    <span
+      className={`inline-block h-2 w-2 rounded-full ${status === "running" ? "animate-pulse" : ""}`}
+      style={style}
+    />
+  );
 }
 
 function RunRow({ run }: { run: PipelineRun }) {
@@ -84,23 +85,15 @@ function RunRow({ run }: { run: PipelineRun }) {
         <td className="py-2.5 pl-4 pr-2">
           <span className="flex items-center gap-2">
             <StatusDot status={run.status} />
-            <span className="text-xs font-medium capitalize text-zinc-700">
-              {run.status}
-            </span>
+            <span className="text-xs font-medium capitalize text-zinc-700">{run.status}</span>
           </span>
         </td>
+        <td className="px-2 py-2.5 text-xs text-zinc-600">{fmtDate(run.started_at)}</td>
         <td className="px-2 py-2.5 text-xs text-zinc-600">
-          {fmtDate(run.started_at)}
+          {run.total_elapsed_sec != null ? fmt(run.total_elapsed_sec) : run.finished_at ? "—" : "运行中…"}
         </td>
-        <td className="px-2 py-2.5 text-xs text-zinc-600">
-          {run.total_elapsed_sec != null ? fmt(run.total_elapsed_sec) : run.finished_at ? "—" : "running…"}
-        </td>
-        <td className="px-2 py-2.5 text-xs text-zinc-500">
-          {run.triggered_by ?? "—"}
-        </td>
-        <td className="py-2.5 pl-2 pr-4 text-xs text-zinc-400">
-          {open ? "▲" : "▼"}
-        </td>
+        <td className="px-2 py-2.5 text-xs text-zinc-500">{run.triggered_by ?? "—"}</td>
+        <td className="py-2.5 pl-2 pr-4 text-xs text-zinc-400">{open ? "▲" : "▼"}</td>
       </tr>
 
       {open && (
@@ -121,9 +114,7 @@ function RunRow({ run }: { run: PipelineRun }) {
                     }`}
                   >
                     {ok ? "✓" : "✗"} {STAGE_LABEL[key] ?? key}
-                    <span className="font-mono text-[10px] opacity-70">
-                      {fmt(s.elapsed_sec)}
-                    </span>
+                    <span className="font-mono text-[10px] opacity-70">{fmt(s.elapsed_sec)}</span>
                   </span>
                 );
               })}
@@ -154,29 +145,20 @@ export function PipelineRunsClient() {
 
   useEffect(() => {
     load();
-    // Auto-refresh every 30s so running pipelines update
     const id = setInterval(load, 30_000);
     return () => clearInterval(id);
   }, [load]);
 
-  async function handleLogout() {
-    await fetch("/api/admin-auth", { method: "DELETE" });
-    window.location.href = "/admin/login";
-  }
-
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-foreground">Pipeline Runs</h1>
-          <p className="mt-0.5 text-sm text-zinc-500">Last 30 runs · auto-refreshes every 30s</p>
-        </div>
-        <button
-          onClick={handleLogout}
-          className="rounded-md border border-zinc-200 px-3 py-1.5 text-xs text-zinc-500 hover:border-zinc-300 hover:text-foreground"
+    <div className="px-8 py-8 max-w-3xl">
+      <div className="mb-6">
+        <h1
+          className="text-2xl font-light"
+          style={{ fontFamily: "'Fraunces', serif", color: "var(--sp-navy)" }}
         >
-          Log out
-        </button>
+          Pipeline Runs
+        </h1>
+        <p className="mt-0.5 text-sm text-zinc-400">最近 30 次 · 每 30 秒自动刷新</p>
       </div>
 
       {loading ? (
@@ -188,16 +170,16 @@ export function PipelineRunsClient() {
       ) : error ? (
         <p className="text-sm text-red-600">Error: {error}</p>
       ) : runs.length === 0 ? (
-        <p className="text-sm text-zinc-500">No pipeline runs yet.</p>
+        <p className="text-sm text-zinc-500">暂无运行记录。</p>
       ) : (
         <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white">
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-zinc-200 bg-zinc-50">
-                <th className="py-2 pl-4 pr-2 text-xs font-medium text-zinc-500">Status</th>
-                <th className="px-2 py-2 text-xs font-medium text-zinc-500">Started (CST)</th>
-                <th className="px-2 py-2 text-xs font-medium text-zinc-500">Duration</th>
-                <th className="px-2 py-2 text-xs font-medium text-zinc-500">Trigger</th>
+                <th className="py-2 pl-4 pr-2 text-xs font-medium text-zinc-500">状态</th>
+                <th className="px-2 py-2 text-xs font-medium text-zinc-500">开始时间（北京）</th>
+                <th className="px-2 py-2 text-xs font-medium text-zinc-500">耗时</th>
+                <th className="px-2 py-2 text-xs font-medium text-zinc-500">触发方式</th>
                 <th className="py-2 pl-2 pr-4" />
               </tr>
             </thead>
