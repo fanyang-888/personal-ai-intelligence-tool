@@ -20,6 +20,7 @@ from uuid import UUID
 
 from app.adapters import get_adapter
 from app.adapters.registry import AdapterNotRegisteredError
+from app.crud.article import get_article_by_url
 from app.crud.ingest_url_state import (
     force_reset_ingest_url_failures,
     is_url_ingest_blocked,
@@ -34,6 +35,10 @@ from app.services.article_ingest import (
 )
 from app.services.source_sync import update_source_poll_state, upsert_source_from_trusted_config
 from app.source_catalog.loader import load_trusted_sources
+
+# Per-source hard wall-clock timeout (seconds). Override via PER_SOURCE_TIMEOUT_SECONDS env var.
+import os as _os
+_PER_SOURCE_TIMEOUT = int(_os.getenv("PER_SOURCE_TIMEOUT_SECONDS", "180"))
 
 logger = logging.getLogger(__name__)
 
@@ -111,87 +116,112 @@ async def _run(
             with session_scope() as db:
                 update_source_poll_state(db, source_id, etag=new_etag)
 
-        # Walk index in order until we get ``per_source_limit`` successful fetches (skips 403/parse).
-        # Cap at per_source_limit*5 so a large RSS feed (100+ items) can't make us
-        # try every entry — each failing fetch can take up to 2 min with retries.
-        max_attempts = min(len(index_items), per_source_limit * 5)
+        # Walk index in order until we get ``per_source_limit`` successful fetches (skips 403/parse
+        # errors and already-ingested articles).
+        # Cap at per_source_limit*3 so a large RSS feed (100+ items) can't make us try every entry
+        # — each failing fetch can take up to 2 min with retries.
+        max_attempts = min(len(index_items), per_source_limit * 3)
         logger.info(
-            "ingest source=%s adapter=%s index=%s target_successes=%s dry_run=%s",
+            "ingest source=%s adapter=%s index=%s target_successes=%s max_attempts=%s dry_run=%s",
             cfg.name,
             adapter.adapter_key,
             len(index_items),
             per_source_limit,
+            max_attempts,
             dry_run,
         )
 
-        successes = 0
-        for cand in index_items:
-            if successes >= per_source_limit:
-                break
-            if max_attempts <= 0:
-                break
-            max_attempts -= 1
-            candidates_seen += 1
-            cand_url = (cand.get("url") or "").strip()
-            if not dry_run and cand_url:
-                with session_scope() as db:
-                    if is_url_ingest_blocked(db, cand_url):
-                        totals["skipped_blocked"] += 1
-                        st["skipped_blocked"] += 1
-                        logger.info(
-                            "skip fetch (permanent_failure after 403s) slug=%s url=%s",
-                            slug_label,
-                            cand_url[:200],
-                        )
-                        continue
+        async def _fetch_source_articles() -> None:
+            nonlocal candidates_seen
+            successes = 0
+            remaining = max_attempts
+            for cand in index_items:
+                if successes >= per_source_limit:
+                    break
+                if remaining <= 0:
+                    break
+                remaining -= 1
+                candidates_seen += 1
+                cand_url = (cand.get("url") or "").strip()
 
-            fr = await adapter.fetch_article(cand)
-            if fr.get("status") != "ok":
-                totals["fetch_failed"] += 1
-                st["fetch_failed"] += 1
-                if not dry_run and cand_url and fr.get("http_status") == 403:
+                if not dry_run and cand_url:
+                    # ── Skip already-ingested articles (no HTTP needed) ────────────────
                     with session_scope() as db:
-                        record_http_403(db, cand_url)
-                logger.error(
-                    "fetch_article failed slug=%s adapter=%s url=%s type=%s err=%s",
-                    slug_label,
-                    fr.get("adapter_key", adapter.adapter_key),
-                    (fr.get("url") or cand_url or "")[:200],
-                    fr.get("error_type"),
-                    fr.get("error"),
-                )
-                continue
+                        if get_article_by_url(db, cand_url) is not None:
+                            totals["skipped_already_ingested"] += 1
+                            st["skipped_already_ingested"] += 1
+                            successes += 1  # counts toward limit so we stop early
+                            continue
+                    # ── Skip permanently blocked URLs (repeated 403s) ─────────────────
+                    with session_scope() as db:
+                        if is_url_ingest_blocked(db, cand_url):
+                            totals["skipped_blocked"] += 1
+                            st["skipped_blocked"] += 1
+                            logger.info(
+                                "skip fetch (permanent_failure after 403s) slug=%s url=%s",
+                                slug_label,
+                                cand_url[:200],
+                            )
+                            continue
 
-            if not dry_run and cand_url:
+                fr = await adapter.fetch_article(cand)
+                if fr.get("status") != "ok":
+                    totals["fetch_failed"] += 1
+                    st["fetch_failed"] += 1
+                    if not dry_run and cand_url and fr.get("http_status") == 403:
+                        with session_scope() as db:
+                            record_http_403(db, cand_url)
+                    logger.error(
+                        "fetch_article failed slug=%s adapter=%s url=%s type=%s err=%s",
+                        slug_label,
+                        fr.get("adapter_key", adapter.adapter_key),
+                        (fr.get("url") or cand_url or "")[:200],
+                        fr.get("error_type"),
+                        fr.get("error"),
+                    )
+                    continue
+
+                if not dry_run and cand_url:
+                    with session_scope() as db:
+                        record_fetch_success(db, cand_url)
+
+                successes += 1
+                normalized = normalized_from_candidate_fetch(
+                    source_id=source_id,
+                    config=cfg,
+                    candidate=cand,
+                    fetch_ok=fr,
+                )
+                if dry_run:
+                    totals["dry_run_ok"] += 1
+                    st["dry_run_ok"] += 1
+                    logger.info(
+                        "dry_run skip persist slug=%s url=%s title=%r",
+                        slug_label,
+                        normalized.url[:120],
+                        (normalized.title or "")[:80],
+                    )
+                    continue
+
                 with session_scope() as db:
-                    record_fetch_success(db, cand_url)
+                    outcome = persist_fetched_article(
+                        db,
+                        normalized,
+                        adapter_key=adapter.adapter_key,
+                    )
+                totals[outcome.value] += 1
+                st[outcome.value] += 1
 
-            successes += 1
-            normalized = normalized_from_candidate_fetch(
-                source_id=source_id,
-                config=cfg,
-                candidate=cand,
-                fetch_ok=fr,
+        try:
+            await asyncio.wait_for(_fetch_source_articles(), timeout=_PER_SOURCE_TIMEOUT)
+        except asyncio.TimeoutError:
+            logger.warning(
+                "ingest source=%s TIMED OUT after %ds — skipping remaining articles",
+                slug_label,
+                _PER_SOURCE_TIMEOUT,
             )
-            if dry_run:
-                totals["dry_run_ok"] += 1
-                st["dry_run_ok"] += 1
-                logger.info(
-                    "dry_run skip persist slug=%s url=%s title=%r",
-                    slug_label,
-                    normalized.url[:120],
-                    (normalized.title or "")[:80],
-                )
-                continue
-
-            with session_scope() as db:
-                outcome = persist_fetched_article(
-                    db,
-                    normalized,
-                    adapter_key=adapter.adapter_key,
-                )
-            totals[outcome.value] += 1
-            st[outcome.value] += 1
+            totals["source_timeout"] += 1
+            st["source_timeout"] = 1
 
         logger.info("[ingest summary] slug=%s %s", slug_label, dict(st))
 
