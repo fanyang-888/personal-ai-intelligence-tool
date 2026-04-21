@@ -77,7 +77,7 @@ export const AI_BASICS: AIBasic[] = [
     example:
       "The sentence 'AI is transforming industries' is about 5 tokens. GPT-4o can process up to ~128,000 tokens in one conversation.",
     example_zh:
-      "句子"AI is transforming industries"大约是 5 个 Token。GPT-4o 单次对话最多可处理约 12.8 万个 Token。",
+      "句子\"AI is transforming industries\"大约是 5 个 Token。GPT-4o 单次对话最多可处理约 12.8 万个 Token。",
   },
   {
     id: "parameters",
@@ -107,7 +107,7 @@ export const AI_BASICS: AIBasic[] = [
     whyItMatters:
       "A larger context window lets the model handle longer documents, longer conversations, and more complex tasks without 'forgetting' earlier content.",
     whyItMatters_zh:
-      "更大的上下文窗口让模型能处理更长的文档、更长的对话和更复杂的任务，而不会"遗忘"之前的内容。",
+      "更大的上下文窗口让模型能处理更长的文档、更长的对话和更复杂的任务，而不会\"遗忘\"之前的内容。",
     example:
       "If a model has a 128k token context window, you can paste an entire book into it. A 4k window means the model forgets earlier parts of a long conversation.",
     example_zh:
@@ -128,7 +128,7 @@ export const AI_BASICS: AIBasic[] = [
     example:
       "Asking 'summarize this' gives a different result than 'summarize this in 3 bullet points for a non-technical executive.' Both are prompts; one is better.",
     example_zh:
-      "问"总结一下"和"用 3 条要点为非技术背景的高管总结"得到的结果截然不同。两者都是提示词，但后者效果更好。",
+      "问\"总结一下\"和\"用 3 条要点为非技术背景的高管总结\"得到的结果截然不同。两者都是提示词，但后者效果更好。",
   },
   {
     id: "fine-tuning",
@@ -162,7 +162,7 @@ export const AI_BASICS: AIBasic[] = [
     example:
       "The words 'king' and 'queen' have embeddings that are numerically very close. This is why AI can answer 'king minus man plus woman equals queen.'",
     example_zh:
-      ""king"和"queen"的 Embedding 在数值上非常接近，这就是为什么 AI 能回答"国王 - 男人 + 女人 = 女王"这类问题。",
+      "\"king\"和\"queen\"的 Embedding 在数值上非常接近，这就是为什么 AI 能回答\"国王 - 男人 + 女人 = 女王\"这类问题。",
   },
   {
     id: "rag",
@@ -196,7 +196,7 @@ export const AI_BASICS: AIBasic[] = [
     example:
       "Telling an AI 'research competitors and put the findings in a spreadsheet' requires an agent. It needs to search, read pages, extract data, and write a file — multiple steps.",
     example_zh:
-      "让 AI "调研竞争对手并整理成表格"需要智能体，因为它要搜索、读取页面、提取数据、写入文件——这是多步骤任务。",
+      "让 AI \"调研竞争对手并整理成表格\"需要智能体，因为它要搜索、读取页面、提取数据、写入文件——这是多步骤任务。",
   },
   {
     id: "benchmark",
@@ -209,11 +209,11 @@ export const AI_BASICS: AIBasic[] = [
     whyItMatters:
       "Benchmarks make it easier to compare models objectively. But they can also be gamed, so benchmark numbers alone are not always reliable.",
     whyItMatters_zh:
-      "基准测试让模型比较更客观，但也容易被"刷分"，所以单凭数字并不总是可靠的。",
+      "基准测试让模型比较更客观，但也容易被\"刷分\"，所以单凭数字并不总是可靠的。",
     example:
       "MMLU tests a model on 57 subjects like law, medicine, and history. When OpenAI says 'GPT-4 scores 86% on MMLU,' they mean it answered 86% of those questions correctly.",
     example_zh:
-      "MMLU 在法律、医学、历史等 57 个学科上测试模型。OpenAI 说"GPT-4 在 MMLU 上得分 86%"，意思是它答对了 86% 的题。",
+      "MMLU 在法律、医学、历史等 57 个学科上测试模型。OpenAI 说\"GPT-4 在 MMLU 上得分 86%\"，意思是它答对了 86% 的题。",
   },
   {
     id: "hallucination",
