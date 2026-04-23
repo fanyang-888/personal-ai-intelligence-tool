@@ -10,6 +10,10 @@ export const metadata: Metadata = {
     template: "%s | Sipply",
   },
   description: "AI-curated insights served fresh each morning — drink in what matters, set aside the rest.",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({
