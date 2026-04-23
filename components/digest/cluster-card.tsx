@@ -33,7 +33,7 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
     partitionChannelCountsForDisplay(channelCounts, 3);
 
   return (
-    <ResultCardFrame as="li" variant="digest">
+    <ResultCardFrame as="li" variant="digest" statusKey={cluster.storyStatus ?? undefined}>
       {/* Water-drop icon + tag row */}
       <div className="mb-3 flex items-center gap-2.5">
         <span
