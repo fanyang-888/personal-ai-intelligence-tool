@@ -94,6 +94,16 @@ export type Translations = {
     relatedCluster: string;
     emptyCatalogArticles: string;
     suggestThemesLead: string;
+    sortBestMatch: string;
+    sortNewest: string;
+    loadingMore: string;
+    loadMore: (remaining: number) => string;
+    resultCountStories: (n: number) => string;
+    resultCountArticles: (n: number) => string;
+    freshnessMinutes: (m: number) => string;
+    freshnessHours: (h: number) => string;
+    freshnessDays: (d: number) => string;
+    sourceCountLabel: (n: number) => string;
   };
   channels: ChannelLabels;
   cluster: {

@@ -86,7 +86,19 @@ function toDateKey(dateStr: string | null): string {
   return dateStr.slice(0, 10); // YYYY-MM-DD
 }
 
-function toClusterRow(c: { id: string; title: string; title_zh: string | null; summary: string | null; summary_zh: string | null; tags: string[]; theme: string; storyStatus: string; clusterScore: number | null; lastSeenAt: string | null; sourceCount: number }): ArchiveClusterRow {
+type ArchiveT = ReturnType<typeof useI18n>["t"];
+
+function toClusterRow(
+  c: { id: string; title: string; title_zh: string | null; summary: string | null; summary_zh: string | null; tags: string[]; theme: string; storyStatus: string; clusterScore: number | null; lastSeenAt: string | null; sourceCount: number },
+  t: ArchiveT,
+): ArchiveClusterRow {
+  let freshnessLabel: string | undefined;
+  if (c.lastSeenAt) {
+    const diff = (Date.now() - new Date(c.lastSeenAt).getTime()) / 60000;
+    if (diff < 60) freshnessLabel = t.archive.freshnessMinutes(Math.round(diff));
+    else if (diff < 1440) freshnessLabel = t.archive.freshnessHours(Math.round(diff / 60));
+    else freshnessLabel = t.archive.freshnessDays(Math.round(diff / 1440));
+  }
   return {
     kind: "cluster",
     id: c.id,
@@ -94,24 +106,20 @@ function toClusterRow(c: { id: string; title: string; title_zh: string | null; s
     theme: c.theme,
     themeLabel: c.theme,
     summarySnippet: (c.summary_zh || c.summary || "").slice(0, 160),
-    sourceLabels: c.sourceCount > 0 ? `${c.sourceCount} source${c.sourceCount > 1 ? "s" : ""}` : "—",
-    freshnessLabel: c.lastSeenAt
-      ? (() => {
-          const diff = (Date.now() - new Date(c.lastSeenAt).getTime()) / 60000;
-          if (diff < 60) return `Updated ${Math.round(diff)}m ago`;
-          if (diff < 1440) return `Updated ${Math.round(diff / 60)}h ago`;
-          return `Updated ${Math.round(diff / 1440)}d ago`;
-        })()
-      : undefined,
+    sourceLabels: t.archive.sourceCountLabel(c.sourceCount),
+    freshnessLabel,
     dateKey: toDateKey(c.lastSeenAt),
   };
 }
 
-function toArticleRow(a: { id: string; title: string; excerpt: string | null; sourceName: string | null; publishedAt: string | null; url: string }): ArchiveArticleRow {
+function toArticleRow(
+  a: { id: string; title: string; excerpt: string | null; sourceName: string | null; publishedAt: string | null; url: string },
+  lang: string,
+): ArchiveArticleRow {
   return {
     kind: "article",
     id: a.id,
-    sourceName: a.sourceName ?? "Unknown",
+    sourceName: a.sourceName ?? (lang === "zh" ? "未知来源" : "Unknown"),
     title: a.title,
     url: a.url,
     excerptSnippet: (a.excerpt ?? "").slice(0, 160),
@@ -119,7 +127,7 @@ function toArticleRow(a: { id: string; title: string; excerpt: string | null; so
     clusterTitle: "",
     themeLabel: "",
     publishedLabel: a.publishedAt
-      ? new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(new Date(a.publishedAt))
+      ? new Intl.DateTimeFormat(lang === "zh" ? "zh-CN" : "en-US", { dateStyle: "medium" }).format(new Date(a.publishedAt))
       : "",
     dateKey: toDateKey(a.publishedAt),
   };
@@ -206,12 +214,12 @@ export function ArchivePageClient() {
       });
 
       if (mode === "clusters") {
-        const newRows = result.clusters.map(toClusterRow);
+        const newRows = result.clusters.map(c => toClusterRow(c, t));
         setRows(prev => append ? [...prev, ...newRows] : newRows);
         const themes = [...new Set(result.clusters.map(c => c.theme).filter(Boolean))];
         if (themes.length) setAllThemes(themes);
       } else {
-        const newRows = result.articles.map(toArticleRow);
+        const newRows = result.articles.map(a => toArticleRow(a, lang));
         setRows(prev => append ? [...prev, ...newRows] : newRows);
       }
       setTotal(result.total);
@@ -288,7 +296,9 @@ export function ArchivePageClient() {
             <SectionTitle>{t.archive.results}</SectionTitle>
             {initialLoaded && !loading && total > 0 && (
               <span className="text-sm text-zinc-500">
-                {total.toLocaleString()} {resultMode === "clusters" ? "stories" : "articles"}
+                {resultMode === "clusters"
+                  ? t.archive.resultCountStories(total)
+                  : t.archive.resultCountArticles(total)}
               </span>
             )}
           </div>
@@ -302,7 +312,7 @@ export function ArchivePageClient() {
                     : "text-zinc-500 hover:text-foreground"
                 }`}
               >
-                Best match
+                {t.archive.sortBestMatch}
               </button>
               <button
                 onClick={() => setSortBy("date")}
@@ -312,7 +322,7 @@ export function ArchivePageClient() {
                     : "text-zinc-500 hover:text-foreground"
                 }`}
               >
-                Newest
+                {t.archive.sortNewest}
               </button>
             </div>
           )}
@@ -340,7 +350,7 @@ export function ArchivePageClient() {
                     disabled={loadingMore}
                     className="rounded-md border border-zinc-300 px-5 py-2 text-sm font-medium text-zinc-700 transition-colors hover:border-zinc-400 hover:text-foreground disabled:opacity-50"
                   >
-                    {loadingMore ? "Loading…" : `Load more (${total - rows.length} remaining)`}
+                    {loadingMore ? t.archive.loadingMore : t.archive.loadMore(total - rows.length)}
                   </button>
                 </div>
               )}
