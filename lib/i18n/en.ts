@@ -3,8 +3,10 @@ import type { Translations } from "./types";
 export const en: Translations = {
   nav: {
     dailyDigest: "Daily Digest",
+    dailyDigestShort: "Digest",
     archive: "Archive",
     draftOfDay: "Draft of the Day",
+    draftOfDayShort: "Draft",
     searchPlaceholder: "Search archive…",
     searchAria: "Site search",
     mainAria: "Main",

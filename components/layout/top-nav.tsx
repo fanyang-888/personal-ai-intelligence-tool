@@ -27,13 +27,14 @@ export function TopNav() {
         </Link>
 
         {/* Nav links */}
-        <nav className="flex items-center gap-7" aria-label={t.nav.mainAria}>
+        <nav className="flex items-center gap-4 sm:gap-7" aria-label={t.nav.mainAria}>
           <Link
             href="/"
             className="text-[12px] tracking-[0.05em] transition-colors duration-200"
             style={{ color: onDigest ? "#5dc8f5" : "#6aabcc" }}
           >
-            {t.nav.dailyDigest}
+            <span className="sm:hidden">{t.nav.dailyDigestShort}</span>
+            <span className="hidden sm:inline">{t.nav.dailyDigest}</span>
           </Link>
           <Link
             href="/archive"
@@ -47,7 +48,8 @@ export function TopNav() {
             className="text-[12px] tracking-[0.05em] transition-colors duration-200"
             style={{ color: onDraft ? "#5dc8f5" : "#6aabcc" }}
           >
-            {t.nav.draftOfDay}
+            <span className="sm:hidden">{t.nav.draftOfDayShort}</span>
+            <span className="hidden sm:inline">{t.nav.draftOfDay}</span>
           </Link>
         </nav>
 

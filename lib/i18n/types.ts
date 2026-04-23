@@ -7,8 +7,10 @@ export type ChannelLabels = Record<SourceChannel, string>;
 export type Translations = {
   nav: {
     dailyDigest: string;
+    dailyDigestShort: string;
     archive: string;
     draftOfDay: string;
+    draftOfDayShort: string;
     searchPlaceholder: string;
     searchAria: string;
     mainAria: string;

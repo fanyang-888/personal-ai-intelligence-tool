@@ -3,8 +3,10 @@ import type { Translations } from "./types";
 export const zh: Translations = {
   nav: {
     dailyDigest: "每日摘要",
+    dailyDigestShort: "今日",
     archive: "资料库",
     draftOfDay: "今日草稿",
+    draftOfDayShort: "草稿",
     searchPlaceholder: "搜索资料库…",
     searchAria: "全站搜索",
     mainAria: "主导航",
