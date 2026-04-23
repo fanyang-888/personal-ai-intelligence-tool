@@ -27,11 +27,64 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { NoResultsState } from "@/components/shared/no-results-state";
 import { LoadingState } from "@/components/shared/loading-state";
 
+function DateGroupedList({
+  rows,
+  resultMode,
+  keyword,
+  lang,
+}: {
+  rows: ArchiveResultRow[];
+  resultMode: ArchiveResultMode;
+  keyword: string;
+  lang: string;
+}) {
+  // Build groups: [{dateKey, label, items}]
+  const groups: { dateKey: string; label: string; items: ArchiveResultRow[] }[] = [];
+  for (const row of rows) {
+    const key = row.dateKey;
+    const last = groups[groups.length - 1];
+    if (last && last.dateKey === key) {
+      last.items.push(row);
+    } else {
+      groups.push({ dateKey: key, label: formatDateGroupLabel(key, lang), items: [row] });
+    }
+  }
+
+  return (
+    <div className={resultMode === "clusters" ? "space-y-4" : "space-y-2.5"}>
+      {groups.map((group, gi) => (
+        <div key={group.dateKey}>
+          {/* Date divider */}
+          <div className={`flex items-center gap-3 ${gi === 0 ? "mb-3" : "mt-6 mb-3"}`}>
+            <span
+              className="text-[11px] font-medium uppercase tracking-[0.1em] shrink-0"
+              style={{ color: "var(--sp-accent-mid)" }}
+            >
+              {group.label}
+            </span>
+            <div className="h-px flex-1" style={{ background: "var(--sp-border)" }} />
+          </div>
+          <ul className={resultMode === "clusters" ? "space-y-4" : "space-y-2.5"}>
+            {group.items.map((row) => (
+              <ArchiveResultCard key={row.id} row={row} highlightQuery={keyword} />
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 const KEYWORD_URL_DEBOUNCE_MS = 350;
 const SEARCH_DEBOUNCE_MS = 400;
 const PAGE_SIZE = 20;
 
 type SortBy = "score" | "date";
+
+function toDateKey(dateStr: string | null): string {
+  if (!dateStr) return "unknown";
+  return dateStr.slice(0, 10); // YYYY-MM-DD
+}
 
 function toClusterRow(c: { id: string; title: string; title_zh: string | null; summary: string | null; summary_zh: string | null; tags: string[]; theme: string; storyStatus: string; clusterScore: number | null; lastSeenAt: string | null; sourceCount: number }): ArchiveClusterRow {
   return {
@@ -50,6 +103,7 @@ function toClusterRow(c: { id: string; title: string; title_zh: string | null; s
           return `Updated ${Math.round(diff / 1440)}d ago`;
         })()
       : undefined,
+    dateKey: toDateKey(c.lastSeenAt),
   };
 }
 
@@ -67,11 +121,27 @@ function toArticleRow(a: { id: string; title: string; excerpt: string | null; so
     publishedLabel: a.publishedAt
       ? new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(new Date(a.publishedAt))
       : "",
+    dateKey: toDateKey(a.publishedAt),
   };
 }
 
+function formatDateGroupLabel(dateKey: string, lang: string): string {
+  if (dateKey === "unknown") return lang === "zh" ? "未知日期" : "Unknown date";
+  const d = new Date(dateKey + "T12:00:00Z");
+  if (lang === "zh") {
+    const month = d.getUTCMonth() + 1;
+    const day = d.getUTCDate();
+    const weekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+    const wd = weekdays[d.getUTCDay()];
+    return `${month}月${day}日 · ${wd}`;
+  }
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long", day: "numeric", weekday: "short", timeZone: "UTC",
+  }).format(d);
+}
+
 export function ArchivePageClient() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -261,11 +331,7 @@ export function ArchivePageClient() {
             </NoResultsState>
           ) : (
             <>
-              <ul className={resultMode === "clusters" ? "space-y-4" : "space-y-2.5"}>
-                {rows.map((row) => (
-                  <ArchiveResultCard key={row.id} row={row} highlightQuery={keyword} />
-                ))}
-              </ul>
+              <DateGroupedList rows={rows} resultMode={resultMode} keyword={keyword} lang={lang} />
 
               {hasMore && (
                 <div className="mt-6 flex justify-center">

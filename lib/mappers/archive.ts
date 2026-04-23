@@ -9,6 +9,7 @@ export type ArchiveClusterRow = {
   summarySnippet: string;
   sourceLabels: string;
   freshnessLabel?: string;
+  dateKey: string; // YYYY-MM-DD for grouping
 };
 
 export type ArchiveArticleRow = {
@@ -22,6 +23,7 @@ export type ArchiveArticleRow = {
   clusterTitle: string;
   themeLabel: string;
   publishedLabel: string;
+  dateKey: string; // YYYY-MM-DD for grouping
 };
 
 export type ArchiveResultRow = ArchiveClusterRow | ArchiveArticleRow;
