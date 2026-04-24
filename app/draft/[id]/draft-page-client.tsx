@@ -61,6 +61,7 @@ function RoleTabs({
 
 export function DraftPageClient() {
   const { id } = useParams<{ id: string }>();
+  const { t } = useI18n();
   const [role, setRole] = useState<Role>(null);
 
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -80,7 +81,7 @@ export function DraftPageClient() {
       setClusterTags([]);
       setClusterSummary("");
     } catch (e) {
-      setError((e as Error).message ?? "Draft not found");
+      setError((e as Error).message ?? t.notFound.draftTitle);
     } finally {
       setLoading(false);
     }
@@ -110,8 +111,8 @@ export function DraftPageClient() {
   if (error || !draft) {
     return (
       <ErrorState
-        title="Draft not found"
-        message={error ?? "This draft does not exist or could not be loaded."}
+        title={t.notFound.draftTitle}
+        message={error ?? t.notFound.draftMessage}
         onRetry={() => id && load(id, role)}
       />
     );
