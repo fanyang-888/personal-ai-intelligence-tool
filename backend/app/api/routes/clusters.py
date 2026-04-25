@@ -76,4 +76,18 @@ def get_cluster(cluster_id: str, db: Session = Depends(get_db)) -> ClusterRespon
 
     cluster = _load_cluster(db, cid)
     draft_id = str(cluster.drafts[0].id) if cluster.drafts else None
-    return cluster_to_response(cluster, draft_id=draft_id)
+
+    # Find up to 4 related clusters with the same type/theme, ranked by score
+    related = db.execute(
+        select(Cluster.id)
+        .where(
+            Cluster.type == cluster.type,
+            Cluster.id != cluster.id,
+            Cluster.representative_title_zh.isnot(None),
+        )
+        .order_by(Cluster.cluster_score.desc().nullslast(), Cluster.last_seen_at.desc().nullslast())
+        .limit(4)
+    ).scalars().all()
+    related_ids = [str(r) for r in related]
+
+    return cluster_to_response(cluster, draft_id=draft_id, related_cluster_ids=related_ids)

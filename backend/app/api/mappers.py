@@ -23,6 +23,7 @@ from app.models.draft import Draft
 def cluster_to_response(
     cluster: Cluster,
     draft_id: str | None = None,
+    related_cluster_ids: list[str] | None = None,
 ) -> ClusterResponse:
     tags: list[str] = cluster.tags or []
     themes: list[str] = []
@@ -84,7 +85,7 @@ def cluster_to_response(
         audience=audience,
         articleIds=article_ids,
         articles=articles_in_cluster,
-        relatedClusterIds=[],
+        relatedClusterIds=related_cluster_ids or [],
         draftId=draft_id,
         articleCount=cluster.article_count or 0,
         sourceCount=cluster.source_count or 0,

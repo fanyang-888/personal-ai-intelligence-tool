@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { DraftPageView } from "@/components/draft/draft-page-view";
 import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
-import { fetchDraft, regenerateDraft } from "@/lib/api";
+import { fetchDraft } from "@/lib/api";
 import { apiDraftToDraft } from "@/lib/api/mappers";
 import { useI18n } from "@/lib/i18n";
 import type { Draft } from "@/types/draft";
@@ -66,7 +66,7 @@ export function DraftPageClient() {
 
   const [draft, setDraft] = useState<Draft | null>(null);
   const [clusterTitle, setClusterTitle] = useState<LocalizedString>({ en: "", zh: "" });
-  const [clusterSummary, setClusterSummary] = useState<string>("");
+  const [clusterSummary, setClusterSummary] = useState<LocalizedString>({ en: "", zh: "" });
   const [clusterTags, setClusterTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -78,8 +78,8 @@ export function DraftPageClient() {
       const data = await fetchDraft(draftId, currentRole ?? undefined);
       setDraft(apiDraftToDraft(data));
       setClusterTitle({ en: data.title.en, zh: data.title.zh ?? "" });
+      setClusterSummary({ en: "", zh: "" });
       setClusterTags([]);
-      setClusterSummary("");
     } catch (e) {
       setError((e as Error).message ?? t.notFound.draftTitle);
     } finally {
@@ -92,19 +92,6 @@ export function DraftPageClient() {
     load(id, role);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, role]);
-
-  async function handleRegenerate() {
-    if (!id) return;
-    try {
-      setLoading(true);
-      const data = await regenerateDraft(id);
-      setDraft(apiDraftToDraft(data));
-    } catch (e) {
-      setError((e as Error).message ?? "Regeneration failed");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   if (loading) return <LoadingState layout="detail" />;
 

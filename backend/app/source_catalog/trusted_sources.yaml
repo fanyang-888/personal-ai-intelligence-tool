@@ -155,6 +155,66 @@ sources:
     user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
     import_limit: 20
 
+  - name: The Verge AI
+    slug: theverge-ai
+    type: tech_press
+    base_url: https://www.theverge.com/
+    feed_url: https://www.theverge.com/ai-artificial-intelligence/rss/index.xml
+    index_url: https://www.theverge.com/ai-artificial-intelligence
+    adapter_key: generic_rss
+    ingestion_method: rss
+    is_active: true
+    fetch_frequency_minutes: 30
+    source_priority: 20
+    default_language: en
+    user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+    import_limit: 40
+
+  - name: Ars Technica AI
+    slug: arstechnica-ai
+    type: tech_press
+    base_url: https://arstechnica.com/
+    feed_url: https://feeds.arstechnica.com/arstechnica/technology-lab
+    index_url: https://arstechnica.com/ai/
+    adapter_key: generic_rss
+    ingestion_method: rss
+    is_active: true
+    fetch_frequency_minutes: 60
+    source_priority: 20
+    default_language: en
+    user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+    import_limit: 30
+
+  - name: AI News
+    slug: ai-news
+    type: tech_press
+    base_url: https://www.artificialintelligence-news.com/
+    feed_url: https://www.artificialintelligence-news.com/feed/
+    index_url: https://www.artificialintelligence-news.com/
+    adapter_key: generic_rss
+    ingestion_method: rss
+    is_active: true
+    fetch_frequency_minutes: 60
+    source_priority: 15
+    default_language: en
+    user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+    import_limit: 25
+
+  - name: The Register AI
+    slug: theregister-ai
+    type: tech_press
+    base_url: https://www.theregister.com/
+    feed_url: https://www.theregister.com/software/ai_ml/headlines.atom
+    index_url: https://www.theregister.com/software/ai_ml/
+    adapter_key: generic_rss
+    ingestion_method: rss
+    is_active: true
+    fetch_frequency_minutes: 60
+    source_priority: 15
+    default_language: en
+    user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+    import_limit: 25
+
   - name: Meta AI Blog
     slug: meta-ai-blog
     type: company_news

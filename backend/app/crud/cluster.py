@@ -66,17 +66,42 @@ def delete_cluster(db: Session, cluster_id: uuid.UUID) -> None:
         db.delete(cluster)
 
 
-def get_top_clusters(db: Session, limit: int = 10, window_days: int = 14) -> list[Cluster]:
-    """Return translated top clusters ordered by cluster_score desc, most recent first.
+def get_top_clusters(
+    db: Session,
+    limit: int = 10,
+    window_days: int = 14,
+    decay_rate: float = 0.15,
+) -> list[Cluster]:
+    """Return translated top clusters ranked by recency-weighted score.
+
+    Ranking formula: cluster_score × exp(-decay_rate × age_in_days)
+
+    decay_rate = 0.15 means:
+      - today (0 d):  100 % of score
+      - 3 days ago:    64 %
+      - 7 days ago:    35 %
+      - 14 days ago:   12 %
+
+    This ensures fresh clusters surface above stale high-scoring ones while
+    still respecting quality signal. Tune decay_rate to taste (higher = more
+    aggressive recency preference).
 
     Only clusters with a Chinese title are returned so untranslated content
-    never surfaces on the frontend.  Results are restricted to clusters whose
-    ``last_seen_at`` falls within ``window_days`` (default 14) to prevent old
-    high-scoring clusters from permanently dominating the digest.
+    never surfaces on the frontend.
     """
     from datetime import timezone, timedelta
-    from sqlalchemy import select
-    cutoff = datetime.now(timezone.utc) - timedelta(days=window_days)
+    from sqlalchemy import select, func, text
+
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(days=window_days)
+
+    # Age in days as a float, clamped to ≥ 0
+    age_days = func.greatest(
+        func.extract("epoch", text(f"'{now.isoformat()}'::timestamptz") - Cluster.last_seen_at) / 86400.0,
+        0.0,
+    )
+    recency_score = Cluster.cluster_score * func.exp(-decay_rate * age_days)
+
     return list(
         db.execute(
             select(Cluster)
@@ -84,7 +109,7 @@ def get_top_clusters(db: Session, limit: int = 10, window_days: int = 14) -> lis
                 Cluster.representative_title_zh.isnot(None),
                 Cluster.last_seen_at >= cutoff,
             )
-            .order_by(Cluster.cluster_score.desc().nullslast(), Cluster.last_seen_at.desc().nullslast())
+            .order_by(recency_score.desc().nullslast(), Cluster.last_seen_at.desc().nullslast())
             .limit(limit)
         ).scalars().all()
     )
