@@ -52,7 +52,10 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
-        "https://*.vercel.app",
+        # Production Vercel deployment (explicit match — regex alone can miss error responses)
+        "https://personal-ai-intelligence-tool.vercel.app",
+        # Vercel preview deployments
+        "https://personal-ai-intelligence-tool-git-claude-sleepy-booth-fanyang-888s-projects.vercel.app",
     ],
     allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
