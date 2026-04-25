@@ -3,7 +3,7 @@
  * Components import from "@/lib/api" and never call fetch directly.
  */
 
-import { apiFetch, apiPost } from "./client";
+import { apiFetch } from "./client";
 import type {
   ApiCluster,
   ApiDigest,
@@ -73,14 +73,6 @@ export async function fetchTodayDraft(): Promise<ApiDraft | null> {
 export async function fetchDraft(id: string, role?: string): Promise<ApiDraft> {
   const qs = role ? `?role=${encodeURIComponent(role)}` : "";
   return apiFetch<ApiDraft>(`/api/drafts/${id}${qs}`);
-}
-
-export async function generateDraft(): Promise<ApiDraft> {
-  return apiPost<ApiDraft>("/api/drafts/generate");
-}
-
-export async function regenerateDraft(id: string): Promise<ApiDraft> {
-  return apiPost<ApiDraft>(`/api/drafts/${id}/regenerate`);
 }
 
 // Re-export types for convenience
