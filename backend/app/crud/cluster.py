@@ -90,14 +90,13 @@ def get_top_clusters(
     never surfaces on the frontend.
     """
     from datetime import timezone, timedelta
-    from sqlalchemy import select, func, text
+    from sqlalchemy import select, func
 
-    now = datetime.now(timezone.utc)
-    cutoff = now - timedelta(days=window_days)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=window_days)
 
-    # Age in days as a float, clamped to ≥ 0
+    # Age in days: NOW() - last_seen_at, clamped to ≥ 0
     age_days = func.greatest(
-        func.extract("epoch", text(f"'{now.isoformat()}'::timestamptz") - Cluster.last_seen_at) / 86400.0,
+        func.extract("epoch", func.now() - Cluster.last_seen_at) / 86400.0,
         0.0,
     )
     recency_score = Cluster.cluster_score * func.exp(-decay_rate * age_days)
