@@ -90,17 +90,17 @@ def get_top_clusters(
     never surfaces on the frontend.
     """
     from datetime import timezone, timedelta
-    from sqlalchemy import select, func, text
+    from sqlalchemy import select, text
 
-    now = datetime.now(timezone.utc)
-    cutoff = now - timedelta(days=window_days)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=window_days)
 
-    # Age in days as a float, clamped to ≥ 0
-    age_days = func.greatest(
-        func.extract("epoch", text(f"'{now.isoformat()}'::timestamptz") - Cluster.last_seen_at) / 86400.0,
-        0.0,
-    )
-    recency_score = Cluster.cluster_score * func.exp(-decay_rate * age_days)
+    # Recency-weighted score: cluster_score × exp(-decay_rate × age_days)
+    # Raw SQL avoids SQLAlchemy expression compilation edge-cases with EXTRACT/EXP.
+    order_expr = text(
+        "cluster_score * EXP(:dr * GREATEST("
+        "  EXTRACT(EPOCH FROM NOW() - last_seen_at) / 86400.0, 0.0"
+        ")) DESC NULLS LAST, last_seen_at DESC NULLS LAST"
+    ).bindparams(dr=-decay_rate)
 
     return list(
         db.execute(
@@ -109,7 +109,7 @@ def get_top_clusters(
                 Cluster.representative_title_zh.isnot(None),
                 Cluster.last_seen_at >= cutoff,
             )
-            .order_by(recency_score.desc().nullslast(), Cluster.last_seen_at.desc().nullslast())
+            .order_by(order_expr)
             .limit(limit)
         ).scalars().all()
     )
