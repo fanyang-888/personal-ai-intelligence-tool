@@ -88,7 +88,27 @@ export function FeaturedStoryCard({
         {pickLocalized(cluster.whyItMatters, lang)}
       </p>
 
-      <ActionRow className="mt-6">
+      {/* Mobile: full-width buttons */}
+      <div className="mt-6 flex gap-3 sm:hidden">
+        <Link
+          href={`/cluster/${cluster.id}`}
+          className="flex-1 rounded-xl py-2.5 text-center text-[13px] font-medium"
+          style={{ background: "var(--sp-navy)", color: "#5dc8f5" }}
+        >
+          {t.digest.viewStory}
+        </Link>
+        {cluster.draftId ? (
+          <Link
+            href={`/draft/${cluster.draftId}`}
+            className="flex-1 rounded-xl py-2.5 text-center text-[13px] font-medium"
+            style={{ background: "#e0f2fe", color: "#0369a1", border: "1px solid #bae6fd" }}
+          >
+            {t.digest.openDraft}
+          </Link>
+        ) : null}
+      </div>
+      {/* Desktop: inline links */}
+      <ActionRow className="mt-6 hidden sm:flex">
         <Link href={`/cluster/${cluster.id}`} className={uiTextLinkPrimary}>
           {t.digest.viewStory}
         </Link>

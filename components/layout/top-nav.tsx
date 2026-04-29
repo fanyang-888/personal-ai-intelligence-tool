@@ -32,8 +32,8 @@ export function TopNav() {
           />
         </Link>
 
-        {/* Nav links */}
-        <nav className="flex items-center gap-7" aria-label={t.nav.mainAria}>
+        {/* Nav links — desktop only */}
+        <nav className="hidden sm:flex items-center gap-7" aria-label={t.nav.mainAria}>
           <Link
             href="/"
             className="text-[12px] tracking-[0.05em] transition-colors duration-200"
@@ -59,7 +59,8 @@ export function TopNav() {
 
         {/* Spacer + Search + Lang */}
         <div className="flex flex-1 items-center justify-end gap-3">
-          <div className="w-44 sm:w-56">
+          {/* Search bar — desktop only */}
+          <div className="hidden sm:block w-44 sm:w-56">
             <Suspense
               fallback={
                 <div
@@ -72,6 +73,17 @@ export function TopNav() {
               <TopNavSearchDark />
             </Suspense>
           </div>
+          {/* Search icon — mobile only */}
+          <Link
+            href="/archive"
+            className="sm:hidden flex h-8 w-8 items-center justify-center rounded-lg"
+            style={{ background: "#163f5c", border: "1px solid #1a5280" }}
+            aria-label="Search"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="#5dc8f5" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" width={15} height={15}>
+              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+          </Link>
           <LanguageToggleDark />
         </div>
       </div>
