@@ -5,14 +5,17 @@ import { useParams } from "next/navigation";
 import { ClusterPageView } from "@/components/cluster/cluster-page-view";
 import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
+import { useI18n } from "@/lib/i18n";
 import { fetchCluster } from "@/lib/api";
 import { apiClusterToCluster } from "@/lib/api/mappers";
 import type { Cluster } from "@/types/cluster";
 
 export function ClusterPageClient() {
   const { id } = useParams<{ id: string }>();
+  const { t } = useI18n();
 
   const [cluster, setCluster] = useState<Cluster | null>(null);
+  const [related, setRelated] = useState<Cluster[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,7 +28,21 @@ export function ClusterPageClient() {
         setLoading(true);
         setError(null);
         const data = await fetchCluster(id);
-        if (!cancelled) setCluster(apiClusterToCluster(data));
+        if (cancelled) return;
+        const mapped = apiClusterToCluster(data);
+        setCluster(mapped);
+
+        // Fetch related clusters in parallel (fire-and-forget; failures are silent)
+        if (mapped.relatedClusterIds?.length) {
+          Promise.all(
+            mapped.relatedClusterIds.map((rid) =>
+              fetchCluster(rid).then(apiClusterToCluster).catch(() => null)
+            )
+          ).then((results) => {
+            if (!cancelled)
+              setRelated(results.filter((r): r is Cluster => r !== null));
+          });
+        }
       } catch (e) {
         if (!cancelled)
           setError((e as Error).message ?? "Cluster not found");
@@ -43,12 +60,12 @@ export function ClusterPageClient() {
   if (error || !cluster) {
     return (
       <ErrorState
-        title="Story not found"
-        message={error ?? "This cluster does not exist or could not be loaded."}
+        title={t.notFound.clusterTitle}
+        message={error ?? t.notFound.clusterMessage}
         onRetry={() => window.location.reload()}
       />
     );
   }
 
-  return <ClusterPageView cluster={cluster} articles={cluster.articles ?? []} related={[]} />;
+  return <ClusterPageView cluster={cluster} articles={cluster.articles ?? []} related={related} />;
 }

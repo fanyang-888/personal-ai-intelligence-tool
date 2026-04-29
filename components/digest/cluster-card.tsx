@@ -5,7 +5,6 @@ import { StoryBadge } from "@/components/digest/story-badge";
 import { IngestChannelRow } from "@/components/digest/ingest-channel-row";
 import { MetaRow } from "@/components/shared/meta-row";
 import { ResultCardFrame } from "@/components/shared/result-card-frame";
-import { ScoreBar } from "@/components/shared/score-bar";
 import { useI18n } from "@/lib/i18n";
 import { pickLocalized } from "@/lib/utils/localized-string";
 import { uiMetaText, uiTextLinkPrimary } from "@/lib/ui/classes";
@@ -34,7 +33,7 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
     partitionChannelCountsForDisplay(channelCounts, 3);
 
   return (
-    <ResultCardFrame as="li" variant="digest">
+    <ResultCardFrame as="li" variant="digest" statusKey={cluster.storyStatus ?? undefined}>
       {/* Water-drop icon + tag row */}
       <div className="mb-3 flex items-center gap-2.5">
         <span
@@ -120,7 +119,6 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
         </Link>
       </div>
 
-      <ScoreBar score={cluster.clusterScore} />
     </ResultCardFrame>
   );
 }

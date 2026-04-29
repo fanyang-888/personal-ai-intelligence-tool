@@ -3,8 +3,10 @@ import type { Translations } from "./types";
 export const en: Translations = {
   nav: {
     dailyDigest: "Daily Digest",
+    dailyDigestShort: "Digest",
     archive: "Archive",
     draftOfDay: "Draft of the Day",
+    draftOfDayShort: "Draft",
     searchPlaceholder: "Search archive…",
     searchAria: "Site search",
     mainAria: "Main",
@@ -90,6 +92,16 @@ export const en: Translations = {
     publishedLabel: "Published",
     relatedCluster: "Related cluster",
     suggestThemesLead: "Try one of these themes from your catalog:",
+    sortBestMatch: "Best match",
+    sortNewest: "Newest",
+    loadingMore: "Loading…",
+    loadMore: (remaining) => `Load more (${remaining} remaining)`,
+    resultCountStories: (n) => `${n.toLocaleString()} ${n === 1 ? "story" : "stories"}`,
+    resultCountArticles: (n) => `${n.toLocaleString()} ${n === 1 ? "article" : "articles"}`,
+    freshnessMinutes: (m) => `Updated ${m}m ago`,
+    freshnessHours: (h) => `Updated ${h}h ago`,
+    freshnessDays: (d) => `Updated ${d}d ago`,
+    sourceCountLabel: (n) => n > 0 ? `${n} ${n === 1 ? "source" : "sources"}` : "—",
   },
   channels: {
     email: "Email",

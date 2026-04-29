@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useI18n } from "@/lib/i18n";
@@ -19,27 +20,21 @@ export function TopNav() {
       <div className="mx-auto flex max-w-5xl items-center gap-6 px-6 py-0 h-14">
 
         {/* Brand */}
-        <Link href="/" className="shrink-0 flex items-center gap-0 text-[22px] tracking-tight" style={{ fontFamily: "'Fraunces', serif", fontWeight: 300, color: "#a8d8f0" }}>
+        <Link href="/" className="shrink-0 flex items-center gap-2 text-[22px] tracking-tight" style={{ fontFamily: "'Fraunces', serif", fontWeight: 300, color: "#a8d8f0" }}>
+          <Image src="/logo.png" alt="Sipply" width={28} height={28} className="shrink-0" />
           Sip
           <span style={{ fontWeight: 400, color: "#5dc8f5" }}>ply</span>
-          <span
-            className="inline-block w-[7px] h-[7px] rounded-full ml-[2px] relative"
-            style={{
-              background: "#5dc8f5",
-              top: "-1px",
-              animation: "dropfall 2.4s ease-in-out infinite",
-            }}
-          />
         </Link>
 
-        {/* Nav links — desktop only */}
+        {/* Nav links — desktop only (mobile uses bottom tab bar) */}
         <nav className="hidden sm:flex items-center gap-7" aria-label={t.nav.mainAria}>
           <Link
             href="/"
             className="text-[12px] tracking-[0.05em] transition-colors duration-200"
             style={{ color: onDigest ? "#5dc8f5" : "#6aabcc" }}
           >
-            {t.nav.dailyDigest}
+            <span className="sm:hidden">{t.nav.dailyDigestShort}</span>
+            <span className="hidden sm:inline">{t.nav.dailyDigest}</span>
           </Link>
           <Link
             href="/archive"
@@ -53,7 +48,8 @@ export function TopNav() {
             className="text-[12px] tracking-[0.05em] transition-colors duration-200"
             style={{ color: onDraft ? "#5dc8f5" : "#6aabcc" }}
           >
-            {t.nav.draftOfDay}
+            <span className="sm:hidden">{t.nav.draftOfDayShort}</span>
+            <span className="hidden sm:inline">{t.nav.draftOfDay}</span>
           </Link>
         </nav>
 

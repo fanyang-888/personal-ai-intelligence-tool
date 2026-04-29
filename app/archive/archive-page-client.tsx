@@ -27,13 +27,78 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { NoResultsState } from "@/components/shared/no-results-state";
 import { LoadingState } from "@/components/shared/loading-state";
 
+function DateGroupedList({
+  rows,
+  resultMode,
+  keyword,
+  lang,
+}: {
+  rows: ArchiveResultRow[];
+  resultMode: ArchiveResultMode;
+  keyword: string;
+  lang: string;
+}) {
+  // Build groups: [{dateKey, label, items}]
+  const groups: { dateKey: string; label: string; items: ArchiveResultRow[] }[] = [];
+  for (const row of rows) {
+    const key = row.dateKey;
+    const last = groups[groups.length - 1];
+    if (last && last.dateKey === key) {
+      last.items.push(row);
+    } else {
+      groups.push({ dateKey: key, label: formatDateGroupLabel(key, lang), items: [row] });
+    }
+  }
+
+  return (
+    <div className={resultMode === "clusters" ? "space-y-4" : "space-y-2.5"}>
+      {groups.map((group, gi) => (
+        <div key={group.dateKey}>
+          {/* Date divider */}
+          <div className={`flex items-center gap-3 ${gi === 0 ? "mb-3" : "mt-6 mb-3"}`}>
+            <span
+              className="text-[11px] font-medium uppercase tracking-[0.1em] shrink-0"
+              style={{ color: "var(--sp-accent-mid)" }}
+            >
+              {group.label}
+            </span>
+            <div className="h-px flex-1" style={{ background: "var(--sp-border)" }} />
+          </div>
+          <ul className={resultMode === "clusters" ? "space-y-4" : "space-y-2.5"}>
+            {group.items.map((row) => (
+              <ArchiveResultCard key={row.id} row={row} highlightQuery={keyword} />
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 const KEYWORD_URL_DEBOUNCE_MS = 350;
 const SEARCH_DEBOUNCE_MS = 400;
 const PAGE_SIZE = 20;
 
 type SortBy = "score" | "date";
 
-function toClusterRow(c: { id: string; title: string; title_zh: string | null; summary: string | null; summary_zh: string | null; tags: string[]; theme: string; storyStatus: string; clusterScore: number | null; lastSeenAt: string | null; sourceCount: number }): ArchiveClusterRow {
+function toDateKey(dateStr: string | null): string {
+  if (!dateStr) return "unknown";
+  return dateStr.slice(0, 10); // YYYY-MM-DD
+}
+
+type ArchiveT = ReturnType<typeof useI18n>["t"];
+
+function toClusterRow(
+  c: { id: string; title: string; title_zh: string | null; summary: string | null; summary_zh: string | null; tags: string[]; theme: string; storyStatus: string; clusterScore: number | null; lastSeenAt: string | null; sourceCount: number },
+  t: ArchiveT,
+): ArchiveClusterRow {
+  let freshnessLabel: string | undefined;
+  if (c.lastSeenAt) {
+    const diff = (Date.now() - new Date(c.lastSeenAt).getTime()) / 60000;
+    if (diff < 60) freshnessLabel = t.archive.freshnessMinutes(Math.round(diff));
+    else if (diff < 1440) freshnessLabel = t.archive.freshnessHours(Math.round(diff / 60));
+    else freshnessLabel = t.archive.freshnessDays(Math.round(diff / 1440));
+  }
   return {
     kind: "cluster",
     id: c.id,
@@ -41,23 +106,20 @@ function toClusterRow(c: { id: string; title: string; title_zh: string | null; s
     theme: c.theme,
     themeLabel: c.theme,
     summarySnippet: (c.summary_zh || c.summary || "").slice(0, 160),
-    sourceLabels: c.sourceCount > 0 ? `${c.sourceCount} source${c.sourceCount > 1 ? "s" : ""}` : "—",
-    freshnessLabel: c.lastSeenAt
-      ? (() => {
-          const diff = (Date.now() - new Date(c.lastSeenAt).getTime()) / 60000;
-          if (diff < 60) return `Updated ${Math.round(diff)}m ago`;
-          if (diff < 1440) return `Updated ${Math.round(diff / 60)}h ago`;
-          return `Updated ${Math.round(diff / 1440)}d ago`;
-        })()
-      : undefined,
+    sourceLabels: t.archive.sourceCountLabel(c.sourceCount),
+    freshnessLabel,
+    dateKey: toDateKey(c.lastSeenAt),
   };
 }
 
-function toArticleRow(a: { id: string; title: string; excerpt: string | null; sourceName: string | null; publishedAt: string | null; url: string }): ArchiveArticleRow {
+function toArticleRow(
+  a: { id: string; title: string; excerpt: string | null; sourceName: string | null; publishedAt: string | null; url: string },
+  lang: string,
+): ArchiveArticleRow {
   return {
     kind: "article",
     id: a.id,
-    sourceName: a.sourceName ?? "Unknown",
+    sourceName: a.sourceName ?? (lang === "zh" ? "未知来源" : "Unknown"),
     title: a.title,
     url: a.url,
     excerptSnippet: (a.excerpt ?? "").slice(0, 160),
@@ -65,13 +127,29 @@ function toArticleRow(a: { id: string; title: string; excerpt: string | null; so
     clusterTitle: "",
     themeLabel: "",
     publishedLabel: a.publishedAt
-      ? new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(new Date(a.publishedAt))
+      ? new Intl.DateTimeFormat(lang === "zh" ? "zh-CN" : "en-US", { dateStyle: "medium" }).format(new Date(a.publishedAt))
       : "",
+    dateKey: toDateKey(a.publishedAt),
   };
 }
 
+function formatDateGroupLabel(dateKey: string, lang: string): string {
+  if (dateKey === "unknown") return lang === "zh" ? "未知日期" : "Unknown date";
+  const d = new Date(dateKey + "T12:00:00Z");
+  if (lang === "zh") {
+    const month = d.getUTCMonth() + 1;
+    const day = d.getUTCDate();
+    const weekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+    const wd = weekdays[d.getUTCDay()];
+    return `${month}月${day}日 · ${wd}`;
+  }
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long", day: "numeric", weekday: "short", timeZone: "UTC",
+  }).format(d);
+}
+
 export function ArchivePageClient() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -136,12 +214,12 @@ export function ArchivePageClient() {
       });
 
       if (mode === "clusters") {
-        const newRows = result.clusters.map(toClusterRow);
+        const newRows = result.clusters.map(c => toClusterRow(c, t));
         setRows(prev => append ? [...prev, ...newRows] : newRows);
         const themes = [...new Set(result.clusters.map(c => c.theme).filter(Boolean))];
         if (themes.length) setAllThemes(themes);
       } else {
-        const newRows = result.articles.map(toArticleRow);
+        const newRows = result.articles.map(a => toArticleRow(a, lang));
         setRows(prev => append ? [...prev, ...newRows] : newRows);
       }
       setTotal(result.total);
@@ -218,7 +296,9 @@ export function ArchivePageClient() {
             <SectionTitle>{t.archive.results}</SectionTitle>
             {initialLoaded && !loading && total > 0 && (
               <span className="text-sm text-zinc-500">
-                {total.toLocaleString()} {resultMode === "clusters" ? "stories" : "articles"}
+                {resultMode === "clusters"
+                  ? t.archive.resultCountStories(total)
+                  : t.archive.resultCountArticles(total)}
               </span>
             )}
           </div>
@@ -232,7 +312,7 @@ export function ArchivePageClient() {
                     : "text-zinc-500 hover:text-foreground"
                 }`}
               >
-                Best match
+                {t.archive.sortBestMatch}
               </button>
               <button
                 onClick={() => setSortBy("date")}
@@ -242,7 +322,7 @@ export function ArchivePageClient() {
                     : "text-zinc-500 hover:text-foreground"
                 }`}
               >
-                Newest
+                {t.archive.sortNewest}
               </button>
             </div>
           )}
@@ -261,11 +341,7 @@ export function ArchivePageClient() {
             </NoResultsState>
           ) : (
             <>
-              <ul className={resultMode === "clusters" ? "space-y-4" : "space-y-2.5"}>
-                {rows.map((row) => (
-                  <ArchiveResultCard key={row.id} row={row} highlightQuery={keyword} />
-                ))}
-              </ul>
+              <DateGroupedList rows={rows} resultMode={resultMode} keyword={keyword} lang={lang} />
 
               {hasMore && (
                 <div className="mt-6 flex justify-center">
@@ -274,7 +350,7 @@ export function ArchivePageClient() {
                     disabled={loadingMore}
                     className="rounded-md border border-zinc-300 px-5 py-2 text-sm font-medium text-zinc-700 transition-colors hover:border-zinc-400 hover:text-foreground disabled:opacity-50"
                   >
-                    {loadingMore ? "Loading…" : `Load more (${total - rows.length} remaining)`}
+                    {loadingMore ? t.archive.loadingMore : t.archive.loadMore(total - rows.length)}
                   </button>
                 </div>
               )}

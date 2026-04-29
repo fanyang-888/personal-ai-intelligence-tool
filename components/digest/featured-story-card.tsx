@@ -39,6 +39,7 @@ export function FeaturedStoryCard({
       as="section"
       variant="digestFeatured"
       className={className}
+      statusKey={cluster.storyStatus ?? undefined}
       aria-labelledby="featured-story-title"
     >
       <h2
