@@ -37,17 +37,6 @@ const tabs = [
       </svg>
     ),
   },
-  {
-    href: "/archive",
-    label: "Search",
-    searchTab: true,
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" width={22} height={22}>
-        <circle cx="11" cy="11" r="8" />
-        <line x1="21" y1="21" x2="16.65" y2="16.65" />
-      </svg>
-    ),
-  },
 ];
 
 export function BottomNav() {
