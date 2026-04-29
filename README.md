@@ -1,90 +1,139 @@
-# Personal AI Intelligence Tool
+# Sipply — Your Daily AI Intelligence Briefing
 
-A full-stack AI news aggregator that ingests articles from trusted AI sources, clusters and summarises them with OpenAI, and surfaces a bilingual (EN/ZH) daily digest with newsletter-style drafts.
+> **Sip** your morning news. **Supply** yourself with signal, not noise.
 
-**Live:** [personal-ai-intelligence-tool.vercel.app](https://personal-ai-intelligence-tool.vercel.app)
+Sipply is a full-stack AI news intelligence tool that continuously ingests articles from 10+ trusted AI sources, clusters and summarises them with GPT-4o, and surfaces a bilingual (EN / 中文) daily digest with role-personalised newsletter drafts.
+
+**Live demo:** [sipply.dev](https://sipply.dev)
 
 ---
 
-## What it does
+## Why I built this
 
-- **Ingests** articles from 10+ trusted AI sources (OpenAI, Anthropic, DeepMind, arXiv, VentureBeat, TechCrunch, and more) every 6 hours
-- **Filters & scores** articles with GPT-4o to remove noise and rank by signal quality
-- **Clusters** related articles into story threads using TF-IDF + cosine similarity
-- **Summarises** each cluster with per-audience context (PMs, developers, students)
-- **Translates** all content to Chinese automatically
-- **Generates** LinkedIn-style newsletter drafts with role-specific career angles
-- **Deduplicates** cross-day clusters so recurring stories are tracked, not duplicated
+The AI space moves faster than any newsletter can keep up with. I wanted a tool that:
+- **Aggregates** every major AI publication automatically
+- **Filters** noise from signal using LLMs — not keyword rules
+- **Clusters** related stories so you see the thread, not just individual articles
+- **Personalises** the angle depending on whether you're a PM, engineer, or student
+- **Translates** everything to Chinese for bilingual readers
+
+So I built it — including the ingestion pipeline, the LLM processing chain, the REST API, and the frontend.
+
+---
+
+## Features
+
+| | |
+|--|--|
+| 🔄 **Auto-ingestion** | Fetches full article text from 10+ sources every 6 hours via Railway cron |
+| 🧹 **LLM filtering** | GPT-4o removes off-topic articles before they enter the pipeline |
+| 📊 **Signal scoring** | Rule-based heuristic (0–100) weights recency, source authority, and coverage |
+| 🧵 **Story clustering** | TF-IDF + cosine similarity groups related articles into story threads |
+| 🔁 **Cross-day dedup** | Stories that evolve across days are merged, not duplicated |
+| 📝 **Draft generation** | GPT-4o writes a LinkedIn-style newsletter draft for the top story |
+| 🎯 **Role personalisation** | PM / Developer / Student lenses with tailored "why it matters" context |
+| 🌐 **Bilingual** | Every field (title, summary, takeaways, draft) auto-translated to Chinese |
+| ⚡ **Recency ranking** | Digest ranks stories by `score × e^(−0.15 × age_days)` — fresh beats stale |
+| 🔍 **Full-text search** | Archive search across all clusters and articles |
 
 ---
 
 ## Architecture
 
 ```
-Vercel (Next.js frontend)
+Vercel (Next.js 16)
     └── NEXT_PUBLIC_API_URL
             │
             ▼
-Railway (FastAPI backend)          Railway (Cron — 6×/day)
-    ├── GET  /api/digest/today         └── ingest → filter → score
-    ├── GET  /api/clusters                 → cluster → dedup → summarize
-    ├── GET  /api/clusters/{id}            → translate → draft → translate
-    ├── GET  /api/drafts/today
-    ├── GET  /api/drafts/{id}?role=pm|developer|student
+Railway (FastAPI)                  Railway (Cron — 4×/day)
+    ├── GET  /api/digest/today     └── ingest → filter → score
+    ├── GET  /api/clusters/{id}        → cluster → dedup → summarize
+    ├── GET  /api/drafts/{id}          → translate → draft → translate
     ├── GET  /api/search
-    ├── GET  /api/pipeline-runs
-    └── POST /api/admin/trigger-pipeline   (JWT-protected)
+    └── POST /api/admin/*  (protected)
             │
             ▼
-    Railway PostgreSQL + Redis
+    PostgreSQL + Redis (Railway managed)
 ```
+
+The backend is **stateless**. All state lives in PostgreSQL. Redis caches hot endpoints (5-min TTL) and is busted after each successful pipeline run.
 
 ---
 
-## Stack
+## Tech stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Next.js 15 (App Router), React, TypeScript, Tailwind CSS |
-| Backend | FastAPI, SQLAlchemy, Alembic, psycopg3 |
-| Database | PostgreSQL (Railway managed) |
-| Cache | Redis (Railway managed, 5-min TTL on hot endpoints) |
-| AI | OpenAI GPT-4o-mini (filter, score, cluster, summarise, translate, draft) |
-| Deployment | Vercel (frontend) · Railway (backend + DB + Redis + cron) |
+| Layer | Choice | Why |
+|-------|--------|-----|
+| Frontend | Next.js 16, TypeScript, Tailwind CSS | App Router, RSC, fast builds |
+| Backend | FastAPI, SQLAlchemy 2, Alembic, psycopg3 | Async-ready, typed, proper migrations |
+| Database | PostgreSQL | Relational + full-text search |
+| Cache | Redis | Simple TTL cache; graceful fallback if unavailable |
+| AI | OpenAI GPT-4o-mini | filter · score · cluster · summarise · translate · draft |
+| Deployment | Vercel + Railway | Frontend CDN + managed Postgres/Redis/cron |
+| i18n | Custom `useI18n()` hook | Zero-dependency EN/ZH with type-safe translation keys |
 
 ---
 
 ## Pipeline stages
 
-| Stage | Script | What it does |
-|-------|--------|-------------|
-| Ingest | `ingest_full_articles` | Fetches full article text; incremental via HTTP ETag + poll-frequency gate |
-| Filter | `filter_articles` | GPT-4o removes off-topic articles |
-| Score | `score_articles` | Rule-based signal score (0–100) |
-| Cluster | `cluster_articles` | TF-IDF + cosine similarity groups articles into story clusters |
-| Status | `update_cluster_status` | Classifies clusters as new / escalating / ongoing / peaking / fading |
-| Dedup | `dedup_clusters` | Merges cross-day duplicate clusters by title similarity |
-| Summarise | `summarize` | GPT-4o writes summaries, takeaways, and per-audience context |
-| Translate clusters | `translate_clusters` | Translates all cluster fields to Chinese |
-| Draft | `generate_draft` | GPT-4o writes a LinkedIn-style newsletter draft |
-| Translate drafts | `translate_drafts` | Translates all draft fields to Chinese |
+Each stage is a standalone script; `run_pipeline.py` orchestrates them in sequence.
+
+| # | Stage | Script | What it does |
+|---|-------|--------|-------------|
+| 1 | **Ingest** | `ingest_full_articles` | Fetches full HTML; deduplicates by URL; incremental via HTTP ETag + poll-frequency gate |
+| 2 | **Filter** | `filter_articles` | GPT-4o classifies each article as relevant/irrelevant to AI |
+| 3 | **Score** | `score_articles` | Heuristic signal score: source priority + article density + recency |
+| 4 | **Cluster** | `cluster_articles` | TF-IDF vectorisation → cosine similarity → greedy merge into story clusters |
+| 5 | **Status** | `update_cluster_status` | Labels clusters: `new` / `escalating` / `peaking` / `ongoing` / `fading` |
+| 6 | **Dedup** | `dedup_clusters` | Title-similarity merge across days so recurring stories accumulate evidence |
+| 7 | **Summarise** | `summarize` | GPT-4o writes summary, 3 takeaways, and PM / dev / student audience blocks |
+| 8 | **Translate clusters** | `translate_clusters` | Translates all cluster text fields to Chinese |
+| 9 | **Draft** | `generate_draft` | GPT-4o writes a LinkedIn newsletter draft for the highest-scoring cluster |
+| 10 | **Translate drafts** | `translate_drafts` | Translates all draft fields to Chinese |
 
 ---
 
 ## Data sources
 
-| Source | Type |
-|--------|------|
-| OpenAI News | RSS |
-| Anthropic Newsroom | RSS + HTML fallback |
-| Google DeepMind Blog | HTML index scrape |
-| arXiv cs.AI + cs.LG | RSS |
-| VentureBeat AI | RSS |
-| TechCrunch AI | RSS |
-| MIT Technology Review AI | RSS |
-| The Verge AI | RSS |
-| Wired AI | RSS |
-| Ars Technica AI | RSS |
+| Source | Type | Cadence |
+|--------|------|---------|
+| Anthropic Newsroom | HTML scrape | every 60 min |
+| OpenAI News | RSS | every 60 min |
+| Google DeepMind Blog | HTML scrape | every 120 min |
+| Hugging Face Blog | RSS | every 60 min |
+| arXiv cs.AI + cs.LG | RSS | daily |
+| The Verge AI | RSS | every 30 min |
+| Ars Technica AI | RSS | every 60 min |
+| TechCrunch AI | RSS | every 30 min |
+| VentureBeat AI | RSS | every 30 min |
+| AI News | RSS | every 60 min |
+| The Register AI | RSS | every 60 min |
+| Import AI (newsletter) | RSS | daily |
+| TLDR AI (newsletter) | RSS | daily |
+
+---
+
+## Project layout
+
+```
+├── app/                    Next.js pages (digest, cluster, draft, archive, admin)
+├── components/             UI components (digest cards, cluster view, draft view…)
+├── lib/
+│   ├── api/                Type-safe backend API client
+│   ├── i18n/               EN/ZH locale strings with typed keys
+│   └── data/               Static content (AI Basics daily rotation)
+├── types/                  Shared TypeScript type definitions
+└── backend/
+    ├── app/
+    │   ├── adapters/       Per-source scrapers (RSS, HTML, arXiv, OpenAI, DeepMind…)
+    │   ├── api/routes/     FastAPI route handlers
+    │   ├── crud/           DB query helpers
+    │   ├── models/         SQLAlchemy ORM models
+    │   ├── services/       Pipeline business logic (ingest, cluster, summarise…)
+    │   └── source_catalog/ trusted_sources.yaml — add new sources here
+    ├── migrations/         Alembic migration history
+    └── scripts/            Pipeline stage scripts + run_pipeline.py orchestrator
+```
 
 ---
 
@@ -94,7 +143,7 @@ Railway (FastAPI backend)          Railway (Cron — 6×/day)
 
 ```bash
 npm install
-npm run dev        # http://localhost:3000
+npm run dev          # http://localhost:3000
 ```
 
 Create `.env.local`:
@@ -108,54 +157,26 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 cd backend/
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env   # fill in DATABASE_URL, OPENAI_API_KEY, etc.
+cp .env.example .env   # fill in DATABASE_URL + OPENAI_API_KEY
 alembic upgrade head
 uvicorn app.main:app --reload   # http://localhost:8000
 ```
 
-### Run the pipeline
+### Run the pipeline manually
 
 ```bash
 cd backend/
 
-# Run all stages at once
+# All stages at once
 python -m scripts.run_pipeline --triggered-by manual
 
-# Or individual stages
-python -m scripts.ingest_full_articles
+# Or stage by stage
+python -m scripts.ingest_full_articles --slug anthropic-newsroom --per-source-limit 5
 python -m scripts.filter_articles
 python -m scripts.score_articles
 python -m scripts.cluster_articles
-python -m scripts.update_cluster_status
-python -m scripts.dedup_clusters
 python -m scripts.summarize
-python -m scripts.translate_clusters
 python -m scripts.generate_draft
-python -m scripts.translate_drafts
-```
-
----
-
-## Project layout
-
-```
-├── app/                    Next.js pages (digest, cluster, draft, archive)
-├── components/             UI components
-├── lib/api/                Backend API client + type definitions
-├── lib/i18n/               EN/ZH localisation
-├── types/                  Shared TypeScript types
-├── backend/
-│   ├── app/
-│   │   ├── adapters/       Source adapters (RSS, HTML scrapers)
-│   │   ├── api/routes/     FastAPI route handlers
-│   │   ├── auth.py         JWT authentication helpers
-│   │   ├── cache.py        Redis cache helpers (graceful fallback)
-│   │   ├── models/         SQLAlchemy ORM models
-│   │   ├── services/       Pipeline business logic
-│   │   └── source_catalog/ trusted_sources.yaml
-│   ├── migrations/         Alembic migration history
-│   └── scripts/            Pipeline scripts + run_pipeline.py
-└── docs/                   BACKLOG.md
 ```
 
 ---
@@ -164,58 +185,69 @@ python -m scripts.translate_drafts
 
 ### Backend (Railway)
 
-Auto-deploys from `main`. On startup, `alembic upgrade head` runs in a background thread so Railway's healthcheck passes immediately.
+Deployed as two Railway services sharing one Postgres + Redis instance:
+
+| Service | Config | Schedule |
+|---------|--------|----------|
+| `personal-ai-intelligence-tool` | `railway.toml` | Always-on API |
+| `daily-pipeline-cron` | `railway.cron.toml` | 02:00 / 08:00 / 14:00 / 20:00 UTC |
+
+On startup, `alembic upgrade head` runs in a background thread so Railway's healthcheck passes immediately.
 
 Required environment variables:
 
-| Variable | Description |
-|----------|-------------|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `OPENAI_API_KEY` | OpenAI API key |
+| Variable | Purpose |
+|----------|---------|
+| `DATABASE_URL` | PostgreSQL connection string (`postgresql+psycopg://…`) |
+| `OPENAI_API_KEY` | GPT-4o calls for all AI pipeline stages |
+| `REDIS_URL` | Auto-set by Railway Redis plugin |
 | `APP_ENV` | `production` |
-| `SOURCE_FETCH_USER_AGENT` | HTTP User-Agent for article fetching |
-| `REDIS_URL` | Redis connection string (auto-set by Railway Redis plugin) |
-| `JWT_SECRET` | Random secret for signing JWT tokens |
-| `ADMIN_USERNAME` | Login username (default: `admin`) |
-| `ADMIN_PASSWORD` | Login password |
-
-### Cron (Railway)
-
-A separate Railway service (`daily-pipeline-cron`) runs `python -m scripts.run_pipeline` at **02:00, 08:00, 14:00, 20:00 UTC** every day. Shares the same env vars and Postgres instance as the web service.
+| `JWT_SECRET` | Signs admin JWT tokens |
+| `ADMIN_USERNAME` / `ADMIN_PASSWORD` | Admin login credentials |
 
 ### Frontend (Vercel)
 
-Auto-deploys from `main`.
+Auto-deploys from GitHub. Set one environment variable:
 
-| Variable | Value |
-|----------|-------|
-| `NEXT_PUBLIC_API_URL` | `https://personal-ai-intelligence-tool-production.up.railway.app` |
+```
+NEXT_PUBLIC_API_URL=https://personal-ai-intelligence-tool-production.up.railway.app
+```
 
 ---
 
-## Admin API
+## API highlights
 
 ```bash
-# Get a JWT token
-curl -X POST https://<backend>/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"<ADMIN_PASSWORD>"}'
+# Today's digest (featured story + top clusters + draft)
+GET /api/digest/today
 
-# Trigger the pipeline manually
-curl -X POST https://<backend>/api/admin/trigger-pipeline \
-  -H "Authorization: Bearer <token>"
+# All clusters (paginated, ranked by recency-weighted score)
+GET /api/clusters?limit=20&offset=0
 
-# Check pipeline run history
-curl https://<backend>/api/pipeline-runs
+# Single cluster with source articles + related stories
+GET /api/clusters/{id}
+
+# Role-personalised draft
+GET /api/drafts/{id}?role=pm          # PM lens
+GET /api/drafts/{id}?role=developer   # Engineer lens
+GET /api/drafts/{id}?role=student     # Student / job-seeker lens
+
+# Full-text search
+GET /api/search?q=GPT-5&type=cluster
+
+# Interactive docs
+GET /docs
 ```
 
 ---
 
-## Role-based draft personalization
+## Design decisions worth noting
 
-Append `?role=pm`, `?role=developer`, or `?role=student` to any draft endpoint to receive role-specific audience context:
+**Why not vector search for clustering?**
+TF-IDF + cosine similarity runs locally with no API calls, adds zero cost per run, and works well on the short article excerpts we ingest. Vector embeddings would improve recall across semantically similar but lexically different articles — a natural next upgrade.
 
-```
-GET /api/drafts/today?role=pm
-GET /api/drafts/{id}?role=developer
-```
+**Why GPT-4o-mini instead of a larger model?**
+The pipeline runs 4× per day across 10+ sources. Using the mini model keeps cost under $1/day while still producing high-quality filter/score/summarise/draft output.
+
+**Why Redis cache with 5-min TTL?**
+The digest and cluster list endpoints are hit on every page load. Caching avoids repeated Postgres aggregation queries. The pipeline explicitly busts the cache (`ai_tool:*`) after every successful run so stale data never persists beyond one cycle.

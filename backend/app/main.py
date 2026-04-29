@@ -52,6 +52,9 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
+        # Custom domain
+        "https://sipply.dev",
+        "https://www.sipply.dev",
         # Production Vercel deployment (explicit match — regex alone can miss error responses)
         "https://personal-ai-intelligence-tool.vercel.app",
         # Vercel preview deployments
