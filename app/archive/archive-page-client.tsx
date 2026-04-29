@@ -91,6 +91,7 @@ type ArchiveT = ReturnType<typeof useI18n>["t"];
 function toClusterRow(
   c: { id: string; title: string; title_zh: string | null; summary: string | null; summary_zh: string | null; tags: string[]; theme: string; storyStatus: string; clusterScore: number | null; lastSeenAt: string | null; sourceCount: number },
   t: ArchiveT,
+  lang: string,
 ): ArchiveClusterRow {
   let freshnessLabel: string | undefined;
   if (c.lastSeenAt) {
@@ -99,13 +100,14 @@ function toClusterRow(
     else if (diff < 1440) freshnessLabel = t.archive.freshnessHours(Math.round(diff / 60));
     else freshnessLabel = t.archive.freshnessDays(Math.round(diff / 1440));
   }
+  const isZh = lang === "zh";
   return {
     kind: "cluster",
     id: c.id,
-    title: c.title_zh || c.title,
+    title: isZh ? (c.title_zh || c.title) : c.title,
     theme: c.theme,
     themeLabel: c.theme,
-    summarySnippet: (c.summary_zh || c.summary || "").slice(0, 160),
+    summarySnippet: (isZh ? (c.summary_zh ?? c.summary ?? "") : (c.summary ?? "")).slice(0, 160),
     sourceLabels: t.archive.sourceCountLabel(c.sourceCount),
     freshnessLabel,
     dateKey: toDateKey(c.lastSeenAt),
@@ -214,7 +216,7 @@ export function ArchivePageClient() {
       });
 
       if (mode === "clusters") {
-        const newRows = result.clusters.map(c => toClusterRow(c, t));
+        const newRows = result.clusters.map(c => toClusterRow(c, t, lang));
         setRows(prev => append ? [...prev, ...newRows] : newRows);
         const themes = [...new Set(result.clusters.map(c => c.theme).filter(Boolean))];
         if (themes.length) setAllThemes(themes);

@@ -80,11 +80,11 @@ export function FeaturedStoryCard({
         <StoryBadge variant="metric">{relevance}</StoryBadge>
       </div>
 
-      <p className="mt-5 text-base leading-relaxed text-foreground">
+      <p className="mt-5 text-base leading-relaxed text-foreground line-clamp-4 sm:line-clamp-none">
         {pickLocalized(cluster.summary, lang)}
       </p>
 
-      <p className="mt-4 text-sm font-medium text-zinc-600">
+      <p className="mt-4 text-sm font-medium text-zinc-600 line-clamp-2 sm:line-clamp-none">
         <span className="text-zinc-500">{t.digest.whyItMattersPrefix} </span>
         {pickLocalized(cluster.whyItMatters, lang)}
       </p>
