@@ -67,7 +67,7 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
         />
       ) : null}
 
-      <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-zinc-600">
+      <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-zinc-600 sm:line-clamp-3">
         {pickLocalized(cluster.summary, lang)}
       </p>
 

@@ -18,7 +18,7 @@ const tabs = [
   {
     href: "/archive",
     label: "Archive",
-    matchExact: false,
+    matchPrefix: "/archive",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" width={22} height={22}>
         <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
@@ -27,7 +27,7 @@ const tabs = [
     ),
   },
   {
-    href: "/#draft-of-the-day",
+    href: "/draft/today",
     label: "Draft",
     matchPrefix: "/draft",
     icon: (
@@ -40,7 +40,6 @@ const tabs = [
   {
     href: "/archive",
     label: "Search",
-    matchExact: false,
     searchTab: true,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" width={22} height={22}>
@@ -62,12 +61,11 @@ export function BottomNav() {
       aria-label="Main navigation"
     >
       {tabs.map((tab) => {
-        const active =
-          tab.matchExact
-            ? pathname === tab.href
-            : tab.matchPrefix
-              ? pathname.startsWith(tab.matchPrefix)
-              : false;
+        const active = tab.matchExact
+          ? pathname === tab.href
+          : tab.matchPrefix
+            ? pathname.startsWith(tab.matchPrefix)
+            : false;
 
         return (
           <Link
@@ -77,13 +75,7 @@ export function BottomNav() {
             style={{ paddingBottom: "calc(0.5rem + env(safe-area-inset-bottom, 0px))" }}
           >
             <span style={{ stroke: active ? "#5dc8f5" : "#3d6a88" }}>{tab.icon}</span>
-            <span
-              style={{
-                fontSize: "9px",
-                letterSpacing: "0.04em",
-                color: active ? "#5dc8f5" : "#3d6a88",
-              }}
-            >
+            <span style={{ fontSize: "9px", letterSpacing: "0.04em", color: active ? "#5dc8f5" : "#3d6a88" }}>
               {tab.label}
             </span>
           </Link>
