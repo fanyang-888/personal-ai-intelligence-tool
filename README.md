@@ -4,7 +4,7 @@
 
 Sipply is a full-stack AI news intelligence tool that continuously ingests articles from 10+ trusted AI sources, clusters and summarises them with GPT-4o, and surfaces a bilingual (EN / 中文) daily digest with role-personalised newsletter drafts.
 
-**Live demo:** [personal-ai-intelligence-tool.vercel.app](https://personal-ai-intelligence-tool.vercel.app)
+**Live demo:** [sipply.dev](https://sipply.dev)
 
 ---
 
