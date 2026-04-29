@@ -12,7 +12,9 @@ export const metadata: Metadata = {
   },
   description: "AI-curated insights served fresh each morning — drink in what matters, set aside the rest.",
   icons: {
-    icon: "/logo.png",
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
     apple: "/logo.png",
   },
 };

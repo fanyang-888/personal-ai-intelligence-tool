@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Navy rounded square background -->
+  <rect width="32" height="32" rx="7" fill="#0e3f62"/>
+  <!-- Water drop: round bottom, pointed top -->
+  <path d="M16 6 C16 6 9 14 9 19 a7 7 0 0 0 14 0 C23 14 16 6 16 6 Z" fill="#5dc8f5"/>
+  <!-- Subtle highlight -->
+  <ellipse cx="13.5" cy="17" rx="2" ry="3" fill="#a8e4f8" opacity="0.4"/>
+</svg>
