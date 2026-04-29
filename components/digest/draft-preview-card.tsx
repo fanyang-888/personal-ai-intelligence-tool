@@ -38,42 +38,74 @@ export function DraftPreviewCard({
   const clamp = isAside ? "line-clamp-3" : "line-clamp-4";
 
   return (
-    <ResultCardFrame
-      as="section"
-      variant="digestMuted"
-      id="draft-of-the-day"
-      aria-labelledby="draft-of-day-heading"
-      className={`scroll-mt-24 ${
-        isAside ? "p-4 sm:p-5 lg:sticky lg:top-24" : "mb-10 p-5 sm:p-6"
-      }`}
-    >
-      <SectionTitle id="draft-of-day-heading">
-        {t.draftPreview.sectionTitle}
-      </SectionTitle>
-      {relatedStoryTitle ? (
-        <p className="mt-1 text-sm text-zinc-500">
-          {t.draftPreview.relatedStory}{" "}
-          <span className="font-medium text-foreground">{relatedStoryTitle}</span>
-        </p>
-      ) : null}
-      <h3
-        className={`mt-3 font-semibold text-foreground ${
-          isAside ? "text-base leading-snug" : "text-lg"
-        }`}
-      >
-        {pickLocalized(draft.title, lang)}
-      </h3>
-      <p
-        className={`mt-3 text-sm leading-relaxed text-zinc-700 ${clamp}`}
-      >
-        {preview}
-      </p>
+    <>
+      {/* Mobile: horizontal strip */}
       <Link
         href={`/draft/${draft.id}`}
-        className={`mt-5 inline-block ${uiTextLinkPrimary}`}
+        id="draft-of-the-day"
+        className="sm:hidden scroll-mt-24 flex items-center gap-3 rounded-2xl px-4 py-3 mb-2"
+        style={{
+          background: "linear-gradient(135deg, #0f3352 0%, #1a5280 100%)",
+          border: "1px solid #2a6a96",
+        }}
       >
-        {t.draftPreview.openFullDraft}
+        <div
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
+          style={{ background: "#163f5c", border: "1px solid #2a6a96" }}
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="#5dc8f5" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" width={16} height={16}>
+            <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+          </svg>
+        </div>
+        <div className="min-w-0 flex-1">
+          <p style={{ fontSize: "9px", letterSpacing: "0.12em", textTransform: "uppercase", color: "#4a9bbf", marginBottom: "2px" }}>
+            {t.draftPreview.sectionTitle}
+          </p>
+          <p className="truncate text-sm font-medium" style={{ color: "#d4edf8" }}>
+            {pickLocalized(draft.title, lang)}
+          </p>
+        </div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#5dc8f5" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" width={16} height={16} className="shrink-0">
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
       </Link>
-    </ResultCardFrame>
+
+      {/* Desktop: full card */}
+      <ResultCardFrame
+        as="section"
+        variant="digestMuted"
+        id={isAside ? undefined : "draft-of-the-day"}
+        aria-labelledby="draft-of-day-heading"
+        className={`hidden sm:block scroll-mt-24 ${
+          isAside ? "p-4 sm:p-5 lg:sticky lg:top-24" : "mb-10 p-5 sm:p-6"
+        }`}
+      >
+        <SectionTitle id="draft-of-day-heading">
+          {t.draftPreview.sectionTitle}
+        </SectionTitle>
+        {relatedStoryTitle ? (
+          <p className="mt-1 text-sm text-zinc-500">
+            {t.draftPreview.relatedStory}{" "}
+            <span className="font-medium text-foreground">{relatedStoryTitle}</span>
+          </p>
+        ) : null}
+        <h3
+          className={`mt-3 font-semibold text-foreground ${
+            isAside ? "text-base leading-snug" : "text-lg"
+          }`}
+        >
+          {pickLocalized(draft.title, lang)}
+        </h3>
+        <p className={`mt-3 text-sm leading-relaxed text-zinc-700 ${clamp}`}>
+          {preview}
+        </p>
+        <Link
+          href={`/draft/${draft.id}`}
+          className={`mt-5 inline-block ${uiTextLinkPrimary}`}
+        >
+          {t.draftPreview.openFullDraft}
+        </Link>
+      </ResultCardFrame>
+    </>
   );
 }

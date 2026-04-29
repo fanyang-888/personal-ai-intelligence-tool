@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AppProviders } from "@/components/app-providers";
 import { TopNav } from "@/components/layout/top-nav";
+import { BottomNav } from "@/components/layout/bottom-nav";
 import { PageShell } from "@/components/layout/page-shell";
 import "./globals.css";
 
@@ -27,6 +28,7 @@ export default function RootLayout({
         <AppProviders>
           <TopNav />
           <PageShell>{children}</PageShell>
+          <BottomNav />
         </AppProviders>
       </body>
     </html>

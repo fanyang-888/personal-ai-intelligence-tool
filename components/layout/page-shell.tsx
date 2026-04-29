@@ -8,7 +8,7 @@ type PageShellProps = {
 export function PageShell({ children, className = "" }: PageShellProps) {
   return (
     <main
-      className={`mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6 ${className}`.trim()}
+      className={`mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6 pb-24 sm:pb-8 ${className}`.trim()}
     >
       {children}
     </main>
