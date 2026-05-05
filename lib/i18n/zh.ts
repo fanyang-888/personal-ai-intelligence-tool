@@ -196,4 +196,14 @@ export const zh: Translations = {
     digest: "正在加载摘要…",
     detail: "正在加载…",
   },
+  subscribe: {
+    heading: "保持同步",
+    subheading: "每次摘要更新时收到简报。无垃圾邮件，只传递真正有价值的信息。",
+    placeholder: "your@email.com",
+    cta: "订阅",
+    successHeading: "订阅成功。",
+    successMessage: "下次摘要更新时我们会通知你。",
+    alreadySubscribed: "你已经订阅过了。",
+    errorMessage: "出了点问题，请稍后再试。",
+  },
 };

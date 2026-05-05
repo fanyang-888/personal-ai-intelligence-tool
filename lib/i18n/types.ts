@@ -192,4 +192,14 @@ export type Translations = {
     digest: string;
     detail: string;
   };
+  subscribe: {
+    heading: string;
+    subheading: string;
+    placeholder: string;
+    cta: string;
+    successHeading: string;
+    successMessage: string;
+    alreadySubscribed: string;
+    errorMessage: string;
+  };
 };

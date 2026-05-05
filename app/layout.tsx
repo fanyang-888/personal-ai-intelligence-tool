@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { AppProviders } from "@/components/app-providers";
 import { TopNav } from "@/components/layout/top-nav";
 import { BottomNav } from "@/components/layout/bottom-nav";
@@ -32,6 +33,7 @@ export default function RootLayout({
           <PageShell>{children}</PageShell>
           <BottomNav />
         </AppProviders>
+        <Analytics />
       </body>
     </html>
   );
