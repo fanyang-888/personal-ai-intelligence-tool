@@ -12,7 +12,7 @@ Sipply is a full-stack AI news intelligence tool that continuously ingests artic
 
 The AI space moves faster than any newsletter can keep up with. I wanted a tool that:
 - **Aggregates** every major AI publication automatically
-- **Filters** noise from signal using LLMs — not keyword rules
+- **Filters** noise from signal with a fast rule-based gate, then ranks by a trained ML scorer
 - **Clusters** related stories so you see the thread, not just individual articles
 - **Personalises** the angle depending on whether you're a PM, engineer, or student
 - **Translates** everything to Chinese for bilingual readers
@@ -26,8 +26,8 @@ So I built it — including the ingestion pipeline, the LLM processing chain, th
 | | |
 |--|--|
 | 🔄 **Auto-ingestion** | Fetches full article text from 10+ sources every 6 hours via Railway cron |
-| 🧹 **LLM filtering** | GPT-4o removes off-topic articles before they enter the pipeline |
-| 📊 **Signal scoring** | Rule-based heuristic (0–100) weights recency, source authority, and coverage |
+| 🧹 **Smart filtering** | Rule-based gate (keyword match + length + dedup) removes off-topic articles at zero API cost |
+| 📊 **ML signal scoring** | Composite 0–100 score: rule-based dimensions (recency, source authority) + TF-IDF Ridge model predicting audience fit, practical relevance, and novelty |
 | 🧵 **Story clustering** | TF-IDF + cosine similarity groups related articles into story threads |
 | 🔁 **Cross-day dedup** | Stories that evolve across days are merged, not duplicated |
 | 📝 **Draft generation** | GPT-4o writes a LinkedIn-style newsletter draft for the top story |
@@ -68,7 +68,8 @@ The backend is **stateless**. All state lives in PostgreSQL. Redis caches hot en
 | Backend | FastAPI, SQLAlchemy 2, Alembic, psycopg3 | Async-ready, typed, proper migrations |
 | Database | PostgreSQL | Relational + full-text search |
 | Cache | Redis | Simple TTL cache; graceful fallback if unavailable |
-| AI | OpenAI GPT-4o-mini | filter · score · cluster · summarise · translate · draft |
+| ML scoring | scikit-learn (TF-IDF + Ridge) | Predicts 3 relevance dimensions; trained on 422 GPT-labeled examples |
+| AI | OpenAI GPT-4o-mini | summarise · translate · draft (cluster-level only) |
 | Deployment | Vercel + Railway | Frontend CDN + managed Postgres/Redis/cron |
 | i18n | Custom `useI18n()` hook | Zero-dependency EN/ZH with type-safe translation keys |
 
@@ -81,8 +82,8 @@ Each stage is a standalone script; `run_pipeline.py` orchestrates them in sequen
 | # | Stage | Script | What it does |
 |---|-------|--------|-------------|
 | 1 | **Ingest** | `ingest_full_articles` | Fetches full HTML; deduplicates by URL; incremental via HTTP ETag + poll-frequency gate |
-| 2 | **Filter** | `filter_articles` | GPT-4o classifies each article as relevant/irrelevant to AI |
-| 3 | **Score** | `score_articles` | Heuristic signal score: source priority + article density + recency |
+| 2 | **Filter** | `filter_articles` | Rule-based gate: rejects short/off-topic/duplicate articles via regex + content hash (zero LLM cost) |
+| 3 | **Score** | `score_articles` | Composite signal score: rule-based dims (recency, source authority, content richness) + ML model for audience fit / practical relevance / novelty |
 | 4 | **Cluster** | `cluster_articles` | TF-IDF vectorisation → cosine similarity → greedy merge into story clusters |
 | 5 | **Status** | `update_cluster_status` | Labels clusters: `new` / `escalating` / `peaking` / `ongoing` / `fading` |
 | 6 | **Dedup** | `dedup_clusters` | Title-similarity merge across days so recurring stories accumulate evidence |
@@ -90,6 +91,44 @@ Each stage is a standalone script; `run_pipeline.py` orchestrates them in sequen
 | 8 | **Translate clusters** | `translate_clusters` | Translates all cluster text fields to Chinese |
 | 9 | **Draft** | `generate_draft` | GPT-4o writes a LinkedIn newsletter draft for the highest-scoring cluster |
 | 10 | **Translate drafts** | `translate_drafts` | Translates all draft fields to Chinese |
+
+---
+
+## ML scoring model
+
+Three dimensions of the signal score were previously hardcoded at 3.0. They are now predicted by a trained TF-IDF + Ridge Regression model, covering **44% of total score weight**.
+
+### Training pipeline
+
+```
+422 articles (production DB)
+    → GPT-4o-mini labels audience_fit / practical_relevance / novelty (1–5)
+    → TF-IDF (unigrams + bigrams, 30k features) + Ridge Regression
+    → 5-fold cross-validation
+    → models/scorer.pkl
+```
+
+### Evaluation (5-fold CV on 422 labeled examples)
+
+| Dimension | Pearson r | MAE | vs. mean baseline |
+|-----------|-----------|-----|-------------------|
+| audience_fit | **0.75** | 0.71 | +40% |
+| practical_relevance | **0.69** | 0.73 | +32% |
+| novelty | **0.71** | 0.62 | +36% |
+
+### Inference
+
+Inference runs in ~1ms locally (vs ~1s for an LLM call) at zero marginal cost. Falls back to `3.0` defaults if `models/scorer.pkl` is not present, so deploys are always safe.
+
+### Retrain
+
+```bash
+# 1. Re-label articles (run from backend/)
+python -m scripts.label_for_training --output data/labels.jsonl --limit 600
+
+# 2. Retrain and evaluate
+python -m scripts.train_scorer --labels data/labels.jsonl --output models/scorer.pkl
+```
 
 ---
 
@@ -247,7 +286,7 @@ GET /docs
 TF-IDF + cosine similarity runs locally with no API calls, adds zero cost per run, and works well on the short article excerpts we ingest. Vector embeddings would improve recall across semantically similar but lexically different articles — a natural next upgrade.
 
 **Why GPT-4o-mini instead of a larger model?**
-The pipeline runs 4× per day across 10+ sources. Using the mini model keeps cost under $1/day while still producing high-quality filter/score/summarise/draft output.
+The pipeline runs 4× per day across 10+ sources. Filtering and scoring are handled by rule-based logic and a local ML model (zero API cost). GPT-4o-mini is only used for summarisation, translation, and draft generation — keeping total cost under $1/day.
 
 **Why Redis cache with 5-min TTL?**
 The digest and cluster list endpoints are hit on every page load. Caching avoids repeated Postgres aggregation queries. The pipeline explicitly busts the cache (`ai_tool:*`) after every successful run so stale data never persists beyond one cycle.
