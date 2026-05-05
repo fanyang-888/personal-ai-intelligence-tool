@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 revision = "w3d1_subscribers"
-down_revision = "w2d9_summary_fields"
+down_revision = "tier3_pipeline_runs"
 branch_labels = None
 depends_on = None
 
