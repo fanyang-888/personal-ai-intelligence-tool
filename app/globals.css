@@ -52,12 +52,17 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes sp-fillup {
+/* Water surface — gentle 5px sway, much calmer than 18px */
+@keyframes sp-sway {
   from { transform: translateY(0); }
-  to   { transform: translateY(-18px); }
+  to   { transform: translateY(-5px); }
 }
 
-@keyframes sp-ripple {
-  from { rx: 28px; ry: 5px; }
-  to   { rx: 22px; ry: 3px; }
+/* Drop falls from straw tip to water surface, fades on impact, resets */
+@keyframes sp-drop {
+  0%   { transform: translateY(0);    opacity: 1; }
+  62%  { transform: translateY(74px); opacity: 1; }
+  72%  { transform: translateY(80px); opacity: 0; }
+  99%  { transform: translateY(80px); opacity: 0; }
+  100% { transform: translateY(0);    opacity: 0; }
 }
