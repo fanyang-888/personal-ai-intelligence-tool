@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { AppProviders } from "@/components/app-providers";
 import { TopNav } from "@/components/layout/top-nav";
 import { BottomNav } from "@/components/layout/bottom-nav";
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
   },
   description: "AI-curated insights served fresh each morning — drink in what matters, set aside the rest.",
   icons: {
-    icon: "/logo.png",
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
     apple: "/logo.png",
   },
 };
@@ -30,6 +31,7 @@ export default function RootLayout({
           <PageShell>{children}</PageShell>
           <BottomNav />
         </AppProviders>
+        <Analytics />
       </body>
     </html>
   );

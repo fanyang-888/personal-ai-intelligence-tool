@@ -207,4 +207,14 @@ export const en: Translations = {
     digest: "Loading digest…",
     detail: "Loading…",
   },
+  subscribe: {
+    heading: "Stay in the loop",
+    subheading: "Get a brief when the digest updates. No spam — just signal.",
+    placeholder: "your@email.com",
+    cta: "Subscribe",
+    successHeading: "You're in.",
+    successMessage: "We'll ping you when the next digest drops.",
+    alreadySubscribed: "You're already subscribed.",
+    errorMessage: "Something went wrong. Try again in a moment.",
+  },
 };

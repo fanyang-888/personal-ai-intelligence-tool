@@ -11,6 +11,7 @@ import { ClusterCard } from "@/components/digest/cluster-card";
 import { DraftPreviewCard } from "@/components/digest/draft-preview-card";
 import { DiscoverArchiveCta } from "@/components/digest/quick-archive-entry";
 import { AIBasicCard } from "@/components/digest/ai-basic-card";
+import { SubscribeBar } from "@/components/shared/subscribe-bar";
 import { SippyHero } from "@/components/layout/sipply-hero";
 import { SectionBlock } from "@/components/shared/section-block";
 import { SectionTitle } from "@/components/shared/section-title";
@@ -142,6 +143,10 @@ export default function HomePage() {
 
       <SectionBlock>
         <AIBasicCard />
+      </SectionBlock>
+
+      <SectionBlock>
+        <SubscribeBar />
       </SectionBlock>
 
       <DiscoverArchiveCta />
