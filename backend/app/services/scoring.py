@@ -37,6 +37,7 @@ from sqlalchemy.orm import Session
 from app.crud.article import get_unscored_articles, mark_article_scored
 from app.models.article import Article
 from app.models.source import Source
+from app.services.ml_scorer import get_ml_scorer
 
 logger = logging.getLogger(__name__)
 
@@ -159,12 +160,20 @@ def compute_score(article: Article) -> dict[str, Any]:
     """
     source: Source | None = article.source if hasattr(article, "source") else None
 
+    # ML-predicted dimensions (falls back to 3.0 if model not loaded)
+    ml_scores = {"audience_fit": 3.0, "practical_relevance": 3.0, "novelty": 3.0}
+    scorer = get_ml_scorer()
+    if scorer:
+        title = article.title or ""
+        text = article.excerpt or article.cleaned_text or ""
+        ml_scores = scorer.predict(title, text)
+
     components: dict[str, float] = {
         "source_credibility": _score_source_credibility(source),
         "recency": _score_recency(article.published_at),
-        "audience_fit": 3.0,             # LLM-assisted; placeholder
-        "practical_relevance": 3.0,      # LLM-assisted; placeholder
-        "novelty": 3.0,                  # LLM-assisted; placeholder
+        "audience_fit": ml_scores["audience_fit"],
+        "practical_relevance": ml_scores["practical_relevance"],
+        "novelty": ml_scores["novelty"],
         "cross_source_confirmation": 1.0,  # Conservative default; updated after clustering
         "content_richness": _score_content_richness(article),
         "engagement_signal": 3.0,        # Unavailable in v1
