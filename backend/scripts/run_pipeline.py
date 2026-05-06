@@ -172,6 +172,7 @@ def main(triggered_by: str = "cron") -> int:
         translate_clusters,
         generate_draft,
         translate_drafts,
+        send_digest_email,
     )
 
     stages: list[tuple[str, Callable[[], int]]] = [
@@ -184,6 +185,7 @@ def main(triggered_by: str = "cron") -> int:
         ("translate_clusters",    lambda: translate_clusters.main(["--batch-size", "50"])),
         ("generate_draft",        lambda: generate_draft.main([])),
         ("translate_drafts",      lambda: translate_drafts.main(["--batch-size", "20"])),
+        ("send_digest_email",     lambda: send_digest_email.main([])),
     ]
 
     failures: list[str] = []
