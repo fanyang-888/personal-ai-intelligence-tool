@@ -2,7 +2,13 @@
 
 > **Sip** your morning news. **Supply** yourself with signal, not noise.
 
-Sipply is a full-stack AI news intelligence tool that continuously ingests articles from 10+ trusted AI sources, clusters and summarises them with GPT-4o-mini, and surfaces a bilingual (EN / Chinese) daily digest with role-personalised newsletter drafts.
+**Problem:** AI professionals lose hours daily sifting 10+ publications to find decision-relevant signal.
+
+**Solution:** A production pipeline that ingests, scores, clusters, and summarises AI news into a role-personalised daily brief — automatically, bilingually, at under $1/day.
+
+- Replaced LLM-based scoring with a trained TF-IDF + Ridge model (422 GPT-labelled examples, Pearson r=0.75), cutting per-run inference cost to $0 while covering 44% of the relevance signal — enabling the system to scale to any volume without API cost growth
+- Shipped a complete 10-stage production pipeline (ingest → filter → ML score → cluster → cross-day dedup → summarise → translate) running 4×/day on Railway with Redis caching and automatic failover, serving real users a bilingual EN/ZH digest with zero manual intervention
+- Fine-tuned Qwen2.5-1.5B via LoRA on 780 knowledge-distilled GPT-4o-mini examples (ROUGE-L = 0.37), validating a path to eliminate LLM API dependency entirely at production scale
 
 **Live demo:** [sipply.dev](https://sipply.dev)
 
