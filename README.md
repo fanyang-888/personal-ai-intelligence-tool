@@ -46,23 +46,13 @@ So I built it — including the ingestion pipeline, the ML scoring model, the LL
 
 ## Architecture
 
-```
-Vercel (Next.js 16)
-    └── NEXT_PUBLIC_API_URL
-            │
-            ▼
-Railway (FastAPI)                  Railway (Cron — 4x/day)
-    ├── GET  /api/digest/today     └── ingest → filter → score
-    ├── GET  /api/clusters/{id}        → cluster → dedup → summarize
-    ├── GET  /api/drafts/{id}          → translate → draft → translate
-    ├── GET  /api/search
-    └── POST /api/admin/*  (protected)
-            │
-            ▼
-    PostgreSQL + Redis (Railway managed)
-```
+![System Architecture](docs/System_Architecture.png)
 
 The backend is **stateless**. All state lives in PostgreSQL. Redis caches hot endpoints (5-min TTL) and is busted after each successful pipeline run.
+
+## Pipeline
+
+![Pipeline Data Flow](docs/Pipeline_DataFlow.png)
 
 ---
 
