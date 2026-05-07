@@ -52,7 +52,49 @@ The backend is **stateless**. All state lives in PostgreSQL. Redis caches hot en
 
 ## Pipeline
 
-![Pipeline Data Flow](docs/Pipeline_DataFlow.png)
+```mermaid
+flowchart LR
+    SRC["Sources\n13 feeds"]
+
+    subgraph COLLECT["Data Collection"]
+        direction TB
+        S1["1 · Ingest\nRSS + HTML\nETag gate"]
+        S2["2 · Filter\nKeyword + length\n+ hash dedup"]
+        S1 --> S2
+    end
+
+    subgraph SCORE["Scoring & Clustering"]
+        direction TB
+        S3["3 · Score\nRule-based +\nTF-IDF Ridge ML"]
+        S4["4 · Cluster\nCosine similarity\ngreedy merge"]
+        S5["5 · Status\nnew / escalating\npeaking / fading"]
+        S6["6 · Dedup\nCross-day\nstory merge"]
+        S3 --> S4 --> S5 --> S6
+    end
+
+    subgraph GENERATE["LLM Generation"]
+        direction TB
+        S7["7 · Summarize\nGPT-4o-mini\n3-role context"]
+        S8["8 · Translate\nClusters to ZH"]
+        S9["9 · Draft\nLinkedIn style\nPM / Dev / Student"]
+        S10["10 · Translate\nDrafts to ZH"]
+        S7 --> S8 --> S9 --> S10
+    end
+
+    subgraph DELIVER["Delivery"]
+        direction TB
+        S11["11 · Email\nResend API\nto subscribers"]
+        CACHE["Redis cache bust\nai_tool:*"]
+        S11 --> CACHE
+    end
+
+    SRC --> COLLECT --> SCORE --> GENERATE --> DELIVER
+
+    style COLLECT  fill:#f0f9ff,stroke:#0ea5e9
+    style SCORE    fill:#faf5ff,stroke:#9333ea
+    style GENERATE fill:#fefce8,stroke:#ca8a04
+    style DELIVER  fill:#f0fdf4,stroke:#16a34a
+```
 
 ---
 
