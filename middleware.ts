@@ -1,22 +1,25 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const COOKIE_NAME = "admin_session";
+const SESSION_COOKIE = "admin_session";
 
-export function proxy(request: NextRequest) {
+/**
+ * Lightweight route guard for /admin/* pages.
+ * Checks for the presence of the httpOnly session cookie set by /api/admin-auth.
+ * Real HMAC validation + JWT auth happens inside admin-proxy and FastAPI.
+ */
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip the login page itself to avoid redirect loop
+  // Skip login page to avoid redirect loop
   if (pathname.startsWith("/admin/login")) {
     return NextResponse.next();
   }
 
   // Protect all /admin/* routes
   if (pathname.startsWith("/admin")) {
-    const session = request.cookies.get(COOKIE_NAME)?.value;
-    const secret = process.env.ADMIN_SECRET;
-
-    if (!secret || !session || session !== secret) {
+    const session = request.cookies.get(SESSION_COOKIE)?.value;
+    if (!session) {
       const loginUrl = new URL("/admin/login", request.url);
       loginUrl.searchParams.set("from", pathname);
       return NextResponse.redirect(loginUrl);

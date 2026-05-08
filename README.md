@@ -7,7 +7,7 @@
 **Solution:** A production pipeline that ingests, scores, clusters, and summarises AI news into a role-personalised daily brief — automatically, bilingually, at under $1/day.
 
 - Replaced LLM-based scoring with a trained TF-IDF + Ridge model (422 GPT-labelled examples, Pearson r=0.75), cutting per-run inference cost to $0 while covering 44% of the relevance signal — enabling the system to scale to any volume without API cost growth
-- Shipped a complete 10-stage production pipeline (ingest → filter → ML score → cluster → cross-day dedup → summarise → translate) running 4×/day on Railway with Redis caching and automatic failover, serving real users a bilingual EN/ZH digest with zero manual intervention
+- Shipped a complete 11-stage production pipeline (ingest → filter → ML score → cluster → cross-day dedup → summarise → translate → draft → email) running daily on Railway, serving real users a bilingual EN/ZH digest with zero manual intervention
 - Fine-tuned Qwen2.5-1.5B via LoRA on 780 knowledge-distilled GPT-4o-mini examples (ROUGE-L = 0.37), validating a path to eliminate LLM API dependency entirely at production scale
 
 **Live demo:** [sipply.dev](https://sipply.dev)
@@ -31,7 +31,7 @@ So I built it — including the ingestion pipeline, the ML scoring model, the LL
 
 | | |
 |--|--|
-| Auto-ingestion | Fetches full article text from 10+ sources every 6 hours via Railway cron |
+| Auto-ingestion | Fetches full article text from 13 sources daily via Railway cron; incremental via HTTP ETag + poll-frequency gate |
 | Smart filtering | Rule-based gate (keyword match + length + dedup) removes off-topic articles at zero API cost |
 | ML signal scoring | Composite 0-100 score: rule-based dimensions (recency, source authority) + TF-IDF Ridge model predicting audience fit, practical relevance, and novelty |
 | Story clustering | TF-IDF + cosine similarity groups related articles into story threads |
@@ -39,8 +39,14 @@ So I built it — including the ingestion pipeline, the ML scoring model, the LL
 | Draft generation | GPT-4o-mini writes a LinkedIn-style newsletter draft for the top story |
 | Role personalisation | PM / Developer / Student lenses with tailored "why it matters" context |
 | Bilingual | Every field (title, summary, takeaways, draft) auto-translated to Chinese |
-| Recency ranking | Digest ranks stories by `score x e^(-0.15 x age_days)` — fresh beats stale |
+| Email digest | Daily digest sent to subscribers via Resend; subscribe bar on homepage |
+| Topic filter | Client-side tag filter on homepage; preferences saved to localStorage |
+| Social sharing | One-click LinkedIn and X/Twitter share from any draft page |
+| Dark / light mode | Theme toggle with localStorage persistence; all colours via CSS custom properties |
+| Recency ranking | Digest ranks stories by `score × e^(-0.15 × age_days)` — fresh beats stale |
 | Full-text search | Archive search across all clusters and articles |
+| SEO / Open Graph | Per-page `<title>` and `og:` tags for cluster and draft pages |
+| Error monitoring | Sentry integrated on frontend and backend (opt-in via env var) |
 
 ---
 
@@ -96,6 +102,8 @@ flowchart LR
     style DELIVER  fill:#f0fdf4,stroke:#16a34a
 ```
 
+Each stage is a standalone script in `backend/scripts/`; `run_pipeline.py` orchestrates them in sequence with per-stage timing, failure isolation, and a final Redis cache bust.
+
 ---
 
 ## Tech stack
@@ -109,27 +117,10 @@ flowchart LR
 | ML scoring | scikit-learn (TF-IDF + Ridge) | Predicts 3 relevance dimensions; trained on 422 GPT-labeled examples |
 | LLM fine-tune | Qwen2.5-1.5B + LoRA | Fine-tuned on 780 summarization examples; ROUGE-L=0.37 vs GPT-4o-mini |
 | AI | OpenAI GPT-4o-mini | summarise · translate · draft (cluster-level only) |
+| Email | Resend | Transactional digest delivery to subscribers |
+| Error monitoring | Sentry | Frontend + backend error capture (opt-in via `SENTRY_DSN`) |
 | Deployment | Vercel + Railway | Frontend CDN + managed Postgres/Redis/cron |
 | i18n | Custom `useI18n()` hook | Zero-dependency EN/ZH with type-safe translation keys |
-
----
-
-## Pipeline stages
-
-Each stage is a standalone script; `run_pipeline.py` orchestrates them in sequence.
-
-| # | Stage | Script | What it does |
-|---|-------|--------|-------------|
-| 1 | **Ingest** | `ingest_full_articles` | Fetches full HTML; deduplicates by URL; incremental via HTTP ETag + poll-frequency gate |
-| 2 | **Filter** | `filter_articles` | Rule-based gate: rejects short/off-topic/duplicate articles via regex + content hash (zero LLM cost) |
-| 3 | **Score** | `score_articles` | Composite signal score: rule-based dims (recency, source authority, content richness) + ML model for audience fit / practical relevance / novelty |
-| 4 | **Cluster** | `cluster_articles` | TF-IDF vectorisation → cosine similarity → greedy merge into story clusters |
-| 5 | **Status** | `update_cluster_status` | Labels clusters: `new` / `escalating` / `peaking` / `ongoing` / `fading` |
-| 6 | **Dedup** | `dedup_clusters` | Title-similarity merge across days so recurring stories accumulate evidence |
-| 7 | **Summarise** | `summarize` | GPT-4o-mini writes summary, 3 takeaways, and PM / dev / student audience blocks |
-| 8 | **Translate clusters** | `translate_clusters` | Translates all cluster text fields to Chinese |
-| 9 | **Draft** | `generate_draft` | GPT-4o-mini writes a LinkedIn newsletter draft for the highest-scoring cluster |
-| 10 | **Translate drafts** | `translate_drafts` | Translates all draft fields to Chinese |
 
 ---
 
@@ -237,6 +228,9 @@ python -m scripts.export_finetune_data --output-dir data/
 │   ├── i18n/               EN/ZH locale strings with typed keys
 │   └── data/               Static content (AI Basics daily rotation)
 ├── types/                  Shared TypeScript type definitions
+├── middleware.ts           Next.js edge middleware — admin route guard
+├── sentry.client.config.ts
+├── sentry.server.config.ts
 └── backend/
     ├── app/
     │   ├── adapters/       Per-source scrapers (RSS, HTML, arXiv, OpenAI, DeepMind...)
@@ -306,7 +300,7 @@ Deployed as two Railway services sharing one Postgres + Redis instance:
 | Service | Config | Schedule |
 |---------|--------|----------|
 | `personal-ai-intelligence-tool` | `railway.toml` | Always-on API |
-| `daily-pipeline-cron` | `railway.cron.toml` | 02:00 / 08:00 / 14:00 / 20:00 UTC |
+| `daily-pipeline-cron` | `railway.cron.toml` | 02:00 UTC daily |
 
 On startup, `alembic upgrade head` runs in a background thread so Railway's healthcheck passes immediately.
 
@@ -320,14 +314,20 @@ Required environment variables:
 | `APP_ENV` | `production` |
 | `JWT_SECRET` | Signs admin JWT tokens |
 | `ADMIN_USERNAME` / `ADMIN_PASSWORD` | Admin login credentials |
+| `ADMIN_SECRET` | Signs the Next.js admin session cookie |
+| `RESEND_API_KEY` | Email delivery for daily digest |
+| `SENTRY_DSN` | *(optional)* Backend error reporting |
+| `LLM_COST_ALERT_USD` | *(optional)* Daily LLM spend alert threshold (default: $2.00) |
 
 ### Frontend (Vercel)
 
-Auto-deploys from GitHub. Set one environment variable:
+Auto-deploys from GitHub. Set environment variables:
 
-```
-NEXT_PUBLIC_API_URL=https://personal-ai-intelligence-tool-production.up.railway.app
-```
+| Variable | Purpose |
+|----------|---------|
+| `NEXT_PUBLIC_API_URL` | Railway backend URL |
+| `NEXT_PUBLIC_SENTRY_DSN` | *(optional)* Frontend error reporting |
+| `SENTRY_ORG` / `SENTRY_PROJECT` | *(optional)* Source map upload |
 
 ---
 
@@ -351,6 +351,9 @@ GET /api/drafts/{id}?role=student     # Student / job-seeker lens
 # Full-text search
 GET /api/search?q=GPT-5&type=cluster
 
+# Subscribe to email digest
+POST /api/subscribe   { "email": "..." }
+
 # Interactive docs
 GET /docs
 ```
@@ -363,7 +366,10 @@ GET /docs
 TF-IDF + cosine similarity runs locally with no API calls, adds zero cost per run, and works well on the short article excerpts we ingest. Vector embeddings would improve recall across semantically similar but lexically different articles — a natural next upgrade.
 
 **Why GPT-4o-mini instead of a larger model?**
-The pipeline runs 4x per day across 10+ sources. Filtering and scoring are handled by rule-based logic and a local ML model (zero API cost). GPT-4o-mini is only used for summarisation, translation, and draft generation — keeping total cost under $1/day.
+The pipeline runs daily across 13 sources. Filtering and scoring are handled by rule-based logic and a local ML model (zero API cost). GPT-4o-mini is only used for summarisation, translation, and draft generation — keeping total cost under $1/day.
 
 **Why Redis cache with 5-min TTL?**
 The digest and cluster list endpoints are hit on every page load. Caching avoids repeated Postgres aggregation queries. The pipeline explicitly busts the cache (`ai_tool:*`) after every successful run so stale data never persists beyond one cycle.
+
+**Why incremental RSS ingestion?**
+Each source has a configurable `fetch_frequency_minutes`. The ingest script skips sources polled too recently (`last_polled_at` gate) and sends `If-None-Match` ETag headers so unchanged feeds return HTTP 304 with zero parsing cost — saving bandwidth and avoiding source rate limits.
