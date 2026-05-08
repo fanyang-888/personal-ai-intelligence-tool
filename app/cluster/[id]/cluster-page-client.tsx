@@ -8,6 +8,7 @@ import { ErrorState } from "@/components/shared/error-state";
 import { useI18n } from "@/lib/i18n";
 import { fetchCluster } from "@/lib/api";
 import { apiClusterToCluster } from "@/lib/api/mappers";
+import { trackEvent } from "@/lib/api/track";
 import type { Cluster } from "@/types/cluster";
 
 export function ClusterPageClient() {
@@ -21,6 +22,7 @@ export function ClusterPageClient() {
 
   useEffect(() => {
     if (!id) return;
+    trackEvent("cluster_viewed", id);
     let cancelled = false;
 
     async function load() {

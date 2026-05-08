@@ -23,9 +23,9 @@ export const en: Translations = {
     subtitle:
       "Top ranked AI updates with cross-source synthesis and practical context",
     emptyFeaturedTitle: "No featured story",
-    emptyFeaturedDesc: "Add a featured cluster in mock data.",
-    emptyDraftTitle: "No draft of the day",
-    emptyDraftDesc: "Mock digest has no draft entry.",
+    emptyFeaturedDesc: "Today's featured story will appear here once the pipeline has run.",
+    emptyDraftTitle: "Draft coming soon",
+    emptyDraftDesc: "The draft of the day will be ready after today's pipeline completes.",
     topClusters: "Top Story Clusters",
     viewAllInsights: "View all daily insights",
     emptyClustersTitle: "Waiting for more data",
@@ -175,6 +175,8 @@ export const en: Translations = {
     suggestedHashtags: "Suggested hashtags",
     copyDraft: "Copy draft",
     copied: "Copied",
+    shareOnLinkedIn: "Share on LinkedIn",
+    shareOnX: "Post on X",
     regenerate: "Regenerate draft",
     formatVariantHint: (variant, total) =>
       `Variant ${variant} of ${total} (local mock)`,

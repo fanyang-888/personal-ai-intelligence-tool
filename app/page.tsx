@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { formatDigestDate } from "@/lib/utils/format-date";
 import { useI18n } from "@/lib/i18n";
@@ -16,6 +16,7 @@ import { SippyHero } from "@/components/layout/sipply-hero";
 import { SectionBlock } from "@/components/shared/section-block";
 import { SectionTitle } from "@/components/shared/section-title";
 import { EmptyState } from "@/components/shared/empty-state";
+import { TopicFilter } from "@/components/shared/topic-filter";
 import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { fetchTodayDigest, fetchTodayDraft } from "@/lib/api";
@@ -32,6 +33,7 @@ export default function HomePage() {
   const [draftOfDay, setDraftOfDay] = useState<Draft | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [topicFilter, setTopicFilter] = useState<string[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -65,6 +67,16 @@ export default function HomePage() {
   const relatedStoryTitle = draftOfDay && featured
     ? pickLocalized(featured.title, lang)
     : undefined;
+
+  const allTags = useMemo(() => {
+    const seen = new Set<string>();
+    topClusters.forEach(c => (c.tags || []).forEach(t => seen.add(t)));
+    return [...seen];
+  }, [topClusters]);
+
+  const filteredClusters = topicFilter.length > 0
+    ? topClusters.filter(c => (c.tags || []).some(t => topicFilter.includes(t)))
+    : topClusters;
 
   if (loading) {
     return <LoadingState layout="digest" />;
@@ -117,8 +129,9 @@ export default function HomePage() {
         <SectionTitle>{t.home.topClusters}</SectionTitle>
         {topClusters.length > 0 ? (
           <>
+            <TopicFilter tags={allTags} onChange={setTopicFilter} />
             <ul className="space-y-4">
-              {topClusters.map((c) => (
+              {filteredClusters.map((c) => (
                 <ClusterCard key={c.id} cluster={c} />
               ))}
             </ul>

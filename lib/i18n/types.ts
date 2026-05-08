@@ -165,6 +165,8 @@ export type Translations = {
     suggestedHashtags: string;
     copyDraft: string;
     copied: string;
+    shareOnLinkedIn: string;
+    shareOnX: string;
     regenerate: string;
     formatVariantHint: (variant: number, total: number) => string;
     regenerateNoVariants: string;

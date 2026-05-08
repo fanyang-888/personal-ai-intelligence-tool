@@ -53,6 +53,12 @@ CLUSTER_MODEL = "gpt-4o-mini"
 MAX_ARTICLE_WORDS = 1200   # truncate article text before sending
 MAX_CLUSTER_ARTICLES = 8   # max articles summaries to include in cluster prompt
 
+# OpenAI pricing (USD per 1M tokens) — update if pricing changes
+_PRICE_INPUT: dict[str, float] = {"gpt-4o-mini": 0.15, "gpt-4o": 2.50}
+_PRICE_OUTPUT: dict[str, float] = {"gpt-4o-mini": 0.60, "gpt-4o": 10.00}
+# Daily cost alert threshold (USD) — log a WARNING if exceeded
+DAILY_COST_ALERT_USD = float(__import__("os").getenv("LLM_COST_ALERT_USD", "1.0"))
+
 # Prompt E: patterns that signal a generic / low-quality summary
 _GENERIC_PATTERNS = (
     "this article ",
@@ -109,8 +115,17 @@ def _truncate_words(text: str, max_words: int) -> str:
     return " ".join(words[:max_words]) + " [...]"
 
 
-def _call_llm(client, model: str, system: str, user: str) -> dict[str, Any]:
-    """Call the OpenAI API and return parsed JSON. Raises on failure."""
+def _estimate_cost(model: str, prompt_tokens: int, completion_tokens: int) -> float:
+    """Return estimated USD cost for one LLM call."""
+    input_rate = _PRICE_INPUT.get(model, 2.50)
+    output_rate = _PRICE_OUTPUT.get(model, 10.00)
+    return prompt_tokens / 1_000_000 * input_rate + completion_tokens / 1_000_000 * output_rate
+
+
+def _call_llm(
+    client, model: str, system: str, user: str
+) -> tuple[dict[str, Any], float]:
+    """Call the OpenAI API and return (parsed_json, estimated_cost_usd). Raises on failure."""
     response = client.chat.completions.create(
         model=model,
         response_format={"type": "json_object"},
@@ -122,7 +137,11 @@ def _call_llm(client, model: str, system: str, user: str) -> dict[str, Any]:
         max_tokens=800,
     )
     raw = response.choices[0].message.content or "{}"
-    return json.loads(raw)
+    usage = response.usage
+    prompt_tokens = getattr(usage, "prompt_tokens", 0) or 0
+    completion_tokens = getattr(usage, "completion_tokens", 0) or 0
+    cost = _estimate_cost(model, prompt_tokens, completion_tokens)
+    return json.loads(raw), cost
 
 
 # ---------------------------------------------------------------------------
@@ -152,9 +171,9 @@ def _article_user_prompt(article: Article) -> str:
     return f"Source: {source}\nTitle: {article.title}\n\n---ARTICLE---\n{body}"
 
 
-def summarize_article(client, article: Article) -> dict[str, Any]:
-    """Call LLM and return summary dict. Applies Prompt E quality rewrite if needed."""
-    data = _call_llm(client, ARTICLE_MODEL, _ARTICLE_SYSTEM, _article_user_prompt(article))
+def summarize_article(client, article: Article) -> tuple[dict[str, Any], float]:
+    """Call LLM and return (summary_dict, cost_usd). Applies Prompt E quality rewrite if needed."""
+    data, cost = _call_llm(client, ARTICLE_MODEL, _ARTICLE_SYSTEM, _article_user_prompt(article))
     short = (data.get("short_summary") or "").strip()
     why = (data.get("why_it_matters") or "").strip()
     if _is_low_quality(short) or _is_low_quality(why):
@@ -166,14 +185,15 @@ def summarize_article(client, article: Article) -> dict[str, Any]:
                 f"Source: {article.organization_name or 'Unknown'}\n"
                 f"Title: {article.title}"
             )
-            rewrite = _call_llm(client, ARTICLE_MODEL, _REWRITE_SYSTEM, rewrite_user)
+            rewrite, rewrite_cost = _call_llm(client, ARTICLE_MODEL, _REWRITE_SYSTEM, rewrite_user)
+            cost += rewrite_cost
             if rewrite.get("short_summary"):
                 data["short_summary"] = rewrite["short_summary"]
             if rewrite.get("why_it_matters"):
                 data["why_it_matters"] = rewrite["why_it_matters"]
         except Exception:
             logger.warning("prompt_e rewrite failed article id=%s, keeping original", article.id)
-    return data
+    return data, cost
 
 
 def _apply_article_summary(article: Article, data: dict[str, Any]) -> None:
@@ -222,8 +242,8 @@ def _cluster_user_prompt(cluster: Cluster, articles: list[Article]) -> str:
     )
 
 
-def summarize_cluster(client, cluster: Cluster, articles: list[Article]) -> dict[str, Any]:
-    """Call LLM and return cluster summary dict. Does not write to DB."""
+def summarize_cluster(client, cluster: Cluster, articles: list[Article]) -> tuple[dict[str, Any], float]:
+    """Call LLM and return (cluster_summary_dict, cost_usd). Does not write to DB."""
     return _call_llm(client, CLUSTER_MODEL, _CLUSTER_SYSTEM, _cluster_user_prompt(cluster, articles))
 
 
@@ -260,20 +280,31 @@ def summarize_unsummarized_articles(db: Session, batch_size: int = 50) -> dict[s
     )
 
     processed = skipped = 0
+    total_cost = 0.0
     for article in articles:
         try:
-            data = summarize_article(client, article)
+            data, cost = summarize_article(client, article)
             _apply_article_summary(article, data)
+            total_cost += cost
             processed += 1
-            logger.info("summarized article id=%s title=%.60s", article.id, article.title)
+            logger.info("summarized article id=%s title=%.60s cost=$%.4f", article.id, article.title, cost)
         except Exception:
             logger.exception("failed to summarize article id=%s", article.id)
             skipped += 1
 
     if processed:
         db.commit()
-    logger.info("article summarization done: processed=%d skipped=%d", processed, skipped)
-    return {"processed": processed, "skipped": skipped}
+
+    if total_cost >= DAILY_COST_ALERT_USD:
+        logger.warning(
+            "LLM_COST_ALERT: article summarization batch cost=$%.4f exceeds threshold=$%.2f",
+            total_cost, DAILY_COST_ALERT_USD,
+        )
+    logger.info(
+        "article summarization done: processed=%d skipped=%d estimated_cost=$%.4f",
+        processed, skipped, total_cost,
+    )
+    return {"processed": processed, "skipped": skipped, "estimated_cost_usd": round(total_cost, 4)}
 
 
 def summarize_unsummarized_clusters(db: Session, batch_size: int = 20) -> dict[str, int]:
@@ -292,6 +323,7 @@ def summarize_unsummarized_clusters(db: Session, batch_size: int = 20) -> dict[s
     )
 
     processed = skipped = 0
+    total_cost = 0.0
     for cluster in clusters:
         try:
             articles = list(
@@ -306,8 +338,9 @@ def summarize_unsummarized_clusters(db: Session, batch_size: int = 20) -> dict[s
                 skipped += 1
                 continue
 
-            data = summarize_cluster(client, cluster, articles)
+            data, cost = summarize_cluster(client, cluster, articles)
             _apply_cluster_summary(cluster, data)
+            total_cost += cost
 
             # Propagate tags/entities from articles to cluster if not set
             if not cluster.tags:
@@ -324,5 +357,14 @@ def summarize_unsummarized_clusters(db: Session, batch_size: int = 20) -> dict[s
 
     if processed:
         db.commit()
-    logger.info("cluster summarization done: processed=%d skipped=%d", processed, skipped)
-    return {"processed": processed, "skipped": skipped}
+
+    if total_cost >= DAILY_COST_ALERT_USD:
+        logger.warning(
+            "LLM_COST_ALERT: cluster summarization batch cost=$%.4f exceeds threshold=$%.2f",
+            total_cost, DAILY_COST_ALERT_USD,
+        )
+    logger.info(
+        "cluster summarization done: processed=%d skipped=%d estimated_cost=$%.4f",
+        processed, skipped, total_cost,
+    )
+    return {"processed": processed, "skipped": skipped, "estimated_cost_usd": round(total_cost, 4)}

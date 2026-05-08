@@ -204,6 +204,53 @@ def list_sources(
 
 
 # ---------------------------------------------------------------------------
+# Event stats (click tracking)
+# ---------------------------------------------------------------------------
+
+class EventStats(BaseModel):
+    type: str
+    top_entities: list[dict]   # [{entity_id, count}] sorted descending
+    daily_totals: list[dict]   # [{date, count}] last 7 days
+
+
+@router.get("/events", response_model=list[EventStats])
+def get_event_stats(
+    _user: str = Depends(get_current_user),
+) -> list[EventStats]:
+    """Return click-tracking stats from Redis counters."""
+    from datetime import date, timedelta
+    results: list[EventStats] = []
+    try:
+        from app.cache import _get_client
+        client = _get_client()
+        if client is None:
+            return []
+        event_types = [
+            "draft_copied", "draft_shared_linkedin", "draft_shared_x",
+            "cluster_viewed", "draft_viewed",
+        ]
+        today = date.today()
+        for etype in event_types:
+            # Top entities by lifetime count
+            raw = client.hgetall(f"events:{etype}") or {}
+            top = sorted(
+                [{"entity_id": k, "count": int(v)} for k, v in raw.items()],
+                key=lambda x: x["count"],
+                reverse=True,
+            )[:20]
+            # Daily totals for last 7 days
+            daily: list[dict] = []
+            for i in range(7):
+                d = (today - timedelta(days=i)).isoformat()
+                count = int(client.get(f"events:daily:{d}:{etype}") or 0)
+                daily.append({"date": d, "count": count})
+            results.append(EventStats(type=etype, top_entities=top, daily_totals=daily))
+    except Exception as exc:
+        logger.warning("get_event_stats error: %s", exc)
+    return results
+
+
+# ---------------------------------------------------------------------------
 # Articles browser
 # ---------------------------------------------------------------------------
 

@@ -7,6 +7,7 @@ import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { fetchDraft } from "@/lib/api";
 import { apiDraftToDraft } from "@/lib/api/mappers";
+import { trackEvent } from "@/lib/api/track";
 import { useI18n } from "@/lib/i18n";
 import type { Draft } from "@/types/draft";
 import type { LocalizedString } from "@/types/localized";
@@ -90,6 +91,7 @@ export function DraftPageClient() {
   useEffect(() => {
     if (!id) return;
     load(id, role);
+    if (role === null) trackEvent("draft_viewed", id); // track once on first load
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, role]);
 

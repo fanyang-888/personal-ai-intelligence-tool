@@ -137,7 +137,7 @@ def _call_openai(batch: list[dict], client) -> list[dict]:
                 ],
                 temperature=0.1,        # low temperature for consistent scoring
                 response_format={"type": "json_object"},
-                max_tokens=len(batch) * 40 + 50,
+                max_tokens=len(batch) * 100 + 200,
             )
             raw = response.choices[0].message.content.strip()
 
@@ -304,7 +304,7 @@ def run(
         logger.error("OPENAI_API_KEY not set in .env")
         sys.exit(1)
 
-    client = OpenAI(api_key=api_key.get_secret_value())
+    client = OpenAI(api_key=api_key.get_secret_value().strip())
 
     # ---- Process in batches ----
     labeled = 0

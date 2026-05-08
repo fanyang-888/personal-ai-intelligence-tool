@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { useI18n } from "@/lib/i18n";
+import { pickLocalized } from "@/lib/utils/localized-string";
 import { DraftHeader } from "@/components/draft/draft-header";
 import { DraftRelatedStory } from "@/components/draft/draft-related-story";
 import { LinkedInDraftBody } from "@/components/draft/linkedin-draft-body";
@@ -99,10 +100,12 @@ export function DraftPageView({
         fullText={fullText}
         characterCount={fullText.length}
         clusterId={clusterId}
+        draftId={draft.id}
         variantIndex={variantIndex}
         variantTotal={slices.length}
         onRegenerate={handleRegenerate}
         showRegenerateNoop={showRegenerateNoop}
+        tweetText={pickLocalized(activeContent.hook, lang).slice(0, 200)}
       />
 
       <aside className="mt-10 rounded-lg border border-dashed p-4 text-sm [border-color:var(--border)] [background:var(--surface2)] [color:var(--text)]">

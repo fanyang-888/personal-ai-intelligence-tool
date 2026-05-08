@@ -12,7 +12,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.rate_limit import limiter
 
 from app.api.routes import health
-from app.api.routes import digest, clusters, search, drafts, pipeline_runs, admin, auth, subscribe
+from app.api.routes import digest, clusters, search, drafts, pipeline_runs, admin, auth, subscribe, events
 from app.logging_config import configure_logging
 
 configure_logging()
@@ -117,3 +117,4 @@ app.include_router(pipeline_runs.router)
 app.include_router(admin.router)
 app.include_router(auth.router)
 app.include_router(subscribe.router)
+app.include_router(events.router)
