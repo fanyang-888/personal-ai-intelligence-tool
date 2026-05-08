@@ -77,7 +77,7 @@ function MiniBarChart({ daily }: { daily: { date: string; count: number }[] }) {
   );
 }
 
-function EventCard({ stat, t }: { stat: EventStats; t: typeof L["en"] }) {
+function EventCard({ stat, t }: { stat: EventStats; t: typeof L[keyof typeof L] }) {
   const top3 = stat.top_entities.slice(0, 3);
   const allZero = stat.daily_totals.every((d) => d.count === 0) && top3.every((e) => e.count === 0);
 
