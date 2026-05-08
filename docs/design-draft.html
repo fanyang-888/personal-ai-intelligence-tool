@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sipply — Daily AI Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=IBM+Plex+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+
+  /* ══════════════════════════════════════════
+     DARK THEME (default)
+  ══════════════════════════════════════════ */
+  :root,
+  [data-theme="dark"] {
+    --bg:           #080c12;
+    --surface:      #0e1420;
+    --surface2:     #131c2a;
+    --border:       #1e2d42;
+    --accent:       #4a9eff;
+    --accent-dim:   #1f4d7a;
+    --accent-faint: rgba(74,158,255,.06);
+    --text:         #d4e4f7;
+    --text-muted:   #5a7a9a;
+    --text-dim:     #2a4060;
+    --red:          #e05470;
+    --green:        #34d399;
+    --masthead-bg:  rgba(8,12,18,.94);
+    --ticker-text:  #080c12;
+    --shadow:       none;
+  }
+
+  /* ══════════════════════════════════════════
+     LIGHT THEME
+  ══════════════════════════════════════════ */
+  [data-theme="light"] {
+    --bg:           #f5f8ff;
+    --surface:      #ffffff;
+    --surface2:     #edf3ff;
+    --border:       #c9d9f0;
+    --accent:       #1d6fe8;
+    --accent-dim:   #93bbf6;
+    --accent-faint: rgba(29,111,232,.05);
+    --text:         #0b1829;
+    --text-muted:   #4a6480;
+    --text-dim:     #9ab0c8;
+    --red:          #e02d55;
+    --green:        #0d9e6a;
+    --masthead-bg:  rgba(245,248,255,.92);
+    --ticker-text:  #f5f8ff;
+    --shadow:       0 1px 12px rgba(29,111,232,.08);
+  }
+
+  /* ══════════════════════════════════════════
+     RESET & BASE
+  ══════════════════════════════════════════ */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+    transition: background .3s, color .3s;
+  }
+
+  /* ══════════════════════════════════════════
+     TICKER
+  ══════════════════════════════════════════ */
+  .ticker {
+    background: var(--accent);
+    color: var(--ticker-text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .06em;
+    padding: 6px 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .ticker-inner {
+    display: inline-block;
+    animation: scroll 44s linear infinite;
+  }
+  .ticker-inner span { margin: 0 48px; }
+  @keyframes scroll { from { transform: translateX(0) } to { transform: translateX(-50%) } }
+
+  /* ══════════════════════════════════════════
+     MASTHEAD
+  ══════════════════════════════════════════ */
+  .masthead {
+    border-bottom: 1px solid var(--border);
+    padding: 18px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: var(--masthead-bg);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    z-index: 100;
+    transition: background .3s, border-color .3s;
+    box-shadow: var(--shadow);
+  }
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: -.5px;
+    color: var(--text);
+  }
+  .logo span { color: var(--accent); }
+
+  .masthead-right {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+  .nav a {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color .2s;
+  }
+  .nav a:hover, .nav a.active { color: var(--accent); }
+
+  /* ── Theme toggle ── */
+  .theme-toggle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    transition: border-color .2s, background .2s, color .2s;
+    flex-shrink: 0;
+  }
+  .theme-toggle:hover {
+    border-color: var(--accent-dim);
+    color: var(--accent);
+  }
+
+  /* ── Lang toggle ── */
+  .lang-toggle {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .1em;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    transition: border-color .3s;
+  }
+  .lang-toggle button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    padding: 5px 10px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+    letter-spacing: inherit;
+    transition: background .2s, color .2s;
+  }
+  .lang-toggle button.active {
+    background: var(--accent);
+    color: var(--ticker-text);
+    font-weight: 600;
+  }
+
+  /* ══════════════════════════════════════════
+     DATE BAR
+  ══════════════════════════════════════════ */
+  .date-bar {
+    padding: 20px 48px 16px;
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+    border-bottom: 1px solid var(--border);
+    transition: border-color .3s;
+  }
+  .date-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .date-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: .05em;
+  }
+  .pipeline-badge {
+    margin-left: auto;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--green);
+    letter-spacing: .08em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pipeline-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1 } 50% { opacity: .3 } }
+
+  /* ══════════════════════════════════════════
+     MAIN GRID
+  ══════════════════════════════════════════ */
+  .main {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 0;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 48px;
+  }
+
+  /* ══════════════════════════════════════════
+     FEATURED
+  ══════════════════════════════════════════ */
+  .featured {
+    padding: 48px 48px 48px 0;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    transition: border-color .3s;
+  }
+  .section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent-dim);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-label::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 1px;
+    background: var(--accent-dim);
+  }
+  .featured-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -.5px;
+    margin-bottom: 20px;
+    color: var(--text);
+    transition: color .3s;
+  }
+  .featured-headline em {
+    font-style: italic;
+    color: var(--accent);
+  }
+  .meta-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--text-muted);
+    transition: border-color .3s, color .3s;
+  }
+  .tag.accent { border-color: var(--accent-dim); color: var(--accent); }
+  .score-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ticker-text);
+    background: var(--accent);
+    padding: 3px 9px;
+    border-radius: 2px;
+    letter-spacing: .05em;
+    transition: color .3s, background .3s;
+  }
+  .featured-summary {
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--text-muted);
+    margin-bottom: 28px;
+    max-width: 600px;
+    transition: color .3s;
+  }
+  .takeaways {
+    background: var(--surface2);
+    border-left: 2px solid var(--accent);
+    padding: 16px 20px;
+    margin-bottom: 28px;
+    max-width: 600px;
+    transition: background .3s, border-color .3s;
+  }
+  .takeaways-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent-dim);
+    margin-bottom: 10px;
+  }
+  .takeaways li {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.65;
+    margin-bottom: 6px;
+    padding-left: 16px;
+    position: relative;
+    list-style: none;
+    transition: color .3s;
+  }
+  .takeaways li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--accent-dim);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .btn-primary {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    background: var(--accent);
+    color: var(--ticker-text);
+    border: none;
+    padding: 11px 22px;
+    cursor: pointer;
+    font-weight: 600;
+    border-radius: 2px;
+    transition: opacity .2s;
+  }
+  .btn-primary:hover { opacity: .85; }
+  .btn-ghost {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    background: none;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    padding: 11px 22px;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: border-color .2s, color .2s;
+  }
+  .btn-ghost:hover { border-color: var(--accent-dim); color: var(--accent); }
+  .btn-row { display: flex; gap: 12px; }
+
+  /* ══════════════════════════════════════════
+     SIDEBAR
+  ══════════════════════════════════════════ */
+  .sidebar {
+    padding: 48px 0 48px 40px;
+    border-bottom: 1px solid var(--border);
+    transition: border-color .3s;
+  }
+  .stat-block {
+    margin-bottom: 32px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+    transition: border-color .3s;
+  }
+  .stat-block:last-child { border-bottom: none; margin-bottom: 0; }
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 4px;
+    transition: color .3s;
+  }
+  .stat-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    transition: color .3s;
+  }
+  .source-list {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .source-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    transition: color .3s;
+  }
+  .source-item .dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: .6;
+  }
+
+  /* ══════════════════════════════════════════
+     CLUSTERS
+  ══════════════════════════════════════════ */
+  .clusters-section {
+    padding: 48px 0;
+    grid-column: 1 / -1;
+  }
+  .clusters-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28px;
+  }
+  .cluster-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    transition: background .3s, border-color .3s;
+  }
+  .cluster-card {
+    background: var(--surface);
+    padding: 28px;
+    transition: background .2s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .cluster-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .3s;
+  }
+  .cluster-card:hover { background: var(--surface2); }
+  .cluster-card:hover::after { transform: scaleX(1); }
+  .cluster-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .1em;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    transition: color .3s;
+  }
+  .cluster-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin-bottom: 12px;
+    color: var(--text);
+    transition: color .3s;
+  }
+  .cluster-summary {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.65;
+    margin-bottom: 20px;
+    transition: color .3s;
+  }
+  .cluster-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .cluster-sources {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: .06em;
+    transition: color .3s;
+  }
+  .signal-bar { display: flex; align-items: center; gap: 8px; }
+  .signal-track {
+    width: 60px;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .signal-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+  .signal-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--accent-dim);
+    letter-spacing: .04em;
+    transition: color .3s;
+  }
+
+  /* ══════════════════════════════════════════
+     DRAFT
+  ══════════════════════════════════════════ */
+  .draft-section {
+    grid-column: 1 / -1;
+    padding: 48px 0;
+    border-top: 1px solid var(--border);
+    transition: border-color .3s;
+  }
+  .draft-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    transition: background .3s, border-color .3s;
+    border-radius: 2px;
+    box-shadow: var(--shadow);
+  }
+  .draft-body { padding: 40px; }
+  .draft-type {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent-dim);
+    margin-bottom: 16px;
+    transition: color .3s;
+  }
+  .draft-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 20px;
+    color: var(--text);
+    transition: color .3s;
+  }
+  .draft-preview {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.8;
+    margin-bottom: 28px;
+    font-style: italic;
+    border-left: 1px solid var(--border);
+    padding-left: 20px;
+    transition: color .3s, border-color .3s;
+  }
+  .draft-side {
+    border-left: 1px solid var(--border);
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: var(--accent-faint);
+    transition: border-color .3s, background .3s;
+  }
+  .role-tabs { display: flex; flex-direction: column; gap: 4px; }
+  .role-tab {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .08em;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    text-align: left;
+    transition: all .2s;
+    text-transform: uppercase;
+    border-radius: 2px;
+  }
+  .role-tab.active, .role-tab:hover {
+    border-color: var(--accent-dim);
+    color: var(--accent);
+    background: var(--surface);
+  }
+  .char-count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: .06em;
+    transition: color .3s;
+  }
+
+  /* ══════════════════════════════════════════
+     SUBSCRIBE
+  ══════════════════════════════════════════ */
+  .subscribe-section {
+    grid-column: 1 / -1;
+    padding: 72px 0;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: border-color .3s;
+  }
+  .subscribe-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--accent-dim);
+    margin-bottom: 16px;
+    transition: color .3s;
+  }
+  .subscribe-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text);
+    transition: color .3s;
+  }
+  .subscribe-sub {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 32px;
+    max-width: 400px;
+    line-height: 1.65;
+    transition: color .3s;
+  }
+  .subscribe-form {
+    display: flex;
+    gap: 0;
+    max-width: 440px;
+    width: 100%;
+  }
+  .subscribe-form input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-right: none;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    padding: 13px 16px;
+    outline: none;
+    transition: border-color .2s, background .3s, color .3s;
+    letter-spacing: .03em;
+    border-radius: 2px 0 0 2px;
+  }
+  .subscribe-form input::placeholder { color: var(--text-dim); }
+  .subscribe-form input:focus { border-color: var(--accent-dim); }
+  .subscribe-form button {
+    background: var(--accent);
+    color: var(--ticker-text);
+    border: none;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: 13px 24px;
+    cursor: pointer;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: opacity .2s;
+    border-radius: 0 2px 2px 0;
+  }
+  .subscribe-form button:hover { opacity: .85; }
+
+  /* ══════════════════════════════════════════
+     FOOTER
+  ══════════════════════════════════════════ */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1280px;
+    margin: 0 auto;
+    transition: border-color .3s;
+  }
+  footer .logo-sm {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--text-dim);
+    transition: color .3s;
+  }
+  footer .logo-sm span { color: var(--accent-dim); }
+  footer p {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: .06em;
+    transition: color .3s;
+  }
+
+  /* ══════════════════════════════════════════
+     VIEW ALL LINK (used inline)
+  ══════════════════════════════════════════ */
+  .view-all {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color .2s;
+  }
+  .view-all:hover { color: var(--accent); }
+
+</style>
+</head>
+<body>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner">
+    <span>ANTHROPIC · Claude 4 Opus released with 200K context</span>
+    <span>OPENAI · GPT-5 scores 96.3% on MMLU benchmark</span>
+    <span>GOOGLE · Gemini Ultra 2 outperforms on coding tasks</span>
+    <span>META · Llama 4 weights released under open license</span>
+    <span>MISTRAL · Mixture-of-experts model drops to $0.12/M tokens</span>
+    <span>ARXIV · Speculative decoding cuts inference latency by 3.2x</span>
+    <span>ANTHROPIC · Claude 4 Opus released with 200K context</span>
+    <span>OPENAI · GPT-5 scores 96.3% on MMLU benchmark</span>
+    <span>GOOGLE · Gemini Ultra 2 outperforms on coding tasks</span>
+    <span>META · Llama 4 weights released under open license</span>
+    <span>MISTRAL · Mixture-of-experts model drops to $0.12/M tokens</span>
+    <span>ARXIV · Speculative decoding cuts inference latency by 3.2x</span>
+  </div>
+</div>
+
+<!-- MASTHEAD -->
+<header class="masthead">
+  <div class="logo">Sipply<span>.</span></div>
+  <nav class="nav">
+    <a href="#" class="active">Daily Digest</a>
+    <a href="#">Archive</a>
+    <a href="#">Draft of the Day</a>
+  </nav>
+  <div class="masthead-right">
+    <button class="theme-toggle" id="themeToggle" title="Toggle theme" aria-label="Toggle light/dark mode">☀</button>
+    <div class="lang-toggle">
+      <button class="active">EN</button>
+      <button>中文</button>
+    </div>
+  </div>
+</header>
+
+<!-- DATE BAR -->
+<div class="date-bar">
+  <span class="date-label">Intelligence Brief</span>
+  <span class="date-value">Wednesday, May 7, 2026 · Issue #214</span>
+  <span class="pipeline-badge">Pipeline updated 2h ago</span>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+  <!-- FEATURED STORY -->
+  <section class="featured">
+    <div class="section-label">Featured Story</div>
+    <h1 class="featured-headline">
+      OpenAI's GPT-5 Arrives —<br>
+      <em>and Quietly Redraws</em><br>
+      the Benchmark Map
+    </h1>
+    <div class="meta-row">
+      <span class="tag accent">Model Release</span>
+      <span class="tag">Research</span>
+      <span class="tag">Pricing</span>
+      <span class="score-badge">94.2</span>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:.06em;">7 sources · escalating</span>
+    </div>
+    <p class="featured-summary">
+      GPT-5 launched with a 96.3% MMLU score and multimodal reasoning capabilities that outperform GPT-4o across all standard benchmarks. Priced at $15/M input tokens — 3× cheaper per intelligence unit than its predecessor — it signals OpenAI's shift from capability racing to cost efficiency as the primary competitive vector.
+    </p>
+    <div class="takeaways">
+      <div class="takeaways-label">Three takeaways</div>
+      <ul>
+        <li>GPT-5 sets a new ceiling on reasoning benchmarks, but real-world coding evaluations show mixed results versus Claude 4</li>
+        <li>The $15/M pricing undercuts the previous generation at comparable capability, compressing margins for fine-tuned model startups</li>
+        <li>Native tool-use and code interpreter are now unified — eliminating the need for orchestration middleware in most workflows</li>
+      </ul>
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary">Read Full Story</button>
+      <button class="btn-ghost">Open Draft</button>
+    </div>
+  </section>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="stat-block">
+      <div class="stat-num">214</div>
+      <div class="stat-label">Daily issues published</div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-num">18</div>
+      <div class="stat-label">Clusters today</div>
+      <div class="source-list">
+        <div class="source-item"><span>OpenAI News</span><span class="dot"></span></div>
+        <div class="source-item"><span>Anthropic Newsroom</span><span class="dot"></span></div>
+        <div class="source-item"><span>Google DeepMind</span><span class="dot"></span></div>
+        <div class="source-item"><span>arXiv cs.AI</span><span class="dot"></span></div>
+        <div class="source-item"><span>VentureBeat AI</span><span class="dot"></span></div>
+        <div class="source-item" style="color:var(--text-dim)"><span>+ 8 more sources</span></div>
+      </div>
+    </div>
+    <div class="stat-block">
+      <div class="stat-num">$0.82</div>
+      <div class="stat-label">Pipeline cost today</div>
+    </div>
+  </aside>
+
+  <!-- STORY CLUSTERS -->
+  <section class="clusters-section">
+    <div class="clusters-header">
+      <div class="section-label" style="margin-bottom:0">Top Story Clusters</div>
+      <a href="#" class="view-all">View all 18 →</a>
+    </div>
+    <div class="cluster-grid">
+
+      <div class="cluster-card">
+        <div class="cluster-num">02 / 18</div>
+        <div class="cluster-title">Anthropic Releases Claude 4 With 200K Context Window</div>
+        <div class="cluster-summary">Constitutional AI v2 enables longer-horizon tasks with dramatically reduced hallucination rates in extended reasoning chains.</div>
+        <div class="cluster-footer">
+          <span class="cluster-sources">5 sources · new</span>
+          <div class="signal-bar">
+            <div class="signal-track"><div class="signal-fill" style="width:88%"></div></div>
+            <span class="signal-num">88.1</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="cluster-card">
+        <div class="cluster-num">03 / 18</div>
+        <div class="cluster-title">Speculative Decoding Paper Claims 3.2× Inference Speedup</div>
+        <div class="cluster-summary">New arXiv pre-print demonstrates a draft-then-verify architecture reducing latency without accuracy loss across 7 model families.</div>
+        <div class="cluster-footer">
+          <span class="cluster-sources">3 sources · peaking</span>
+          <div class="signal-bar">
+            <div class="signal-track"><div class="signal-fill" style="width:79%"></div></div>
+            <span class="signal-num">79.4</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="cluster-card">
+        <div class="cluster-num">04 / 18</div>
+        <div class="cluster-title">Meta's Llama 4 Released — Open Weights, MoE Architecture</div>
+        <div class="cluster-summary">The 405B mixture-of-experts model is available under a permissive license, immediately pressuring closed API pricing across the industry.</div>
+        <div class="cluster-footer">
+          <span class="cluster-sources">6 sources · escalating</span>
+          <div class="signal-bar">
+            <div class="signal-track"><div class="signal-fill" style="width:85%"></div></div>
+            <span class="signal-num">85.7</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- DRAFT OF THE DAY -->
+  <section class="draft-section">
+    <div class="section-label" style="margin-bottom:24px">Draft of the Day</div>
+    <div class="draft-card">
+      <div class="draft-body">
+        <div class="draft-type">LinkedIn · Newsletter Draft</div>
+        <div class="draft-title">GPT-5 changes the cost curve. Here's what that means for your team.</div>
+        <div class="draft-preview">
+          "The real story in GPT-5 isn't the benchmark score — it's $15/M input tokens. That's roughly 3× cheaper per intelligence unit than GPT-4o for equivalent tasks. For teams running inference at scale, this isn't a marginal improvement. It's a repricing event..."
+        </div>
+        <div class="btn-row">
+          <button class="btn-primary">Open Full Draft</button>
+          <button class="btn-ghost">Copy Draft</button>
+        </div>
+      </div>
+      <div class="draft-side">
+        <div>
+          <div class="takeaways-label" style="margin-bottom:12px">Audience lens</div>
+          <div class="role-tabs">
+            <button class="role-tab active">Product Manager</button>
+            <button class="role-tab">Developer</button>
+            <button class="role-tab">Student / Job Seeker</button>
+          </div>
+        </div>
+        <div class="char-count">1,842 / 3,000 characters</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUBSCRIBE -->
+  <section class="subscribe-section">
+    <div class="subscribe-eyebrow">Daily Intelligence</div>
+    <h2 class="subscribe-headline">Stay in the loop.</h2>
+    <p class="subscribe-sub">Receive the digest the moment each pipeline run completes. No noise — only signal.</p>
+    <div class="subscribe-form">
+      <input type="email" placeholder="your@email.com">
+      <button>Subscribe</button>
+    </div>
+  </section>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="logo-sm">Sipply<span>.</span></div>
+  <p>Pipeline runs 4× daily · 13 sources · under $1/day</p>
+  <p>sipply.dev</p>
+</footer>
+
+<script>
+  // ── Theme toggle ──────────────────────────────
+  const html = document.documentElement;
+  const btn  = document.getElementById('themeToggle');
+
+  function applyTheme(theme) {
+    html.setAttribute('data-theme', theme);
+    btn.textContent = theme === 'dark' ? '☀' : '☾';
+    btn.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+    try { localStorage.setItem('sipply-theme', theme); } catch(e) {}
+  }
+
+  // Load saved preference
+  const saved = (() => { try { return localStorage.getItem('sipply-theme'); } catch(e) { return null; } })();
+  applyTheme(saved || 'dark');
+
+  btn.addEventListener('click', () => {
+    applyTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  });
+
+  // ── Role tab toggle ───────────────────────────
+  document.querySelectorAll('.role-tab').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.role-tab').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+    });
+  });
+
+  // ── Lang toggle ───────────────────────────────
+  document.querySelectorAll('.lang-toggle button').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.lang-toggle button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

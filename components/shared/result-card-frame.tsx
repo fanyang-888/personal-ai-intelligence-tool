@@ -10,20 +10,20 @@ export type ResultCardVariant =
 
 const variantClass: Record<ResultCardVariant, string> = {
   digest:
-    "rounded-xl border border-l-[3px] bg-white p-4 shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md cursor-pointer" +
-    " [border-color:var(--sp-border)]",
+    "rounded-xl border border-l-[3px] p-4 shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md cursor-pointer" +
+    " [background:var(--surface)] [border-color:var(--border)]",
   digestFeatured:
-    "rounded-xl border border-l-4 bg-white p-6 shadow-sm sm:p-8 transition-all duration-200 hover:shadow-lg" +
-    " [border-color:var(--sp-border)]",
+    "rounded-xl border border-l-4 p-6 shadow-sm sm:p-8 transition-all duration-200 hover:shadow-lg" +
+    " [background:var(--surface)] [border-color:var(--border)]",
   digestMuted:
-    "rounded-xl border bg-white/60 shadow-sm transition-colors duration-150 hover:bg-white" +
-    " [border-color:var(--sp-border)]",
+    "rounded-xl border p-4 shadow-sm transition-colors duration-150 opacity-80 hover:opacity-100" +
+    " [background:var(--surface)] [border-color:var(--border)]",
   archiveCluster:
-    "rounded-xl border bg-white p-4 shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md" +
-    " [border-color:var(--sp-border)] hover:[border-color:var(--sp-accent-mid)]",
+    "rounded-xl border p-4 shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md" +
+    " [background:var(--surface)] [border-color:var(--border)] hover:[border-color:var(--accent-dim)]",
   archiveArticle:
-    "rounded-lg border border-l-[3px] bg-white/70 py-3 pl-4 pr-3 transition-colors duration-150 hover:bg-white" +
-    " [border-color:var(--sp-border)] [border-left-color:var(--sp-accent-mid)]",
+    "rounded-lg border border-l-[3px] py-3 pl-4 pr-3 transition-colors duration-150" +
+    " [background:var(--surface)] [border-color:var(--border)] [border-left-color:var(--accent-dim)]",
 };
 
 /** Maps storyStatus keys → left-border blue tones (darkest = peaking, lightest = fading). */

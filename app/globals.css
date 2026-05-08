@@ -1,42 +1,99 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;1,300;1,400&family=Plus+Jakarta+Sans:wght@300;400;500&display=swap');
 
-:root {
-  --background: #deeef7;
-  --foreground: #0a2d45;
+/* ── Dark theme (default) ── */
+:root,
+[data-theme="dark"] {
+  --bg:           #080c12;
+  --surface:      #0e1420;
+  --surface2:     #131c2a;
+  --border:       #1e2d42;
+  --accent:       #4a9eff;
+  --accent-dim:   #1f4d7a;
+  --accent-faint: rgba(74,158,255,.06);
+  --text:         #d4e4f7;
+  --text-muted:   #5a7a9a;
+  --text-dim:     #2a4060;
+  --red:          #e05470;
+  --green:        #34d399;
+  --masthead-bg:  rgba(8,12,18,.94);
+  --ticker-text:  #080c12;
+  --shadow:       none;
 
-  /* Sipply palette */
-  --sp-navy:       #0e3f62;
-  --sp-navy-mid:   #163f5c;
-  --sp-navy-light: #1a5280;
-  --sp-accent:     #5dc8f5;
-  --sp-accent-mid: #1a7aad;
-  --sp-accent-dim: #2e7da8;
-  --sp-border:     #c8dfe9;
-  --sp-card:       #ffffff;
-  --sp-feed:       #f2f8fc;
-  --sp-sidebar:    #e6f2f9;
-  --sp-chip:       #d4eaf5;
-  --sp-muted:      #4a7a96;
-  --sp-muted-2:    #6a9eb8;
-  --sp-muted-3:    #8ab8ce;
+  /* backward-compat aliases */
+  --sp-navy:       var(--text);
+  --sp-navy-mid:   var(--surface2);
+  --sp-navy-light: var(--border);
+  --sp-accent:     var(--accent);
+  --sp-accent-mid: var(--accent);
+  --sp-accent-dim: var(--accent-dim);
+  --sp-border:     var(--border);
+  --sp-card:       var(--surface);
+  --sp-feed:       var(--bg);
+  --sp-sidebar:    var(--surface2);
+  --sp-chip:       var(--surface2);
+  --sp-muted:      var(--text-muted);
+  --sp-muted-2:    var(--text-muted);
+  --sp-muted-3:    var(--text-dim);
+
+  /* Tailwind compat */
+  --background: var(--bg);
+  --foreground: var(--text);
+}
+
+/* ── Light theme ── */
+[data-theme="light"] {
+  --bg:           #f5f8ff;
+  --surface:      #ffffff;
+  --surface2:     #edf3ff;
+  --border:       #c9d9f0;
+  --accent:       #1d6fe8;
+  --accent-dim:   #93bbf6;
+  --accent-faint: rgba(29,111,232,.05);
+  --text:         #0b1829;
+  --text-muted:   #4a6480;
+  --text-dim:     #9ab0c8;
+  --red:          #e02d55;
+  --green:        #0d9e6a;
+  --masthead-bg:  rgba(245,248,255,.92);
+  --ticker-text:  #f5f8ff;
+  --shadow:       0 1px 12px rgba(29,111,232,.08);
+
+  /* backward-compat aliases */
+  --sp-navy:       var(--text);
+  --sp-navy-mid:   var(--surface2);
+  --sp-navy-light: var(--border);
+  --sp-accent:     var(--accent);
+  --sp-accent-mid: var(--accent);
+  --sp-accent-dim: var(--accent-dim);
+  --sp-border:     var(--border);
+  --sp-card:       var(--surface);
+  --sp-feed:       var(--bg);
+  --sp-sidebar:    var(--surface2);
+  --sp-chip:       var(--surface2);
+  --sp-muted:      var(--text-muted);
+  --sp-muted-2:    var(--text-muted);
+  --sp-muted-3:    var(--text-dim);
+
+  /* Tailwind compat */
+  --background: var(--bg);
+  --foreground: var(--text);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: 'Plus Jakarta Sans', sans-serif;
-  --font-serif: 'Fraunces', serif;
-  --font-mono: ui-monospace, monospace;
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --font-sans: 'DM Sans', sans-serif;
+  --font-serif: 'Playfair Display', serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
 }
 
-/* Sipply water-drop animation for the brand mark */
+/* Sipply animations */
 @keyframes dropfall {
   0%, 80%, 100% { transform: translateY(0); opacity: 1; }
   90%            { transform: translateY(3px); opacity: 0.5; }
@@ -52,17 +109,20 @@ body {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Water surface — gentle 5px sway, much calmer than 18px */
 @keyframes sp-sway {
   from { transform: translateY(0); }
   to   { transform: translateY(-5px); }
 }
 
-/* Drop falls from straw tip to water surface, fades on impact, resets */
 @keyframes sp-drop {
   0%   { transform: translateY(0);    opacity: 1; }
   62%  { transform: translateY(74px); opacity: 1; }
   72%  { transform: translateY(80px); opacity: 0; }
   99%  { transform: translateY(80px); opacity: 0; }
   100% { transform: translateY(0);    opacity: 0; }
+}
+
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
 }
