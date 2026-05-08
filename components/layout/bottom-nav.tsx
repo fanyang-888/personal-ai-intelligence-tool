@@ -46,7 +46,7 @@ export function BottomNav() {
   return (
     <nav
       className="sm:hidden fixed bottom-0 left-0 right-0 z-50 flex"
-      style={{ background: "var(--sp-navy)", borderTop: "1px solid #1a3d57" }}
+      style={{ background: "var(--surface)", borderTop: "1px solid var(--border)" }}
       aria-label="Main navigation"
     >
       {tabs.map((tab) => {
@@ -63,8 +63,8 @@ export function BottomNav() {
             className="flex flex-1 flex-col items-center gap-1 py-2"
             style={{ paddingBottom: "calc(0.5rem + env(safe-area-inset-bottom, 0px))" }}
           >
-            <span style={{ stroke: active ? "#5dc8f5" : "#3d6a88" }}>{tab.icon}</span>
-            <span style={{ fontSize: "9px", letterSpacing: "0.04em", color: active ? "#5dc8f5" : "#3d6a88" }}>
+            <span style={{ stroke: active ? "var(--accent)" : "var(--text-dim)" }}>{tab.icon}</span>
+            <span style={{ fontSize: "9px", letterSpacing: "0.04em", color: active ? "var(--accent)" : "var(--text-muted)" }}>
               {tab.label}
             </span>
           </Link>
