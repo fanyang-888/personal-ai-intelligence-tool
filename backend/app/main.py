@@ -5,10 +5,11 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from starlette.middleware.base import BaseHTTPMiddleware
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
+from starlette.middleware.base import BaseHTTPMiddleware
+
+from app.rate_limit import limiter
 
 from app.api.routes import health
 from app.api.routes import digest, clusters, search, drafts, pipeline_runs, admin, auth, subscribe
@@ -16,12 +17,6 @@ from app.logging_config import configure_logging
 
 configure_logging()
 logger = logging.getLogger(__name__)
-
-# ---------------------------------------------------------------------------
-# Rate limiter (shared across all routes that opt in)
-# ---------------------------------------------------------------------------
-limiter = Limiter(key_func=get_remote_address, default_limits=[])
-
 
 def _run_startup_migrations() -> None:
     """Run alembic migrations and seed sources synchronously (called in background thread)."""

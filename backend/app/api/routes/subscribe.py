@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.main import limiter
+from app.rate_limit import limiter
 from app.models.subscriber import Subscriber
 
 logger = logging.getLogger(__name__)

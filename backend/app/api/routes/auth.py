@@ -11,7 +11,7 @@ from pydantic import BaseModel
 
 from app.auth import create_access_token, get_current_user
 from app.config import settings
-from app.main import limiter
+from app.rate_limit import limiter
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
