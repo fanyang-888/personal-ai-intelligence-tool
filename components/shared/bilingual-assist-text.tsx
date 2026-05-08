@@ -6,10 +6,10 @@ import type { LocalizedString } from "@/types/localized";
 import { isBilingual, pickLocalized } from "@/lib/utils/localized-string";
 
 /** In 中文 bilingual mode: EN is reference (lower contrast); ZH is reading focus. */
-const enMuted = "text-zinc-600";
-const zhPrimary = "text-zinc-900";
+const enMuted = "[color:var(--text-muted)]";
+const zhPrimary = "text-foreground";
 /** Subtle left rule on the ZH block for long bilingual passages. */
-const zhBlockContinuity = "border-l border-zinc-200/80 pl-3 sm:pl-3.5";
+const zhBlockContinuity = "border-l pl-3 sm:pl-3.5 [border-color:var(--border)]";
 
 function splitParas(text: string): string[] {
   return text
@@ -64,7 +64,7 @@ export function BilingualAssistBody({
         ))}
       </div>
       <div
-        className={`mt-3 space-y-3 border-t border-zinc-100 pt-3 ${enMuted} ${zhBlockContinuity}`}
+        className={`mt-3 space-y-3 border-t [border-color:var(--border)] pt-3 ${enMuted} ${zhBlockContinuity}`}
       >
         {enParas.map((p, i) => (
           <p key={`en-${i}`}>{p}</p>
@@ -87,7 +87,7 @@ export function BilingualAssistTakeawayItem({ value, lang }: TakeawayProps) {
     <div className="space-y-2">
       <p className={zhPrimary}>{value.zh}</p>
       <p
-        className={`border-t border-zinc-100 pt-2 ${enMuted} ${zhBlockContinuity}`}
+        className={`border-t [border-color:var(--border)] pt-2 ${enMuted} ${zhBlockContinuity}`}
       >
         {value.en}
       </p>
@@ -112,7 +112,7 @@ export function BilingualAssistLead({
     <div className={className}>
       <p className={`leading-snug ${zhPrimary}`}>{value.zh}</p>
       <p
-        className={`mt-2 border-t border-zinc-100 pt-2 leading-snug ${enMuted} ${zhBlockContinuity}`}
+        className={`mt-2 border-t [border-color:var(--border)] pt-2 leading-snug ${enMuted} ${zhBlockContinuity}`}
       >
         {value.en}
       </p>
@@ -138,7 +138,7 @@ export function BilingualAssistHeading({
       >
         {value.zh}
       </span>
-      <span className={`mt-2 block border-t border-zinc-100 pt-2 ${enMuted} ${zhBlockContinuity}`}>
+      <span className={`mt-2 block border-t [border-color:var(--border)] pt-2 ${enMuted} ${zhBlockContinuity}`}>
         {value.en}
       </span>
     </>
@@ -160,7 +160,7 @@ export function BilingualAssistSubline({
     <>
       <span className={`block text-sm ${zhPrimary}`}>{value.zh}</span>
       <span
-        className={`mt-1 block border-t border-dashed border-zinc-200 pt-1 text-sm ${enMuted} ${zhBlockContinuity}`}
+        className={`mt-1 block border-t border-dashed [border-color:var(--border)] pt-1 text-sm ${enMuted} ${zhBlockContinuity}`}
       >
         {value.en}
       </span>
@@ -183,7 +183,7 @@ export function BilingualAssistBreadcrumbTitle({
     <span className="line-clamp-4">
       <span className={`block ${enMuted}`}>{value.en}</span>
       <span
-        className={`mt-1 block border-l border-zinc-200/80 pl-2 text-sm sm:pl-3 ${zhPrimary}`}
+        className={`mt-1 block border-l [border-color:var(--border)]/80 pl-2 text-sm sm:pl-3 ${zhPrimary}`}
       >
         {value.zh}
       </span>
@@ -199,7 +199,7 @@ type BilingualTrustNoteProps = {
 export function BilingualTrustNote({ children }: BilingualTrustNoteProps) {
   return (
     <p
-      className="mb-4 rounded-md border border-dashed border-zinc-200 bg-zinc-50/80 px-3 py-2 text-xs leading-relaxed text-zinc-600"
+      className="mb-4 rounded-md border border-dashed px-3 py-2 text-xs leading-relaxed [border-color:var(--border)] [background:var(--surface2)] [color:var(--text-muted)]"
       role="note"
     >
       {children}

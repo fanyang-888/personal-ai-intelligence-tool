@@ -25,9 +25,9 @@ export function LinkedInDraftBody({ content, hashtagLine }: LinkedInDraftBodyPro
       : "";
 
   return (
-    <div className="rounded-lg border border-zinc-200 bg-white p-5 shadow-sm sm:p-6">
+    <div className="rounded-lg border p-5 shadow-sm sm:p-6 [border-color:var(--border)] [background:var(--surface)]">
       <section className="mb-8">
-        <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+        <p className="text-xs font-semibold uppercase tracking-wide [color:var(--text-muted)]">
           {t.draft.sectionHook}
         </p>
         <div className="mt-2">
@@ -86,11 +86,11 @@ export function LinkedInDraftBody({ content, hashtagLine }: LinkedInDraftBodyPro
       ) : null}
 
       {hashtagLine ? (
-        <section className="mt-8 border-t border-zinc-100 pt-6">
-          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+        <section className="mt-8 border-t pt-6 [border-color:var(--border)]">
+          <p className="text-xs font-semibold uppercase tracking-wide [color:var(--text-muted)]">
             {t.draft.suggestedHashtags}
           </p>
-          <p className="mt-2 text-sm leading-relaxed text-zinc-700">{hashtagLine}</p>
+          <p className="mt-2 text-sm leading-relaxed [color:var(--text)]">{hashtagLine}</p>
         </section>
       ) : null}
     </div>

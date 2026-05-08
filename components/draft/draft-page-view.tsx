@@ -105,7 +105,7 @@ export function DraftPageView({
         showRegenerateNoop={showRegenerateNoop}
       />
 
-      <aside className="mt-10 rounded-lg border border-dashed border-zinc-200 bg-zinc-50/80 p-4 text-sm text-zinc-700">
+      <aside className="mt-10 rounded-lg border border-dashed p-4 text-sm [border-color:var(--border)] [background:var(--surface2)] [color:var(--text)]">
         <p className="font-medium text-foreground">{t.draft.notesTitle}</p>
         <p className="mt-2 leading-relaxed">{t.draft.notesBody}</p>
       </aside>
