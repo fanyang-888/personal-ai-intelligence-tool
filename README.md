@@ -46,7 +46,6 @@ So I built it — including the ingestion pipeline, the ML scoring model, the LL
 | Recency ranking | Digest ranks stories by `score × e^(-0.15 × age_days)` — fresh beats stale |
 | Full-text search | Archive search across all clusters and articles |
 | SEO / Open Graph | Per-page `<title>` and `og:` tags for cluster and draft pages |
-| Error monitoring | Sentry integrated on frontend and backend (opt-in via env var) |
 
 ---
 
@@ -118,7 +117,6 @@ Each stage is a standalone script in `backend/scripts/`; `run_pipeline.py` orche
 | LLM fine-tune | Qwen2.5-1.5B + LoRA | Fine-tuned on 780 summarization examples; ROUGE-L=0.37 vs GPT-4o-mini |
 | AI | OpenAI GPT-4o-mini | summarise · translate · draft (cluster-level only) |
 | Email | Resend | Transactional digest delivery to subscribers |
-| Error monitoring | Sentry | Frontend + backend error capture (opt-in via `SENTRY_DSN`) |
 | Deployment | Vercel + Railway | Frontend CDN + managed Postgres/Redis/cron |
 | i18n | Custom `useI18n()` hook | Zero-dependency EN/ZH with type-safe translation keys |
 
@@ -228,9 +226,7 @@ python -m scripts.export_finetune_data --output-dir data/
 │   ├── i18n/               EN/ZH locale strings with typed keys
 │   └── data/               Static content (AI Basics daily rotation)
 ├── types/                  Shared TypeScript type definitions
-├── middleware.ts           Next.js edge middleware — admin route guard
-├── sentry.client.config.ts
-├── sentry.server.config.ts
+├── middleware.ts           Next.js middleware — admin route guard
 └── backend/
     ├── app/
     │   ├── adapters/       Per-source scrapers (RSS, HTML, arXiv, OpenAI, DeepMind...)
@@ -309,25 +305,19 @@ Required environment variables:
 | Variable | Purpose |
 |----------|---------|
 | `DATABASE_URL` | PostgreSQL connection string (`postgresql+psycopg://...`) |
-| `OPENAI_API_KEY` | GPT-4o-mini calls for summarisation, translation, and draft generation |
-| `REDIS_URL` | Auto-set by Railway Redis plugin |
-| `APP_ENV` | `production` |
-| `JWT_SECRET` | Signs admin JWT tokens |
-| `ADMIN_USERNAME` / `ADMIN_PASSWORD` | Admin login credentials |
-| `ADMIN_SECRET` | Signs the Next.js admin session cookie |
+| `OPENAI_API_KEY` | GPT-4o-mini — summarise, translate, draft |
 | `RESEND_API_KEY` | Email delivery for daily digest |
-| `SENTRY_DSN` | *(optional)* Backend error reporting |
-| `LLM_COST_ALERT_USD` | *(optional)* Daily LLM spend alert threshold (default: $2.00) |
+| `REDIS_URL` | Auto-set by Railway Redis plugin |
+| `JWT_SECRET` | Signs admin JWT tokens |
+| `ADMIN_USERNAME` / `ADMIN_PASSWORD` / `ADMIN_SECRET` | Admin login |
 
 ### Frontend (Vercel)
 
-Auto-deploys from GitHub. Set environment variables:
+Auto-deploys from GitHub. Set one environment variable:
 
-| Variable | Purpose |
-|----------|---------|
-| `NEXT_PUBLIC_API_URL` | Railway backend URL |
-| `NEXT_PUBLIC_SENTRY_DSN` | *(optional)* Frontend error reporting |
-| `SENTRY_ORG` / `SENTRY_PROJECT` | *(optional)* Source map upload |
+```
+NEXT_PUBLIC_API_URL=https://your-backend.up.railway.app
+```
 
 ---
 

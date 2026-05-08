@@ -1,6 +1,5 @@
 import type { NextConfig } from "next";
 import path from "path";
-import { withSentryConfig } from "@sentry/nextjs";
 
 const pagesBasePath = process.env.PAGES_BASE_PATH ?? "";
 
@@ -55,10 +54,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-  silent: true,
-  widenClientFileUpload: true,
-  sourcemaps: { disable: true },
-});
+export default nextConfig;

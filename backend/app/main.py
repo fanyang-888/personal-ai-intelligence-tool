@@ -49,19 +49,6 @@ async def lifespan(app: FastAPI):
 
 import os as _os
 
-# ---------------------------------------------------------------------------
-# Sentry — initialise before the app is created so all errors are captured
-# ---------------------------------------------------------------------------
-import sentry_sdk as _sentry_sdk
-_SENTRY_DSN = _os.getenv("SENTRY_DSN", "")
-if _SENTRY_DSN:
-    _sentry_sdk.init(
-        dsn=_SENTRY_DSN,
-        traces_sample_rate=0.05,
-        environment=_os.getenv("RAILWAY_ENVIRONMENT", "development"),
-        send_default_pii=False,
-    )
-
 _is_production = _os.getenv("APP_ENV", "development") == "production"
 
 app = FastAPI(
