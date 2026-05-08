@@ -12,8 +12,8 @@ function ThemeToggle() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
 
   useEffect(() => {
-    const current = document.documentElement.getAttribute("data-theme") as "dark" | "light" | null;
-    setTheme(current === "light" ? "light" : "dark");
+    const saved = document.documentElement.getAttribute("data-theme") as "dark" | "light";
+    setTheme(saved || "dark");
   }, []);
 
   function toggle() {
@@ -41,6 +41,7 @@ function ThemeToggle() {
         justifyContent: "center",
         fontSize: 14,
         flexShrink: 0,
+        transition: "border-color .2s, color .2s",
       }}
     >
       {theme === "dark" ? "☀" : "☾"}
@@ -66,17 +67,16 @@ export function TopNav() {
         boxShadow: "var(--shadow)",
       }}
     >
-      <div className="mx-auto flex max-w-[1280px] items-center gap-6 px-6 sm:px-10 h-14">
+      <div className="mx-auto flex max-w-[1280px] items-center gap-6 px-6 sm:px-10 py-0 h-14">
 
         {/* Brand */}
         <Link
           href="/"
-          className="shrink-0 flex items-center gap-2"
+          className="shrink-0 flex items-center gap-2 tracking-tight"
           style={{
             fontFamily: "'Playfair Display', serif",
             fontWeight: 900,
             fontSize: 22,
-            letterSpacing: "-.5px",
             color: "var(--text)",
             textDecoration: "none",
           }}
@@ -85,7 +85,7 @@ export function TopNav() {
           Sip<span style={{ color: "var(--accent)" }}>ply</span>
         </Link>
 
-        {/* Nav links — desktop */}
+        {/* Nav links */}
         <nav className="hidden sm:flex items-center gap-7" aria-label={t.nav.mainAria}>
           {[
             { href: "/", label: t.nav.dailyDigest, active: onDigest },
@@ -112,7 +112,7 @@ export function TopNav() {
 
         {/* Spacer + controls */}
         <div className="flex flex-1 items-center justify-end gap-3">
-          {/* Search bar — desktop */}
+          {/* Search — desktop */}
           <div className="hidden sm:block w-44 sm:w-52">
             <Suspense
               fallback={
@@ -126,7 +126,6 @@ export function TopNav() {
               <TopNavSearch />
             </Suspense>
           </div>
-
           {/* Search icon — mobile */}
           <Link
             href="/archive"
@@ -134,21 +133,10 @@ export function TopNav() {
             style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
             aria-label="Search"
           >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="var(--accent)"
-              strokeWidth={1.8}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              width={14}
-              height={14}
-            >
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" width={14} height={14}>
+              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
           </Link>
-
           <ThemeToggle />
           <LanguageToggle />
         </div>

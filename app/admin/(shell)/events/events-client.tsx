@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { apiFetchAdmin } from "@/lib/api/client";
+import { apiFetch } from "@/lib/api/client";
 import { useI18n } from "@/lib/i18n";
 
 type EventStats = {
@@ -77,7 +77,7 @@ function MiniBarChart({ daily }: { daily: { date: string; count: number }[] }) {
   );
 }
 
-function EventCard({ stat, t }: { stat: EventStats; t: typeof L[keyof typeof L] }) {
+function EventCard({ stat, t }: { stat: EventStats; t: typeof L["en"] }) {
   const top3 = stat.top_entities.slice(0, 3);
   const allZero = stat.daily_totals.every((d) => d.count === 0) && top3.every((e) => e.count === 0);
 
@@ -136,7 +136,7 @@ export function EventsClient() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    apiFetchAdmin<EventStats[]>("/api/admin/events")
+    apiFetch<EventStats[]>("/api/admin/events")
       .then(setEvents)
       .catch((e) => setError((e as Error).message))
       .finally(() => setLoading(false));

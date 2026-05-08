@@ -1,13 +1,13 @@
 export function Ticker() {
   const items = [
-    "ANTHROPIC · Leading reasoning benchmarks across all major evaluations",
+    "ANTHROPIC · Claude models leading reasoning benchmarks",
     "OPENAI · GPT-5 scores 96.3% on MMLU benchmark",
-    "GOOGLE · Gemini Ultra outperforms on multimodal coding tasks",
+    "GOOGLE · Gemini Ultra outperforms on coding tasks",
     "META · Llama open weights released under permissive license",
-    "MISTRAL · Mixture-of-experts model drops inference cost by 40%",
+    "MISTRAL · Mixture-of-experts model drops inference cost",
     "ARXIV · Speculative decoding cuts inference latency by 3.2×",
   ];
-  const doubled = [...items, ...items];
+  const repeated = [...items, ...items];
 
   return (
     <div
@@ -30,7 +30,7 @@ export function Ticker() {
           animation: "ticker-scroll 50s linear infinite",
         }}
       >
-        {doubled.map((item, i) => (
+        {repeated.map((item, i) => (
           <span key={i} style={{ margin: "0 40px" }}>
             {item}
           </span>

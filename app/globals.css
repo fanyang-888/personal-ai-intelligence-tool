@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=IBM+Plex+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
 @import "tailwindcss";
 
 /* ── Dark theme (default) ── */
@@ -19,7 +20,7 @@
   --ticker-text:  #080c12;
   --shadow:       none;
 
-  /* backward-compat aliases */
+  /* backward-compat aliases for existing components */
   --sp-navy:       var(--text);
   --sp-navy-mid:   var(--surface2);
   --sp-navy-light: var(--border);
@@ -34,10 +35,6 @@
   --sp-muted:      var(--text-muted);
   --sp-muted-2:    var(--text-muted);
   --sp-muted-3:    var(--text-dim);
-
-  /* Tailwind compat */
-  --background: var(--bg);
-  --foreground: var(--text);
 }
 
 /* ── Light theme ── */
@@ -73,10 +70,6 @@
   --sp-muted:      var(--text-muted);
   --sp-muted-2:    var(--text-muted);
   --sp-muted-3:    var(--text-dim);
-
-  /* Tailwind compat */
-  --background: var(--bg);
-  --foreground: var(--text);
 }
 
 @theme inline {
@@ -87,18 +80,18 @@
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 }
 
+* { transition: background-color .3s, border-color .3s, color .3s; }
+/* Don't animate layout-affecting properties */
+*, *::before, *::after { box-sizing: border-box; }
+
 body {
   background: var(--bg);
   color: var(--text);
   font-family: 'DM Sans', sans-serif;
+  transition: background .3s;
 }
 
 /* Sipply animations */
-@keyframes dropfall {
-  0%, 80%, 100% { transform: translateY(0); opacity: 1; }
-  90%            { transform: translateY(3px); opacity: 0.5; }
-}
-
 @keyframes sp-pulse {
   0%, 100% { opacity: 0.4; }
   50%       { opacity: 1; }
@@ -120,6 +113,11 @@ body {
   72%  { transform: translateY(80px); opacity: 0; }
   99%  { transform: translateY(80px); opacity: 0; }
   100% { transform: translateY(0);    opacity: 0; }
+}
+
+@keyframes dropfall {
+  0%, 80%, 100% { transform: translateY(0); opacity: 1; }
+  90%            { transform: translateY(3px); opacity: 0.5; }
 }
 
 @keyframes ticker-scroll {

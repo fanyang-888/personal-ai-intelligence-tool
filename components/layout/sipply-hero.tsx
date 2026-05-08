@@ -1,15 +1,19 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 export function SippyHero({ dateLabel }: { dateLabel: string }) {
+  const [pipelineAge, setPipelineAge] = useState("2h ago");
+
   return (
     <div
       style={{
         borderBottom: "1px solid var(--border)",
-        paddingBottom: "16px",
+        padding: "20px 0 16px",
         marginBottom: "40px",
         display: "flex",
         alignItems: "baseline",
-        gap: "16px",
+        gap: "20px",
         flexWrap: "wrap",
       }}
     >
@@ -57,7 +61,7 @@ export function SippyHero({ dateLabel }: { dateLabel: string }) {
             animation: "sp-pulse 2s infinite",
           }}
         />
-        Pipeline live
+        Pipeline updated {pipelineAge}
       </span>
     </div>
   );
