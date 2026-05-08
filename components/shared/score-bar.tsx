@@ -23,14 +23,14 @@ export function ScoreBar({ score, className = "" }: ScoreBarProps) {
 
   return (
     <div className={`mt-3 flex items-center gap-2 ${className}`}>
-      <span className="shrink-0 text-[10px] text-zinc-400">{label}</span>
-      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-zinc-100">
+      <span className="shrink-0 text-[10px] [color:var(--text-muted)]">{label}</span>
+      <div className="h-1.5 flex-1 overflow-hidden rounded-full [background:var(--surface2)]">
         <div
           className="h-full rounded-full transition-all duration-500"
           style={{ width: `${pct}%`, background: barColorStyle }}
         />
       </div>
-      <span className="w-6 shrink-0 text-right font-mono text-[10px] tabular-nums text-zinc-400">
+      <span className="w-6 shrink-0 text-right font-mono text-[10px] tabular-nums [color:var(--text-muted)]">
         {Math.round(pct)}
       </span>
     </div>

@@ -3,7 +3,7 @@
 import { Fragment, type ReactNode } from "react";
 
 const DEFAULT_MARK =
-  "rounded-sm bg-amber-200/90 px-0.5 font-semibold text-foreground dark:bg-amber-400/30";
+  "rounded-sm px-0.5 font-semibold text-foreground [background:color-mix(in_srgb,var(--accent)_20%,transparent)]";
 
 type HighlightMatchProps = {
   text: string;

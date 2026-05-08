@@ -29,8 +29,8 @@ export function SearchBar({
   name = "q",
 }: SearchBarProps) {
   const inputClasses = compact
-    ? `w-full min-w-0 rounded-md border border-zinc-300 bg-white px-2.5 py-1.5 text-sm text-foreground placeholder:text-zinc-400 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600 ${inputClassName}`
-    : `w-full rounded border border-zinc-300 bg-white px-3 py-2 text-sm text-foreground placeholder:text-zinc-400 focus:border-emerald-600 focus:outline-none focus:ring-1 focus:ring-emerald-600 ${inputClassName}`;
+    ? `w-full min-w-0 rounded-md border [border-color:var(--border)] [background:var(--surface2)] px-2.5 py-1.5 text-sm text-foreground placeholder:[color:var(--text-muted)] focus:[border-color:var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)] ${inputClassName}`
+    : `w-full rounded border [border-color:var(--border)] [background:var(--surface2)] px-3 py-2 text-sm text-foreground placeholder:[color:var(--text-muted)] focus:[border-color:var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)] ${inputClassName}`;
 
   return (
     <div className={compact ? `min-w-0 ${className}` : `mb-4 ${className}`}>

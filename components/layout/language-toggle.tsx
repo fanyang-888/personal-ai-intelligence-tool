@@ -29,7 +29,7 @@ export function LanguageToggle() {
       >
         EN
       </button>
-      <span className="text-xs text-zinc-300" aria-hidden>
+      <span className="text-xs [color:var(--border)]" aria-hidden>
         |
       </span>
       <button
