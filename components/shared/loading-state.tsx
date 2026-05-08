@@ -7,7 +7,7 @@ export type LoadingLayout = "digest" | "archive" | "detail";
 function Skeleton({ className }: { className: string }) {
   return (
     <div
-      className={`animate-pulse rounded-md bg-zinc-200/70 ${className}`}
+      className={`animate-pulse rounded-md [background:var(--surface2)] ${className}`}
       aria-hidden
     />
   );
