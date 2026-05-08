@@ -14,8 +14,8 @@ export function ResultModeToggle({ value, onChange }: ResultModeToggleProps) {
 
   const base =
     "rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600";
-  const active = "bg-white text-foreground shadow-sm";
-  const idle = "text-zinc-600 hover:text-foreground";
+  const active = "[background:var(--surface)] text-foreground shadow-sm";
+  const idle = "[color:var(--text-muted)] hover:text-foreground";
 
   return (
     <div
@@ -23,7 +23,7 @@ export function ResultModeToggle({ value, onChange }: ResultModeToggleProps) {
       role="radiogroup"
       aria-label={t.archive.resultModeGroupAria}
     >
-      <div className="inline-flex rounded-lg border border-zinc-200 bg-zinc-100/80 p-1">
+      <div className="inline-flex rounded-lg border [border-color:var(--border)] [background:var(--surface2)] p-1">
         <button
           type="button"
           role="radio"

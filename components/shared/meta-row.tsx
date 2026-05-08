@@ -19,7 +19,7 @@ type MetaRowProps = {
  * Horizontal metadata (label + value pairs). Prefer with sr-only labels where needed.
  */
 export function MetaRow({ items, className = "", dense = false }: MetaRowProps) {
-  const textCls = dense ? "text-xs text-zinc-500" : "text-sm text-zinc-600";
+  const textCls = dense ? "text-xs [color:var(--text-muted)]" : "text-sm [color:var(--text-muted)]";
   return (
     <dl
       className={`flex flex-wrap gap-x-4 gap-y-1 ${textCls} ${className}`.trim()}
@@ -28,7 +28,7 @@ export function MetaRow({ items, className = "", dense = false }: MetaRowProps) 
         <div key={item.key ?? String(i)} className="flex flex-wrap gap-x-1.5">
           <dt
             className={
-              item.labelSrOnly ? "sr-only" : "font-medium text-zinc-500"
+              item.labelSrOnly ? "sr-only" : "font-medium [color:var(--text-muted)]"
             }
           >
             {item.label}

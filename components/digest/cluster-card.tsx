@@ -67,13 +67,13 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
         />
       ) : null}
 
-      <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-zinc-600 sm:line-clamp-3">
+      <p className="mt-2 line-clamp-2 text-sm leading-relaxed [color:var(--text-muted)] sm:line-clamp-3">
         {pickLocalized(cluster.summary, lang)}
       </p>
 
       {sourcesLine ? (
         <p className={`mt-2 ${uiMetaText}`}>
-          <span className="font-medium text-zinc-600">
+          <span className="font-medium [color:var(--text-muted)]">
             {t.digest.sourcesPrefix}{" "}
           </span>
           {sourcesLine}

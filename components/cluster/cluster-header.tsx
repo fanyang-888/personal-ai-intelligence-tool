@@ -49,34 +49,34 @@ export function ClusterHeader({ cluster, articles }: ClusterHeaderProps) {
         </p>
       ) : null}
 
-      <p className="mt-3 text-sm font-medium text-zinc-700">
+      <p className="mt-3 text-sm font-medium [color:var(--text-muted)]">
         {t.cluster.formatReadTimeMinutes(readMinutes)}
       </p>
 
       {diversityLine ? (
-        <p className="mt-2 text-sm leading-snug text-zinc-600">{diversityLine}</p>
+        <p className="mt-2 text-sm leading-snug [color:var(--text-muted)]">{diversityLine}</p>
       ) : null}
 
-      <dl className="mt-4 grid gap-2 text-sm text-zinc-700 sm:grid-cols-2">
+      <dl className="mt-4 grid gap-2 text-sm [color:var(--text-muted)] sm:grid-cols-2">
         <div className="flex flex-wrap gap-x-2 sm:col-span-2">
-          <dt className="font-medium text-zinc-500">{t.cluster.headerLastUpdated}</dt>
+          <dt className="font-medium [color:var(--text-muted)]">{t.cluster.headerLastUpdated}</dt>
           <dd className="font-medium text-foreground">
             {formatShortDateTime(cluster.lastSeenAt, lang)}
           </dd>
         </div>
         <div className="flex flex-wrap gap-x-2">
-          <dt className="font-medium text-zinc-500">{t.cluster.headerStoryStatus}</dt>
+          <dt className="font-medium [color:var(--text-muted)]">{t.cluster.headerStoryStatus}</dt>
           <dd>{status}</dd>
         </div>
         <div className="flex flex-wrap gap-x-2">
-          <dt className="font-medium text-zinc-500">{t.cluster.headerSourceCount}</dt>
+          <dt className="font-medium [color:var(--text-muted)]">{t.cluster.headerSourceCount}</dt>
           <dd>{t.formatSourceCount(sourceCount)}</dd>
         </div>
         <div className="flex flex-wrap gap-x-2">
-          <dt className="font-medium text-zinc-500">{t.cluster.headerScore}</dt>
+          <dt className="font-medium [color:var(--text-muted)]">{t.cluster.headerScore}</dt>
           <dd>{scoreLabel}</dd>
         </div>
-        <div className="flex flex-wrap gap-x-2 sm:col-span-2 text-xs text-zinc-500">
+        <div className="flex flex-wrap gap-x-2 sm:col-span-2 text-xs [color:var(--text-muted)]">
           <dt className="font-medium">{t.cluster.headerFirstSeen}</dt>
           <dd>{formatShortDateTime(cluster.firstSeenAt, lang)}</dd>
         </div>

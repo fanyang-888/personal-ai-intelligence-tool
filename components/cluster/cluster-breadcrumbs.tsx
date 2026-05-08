@@ -14,14 +14,14 @@ export function ClusterBreadcrumbs({ clusterTitle }: ClusterBreadcrumbsProps) {
 
   return (
     <nav
-      className="mb-4 text-sm text-zinc-600"
+      className="mb-4 text-sm [color:var(--text-muted)]"
       aria-label={t.cluster.breadcrumbAria}
     >
       <ol className="flex flex-wrap items-center gap-x-1 gap-y-1">
         <li>
           <BackLink href="/">{t.nav.dailyDigest}</BackLink>
         </li>
-        <li className="text-zinc-400" aria-hidden>
+        <li className="[color:var(--text-muted)]" aria-hidden>
           /
         </li>
         <li className="min-w-0 font-medium text-foreground">

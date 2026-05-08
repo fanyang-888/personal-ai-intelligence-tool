@@ -297,7 +297,7 @@ export function ArchivePageClient() {
           <div className="flex items-baseline gap-2">
             <SectionTitle>{t.archive.results}</SectionTitle>
             {initialLoaded && !loading && total > 0 && (
-              <span className="text-sm text-zinc-500">
+              <span className="text-sm [color:var(--text-muted)]">
                 {resultMode === "clusters"
                   ? t.archive.resultCountStories(total)
                   : t.archive.resultCountArticles(total)}
@@ -311,7 +311,7 @@ export function ArchivePageClient() {
                 className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
                   sortBy === "score"
                     ? "bg-foreground text-background"
-                    : "text-zinc-500 hover:text-foreground"
+                    : "[color:var(--text-muted)] hover:text-foreground"
                 }`}
               >
                 {t.archive.sortBestMatch}
@@ -321,7 +321,7 @@ export function ArchivePageClient() {
                 className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
                   sortBy === "date"
                     ? "bg-foreground text-background"
-                    : "text-zinc-500 hover:text-foreground"
+                    : "[color:var(--text-muted)] hover:text-foreground"
                 }`}
               >
                 {t.archive.sortNewest}
@@ -350,7 +350,7 @@ export function ArchivePageClient() {
                   <button
                     onClick={handleLoadMore}
                     disabled={loadingMore}
-                    className="rounded-md border border-zinc-300 px-5 py-2 text-sm font-medium text-zinc-700 transition-colors hover:border-zinc-400 hover:text-foreground disabled:opacity-50"
+                    className="rounded-md border [border-color:var(--border)] px-5 py-2 text-sm font-medium [color:var(--text-muted)] transition-colors hover:[border-color:var(--border)] hover:text-foreground disabled:opacity-50"
                   >
                     {loadingMore ? t.archive.loadingMore : t.archive.loadMore(total - rows.length)}
                   </button>

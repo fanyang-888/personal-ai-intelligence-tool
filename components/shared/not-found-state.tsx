@@ -18,11 +18,11 @@ export function NotFoundState({
   const { t } = useI18n();
 
   return (
-    <div className="rounded-lg border border-zinc-200 bg-zinc-50/80 px-4 py-10 text-center shadow-sm">
+    <div className="rounded-lg border [border-color:var(--border)] [background:var(--surface2)] px-4 py-10 text-center shadow-sm">
       <h1 className="text-lg font-semibold text-foreground">
         {title ?? "Not found"}
       </h1>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-600">
+      <p className="mt-2 text-sm leading-relaxed [color:var(--text-muted)]">
         {message ?? "We could not find that page or item."}
       </p>
       {children ? <div className="mt-5">{children}</div> : null}

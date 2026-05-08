@@ -35,7 +35,7 @@ export function PageHeader({
     ? uiPageDescriptionCompact
     : uiPageDescription;
   const marginClass = variant === "home" ? "mb-10" : "mb-8";
-  const borderClass = bordered ? "border-b border-zinc-100 pb-8" : "";
+  const borderClass = bordered ? "border-b [border-color:var(--border)] pb-8" : "";
 
   return (
     <header className={`${borderClass} ${marginClass}`.trim()}>

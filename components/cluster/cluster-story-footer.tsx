@@ -15,7 +15,7 @@ export function ClusterStoryFooter({ nextCluster }: ClusterStoryFooterProps) {
   const { t, lang } = useI18n();
 
   return (
-    <footer className="mt-10 border-t border-zinc-200 pt-8">
+    <footer className="mt-10 border-t [border-color:var(--border)] pt-8">
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
           <BackLink href="/">{t.cluster.backToDigest}</BackLink>
@@ -29,7 +29,7 @@ export function ClusterStoryFooter({ nextCluster }: ClusterStoryFooterProps) {
           ) : null}
         </div>
         {!nextCluster ? (
-          <p className="text-sm text-zinc-600">
+          <p className="text-sm [color:var(--text-muted)]">
             {t.cluster.allCaughtUpToday}{" "}
             <Link href="/archive" className={uiTextLinkPrimary}>
               {t.cluster.caughtUpViewArchive}

@@ -28,7 +28,7 @@ export function ErrorState({
       <h1 className="text-lg font-semibold text-foreground">
         {title ?? t.error.title}
       </h1>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-700">
+      <p className="mt-2 text-sm leading-relaxed [color:var(--text-muted)]">
         {message ?? t.error.description}
       </p>
       {onRetry ? (

@@ -37,11 +37,11 @@ function ClusterArchiveCard({
           {row.title}
         </Link>
       </h3>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-600">
+      <p className="mt-2 text-sm leading-relaxed [color:var(--text-muted)]">
         <HighlightMatch text={row.summarySnippet} query={highlightQuery ?? ""} />
       </p>
       <p className={`mt-3 ${uiMetaText}`}>
-        <span className="font-medium text-zinc-600">{t.digest.sourcesPrefix} </span>
+        <span className="font-medium [color:var(--text-muted)]">{t.digest.sourcesPrefix} </span>
         {row.sourceLabels}
       </p>
     </ResultCardFrame>
@@ -60,7 +60,7 @@ function ArticleArchiveCard({
   return (
     <ResultCardFrame as="li" variant="archiveArticle">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <span className="text-xs font-semibold uppercase tracking-wide text-zinc-600">
+        <span className="text-xs font-semibold uppercase tracking-wide [color:var(--text-muted)]">
           {row.sourceName}
         </span>
         {row.publishedLabel ? (
@@ -79,15 +79,15 @@ function ArticleArchiveCard({
           {row.title}
         </a>
       </h3>
-      <p className="mt-1.5 text-sm leading-relaxed text-zinc-600">
+      <p className="mt-1.5 text-sm leading-relaxed [color:var(--text-muted)]">
         <HighlightMatch text={row.excerptSnippet} query={highlightQuery ?? ""} />
       </p>
-      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-zinc-600">
+      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs [color:var(--text-muted)]">
         <Badge>{row.themeLabel}</Badge>
-        <span className="text-zinc-400">·</span>
+        <span className="[color:var(--text-muted)]">·</span>
         <Link
           href={`/cluster/${row.clusterId}`}
-          className="text-zinc-600 underline-offset-2 hover:text-foreground hover:underline"
+          className="[color:var(--text-muted)] underline-offset-2 hover:text-foreground hover:underline"
         >
           {t.archive.relatedCluster}: {row.clusterTitle}
         </Link>

@@ -108,7 +108,7 @@ export function DraftActions({
           {t.draft.backToStory}
         </Link>
         <span
-          className={`text-sm tabular-nums ${overLimit ? "font-medium text-red-600" : "text-zinc-500"}`}
+          className={`text-sm tabular-nums ${overLimit ? "font-medium text-red-600" : "[color:var(--text-muted)]"}`}
           title={
             overLimit ? t.draft.characterCountOverSoftLimit : undefined
           }
@@ -121,12 +121,12 @@ export function DraftActions({
         </span>
       </ActionRow>
       {variantTotal > 1 ? (
-        <p className="mt-2 text-xs text-zinc-500">
+        <p className="mt-2 text-xs [color:var(--text-muted)]">
           {t.draft.formatVariantHint(variant, variantTotal)}
         </p>
       ) : null}
       {showRegenerateNoop ? (
-        <p className="mt-2 text-xs text-zinc-500" role="status">
+        <p className="mt-2 text-xs [color:var(--text-muted)]" role="status">
           {t.draft.regenerateNoVariants}
         </p>
       ) : null}

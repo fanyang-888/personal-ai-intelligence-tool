@@ -5,7 +5,7 @@ import { useI18n } from "@/lib/i18n";
 import type { SourceChannel } from "@/types/source";
 
 function ChannelIcon({ channel }: { channel: SourceChannel }) {
-  const cls = "h-3.5 w-3.5 shrink-0 text-zinc-600";
+  const cls = "h-3.5 w-3.5 shrink-0 [color:var(--text-muted)]";
   switch (channel) {
     case "email":
       return (
@@ -80,7 +80,7 @@ function ChannelIcon({ channel }: { channel: SourceChannel }) {
 }
 
 const badgeClass =
-  "inline-flex items-center gap-1 rounded-md border border-zinc-300 bg-white px-1.5 py-0.5 text-xs font-medium tabular-nums text-zinc-700 shadow-sm";
+  "inline-flex items-center gap-1 rounded-md border [border-color:var(--border)] [background:var(--surface)] px-1.5 py-0.5 text-xs font-medium tabular-nums [color:var(--text-muted)] shadow-sm";
 
 type SourceChannelBadgeProps = {
   channel: SourceChannel;
@@ -103,10 +103,10 @@ export function SourceChannelBadge({
   const inner = (
     <>
       <ChannelIcon channel={channel} />
-      <span aria-hidden className="text-zinc-500">
+      <span aria-hidden className="[color:var(--text-muted)]">
         {label}
       </span>
-      <span aria-hidden className="min-w-[1ch] text-zinc-800">
+      <span aria-hidden className="min-w-[1ch] text-foreground">
         ×{count}
       </span>
     </>
@@ -116,7 +116,7 @@ export function SourceChannelBadge({
     return (
       <Link
         href={href}
-        className={`${badgeClass} cursor-pointer transition-colors hover:border-zinc-400 hover:bg-zinc-50`}
+        className={`${badgeClass} cursor-pointer transition-colors hover:[border-color:var(--border)] hover:[background:var(--surface2)]`}
         aria-label={t.digest.formatChannelArchiveLinkAria(count, label)}
         title={t.digest.formatChannelArchiveLinkTitle(count, label)}
       >

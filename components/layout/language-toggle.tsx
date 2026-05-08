@@ -5,8 +5,8 @@ import type { Lang } from "@/lib/i18n";
 
 const btnBase =
   "rounded px-1.5 py-0.5 text-xs font-medium transition-colors";
-const inactive = "text-zinc-500 hover:text-zinc-800";
-const active = "bg-zinc-100 text-zinc-900";
+const inactive = "[color:var(--text-muted)] hover:text-foreground";
+const active = "[background:var(--surface2)] text-foreground";
 
 export function LanguageToggle() {
   const { lang, setLang } = useI18n();
@@ -17,7 +17,7 @@ export function LanguageToggle() {
 
   return (
     <div
-      className="flex shrink-0 items-center gap-0.5 text-zinc-400"
+      className="flex shrink-0 items-center gap-0.5 [color:var(--text-muted)]"
       role="group"
       aria-label="Language"
     >

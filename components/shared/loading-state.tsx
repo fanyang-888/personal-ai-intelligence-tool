@@ -64,7 +64,7 @@ export function LoadingState({ layout }: LoadingStateProps) {
     return (
       <div className="space-y-8" aria-busy="true" aria-live="polite">
         <p className="sr-only">{label}</p>
-        <div className="space-y-2 border-b border-zinc-100 pb-8">
+        <div className="space-y-2 border-b [border-color:var(--border)] pb-8">
           <Skeleton className="h-9 w-64 max-w-full" />
           <Skeleton className="h-4 w-full max-w-2xl" />
           <Skeleton className="h-4 w-40" />

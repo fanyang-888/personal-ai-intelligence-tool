@@ -84,7 +84,7 @@ export function DraftPreviewCard({
           {t.draftPreview.sectionTitle}
         </SectionTitle>
         {relatedStoryTitle ? (
-          <p className="mt-1 text-sm text-zinc-500">
+          <p className="mt-1 text-sm [color:var(--text-muted)]">
             {t.draftPreview.relatedStory}{" "}
             <span className="font-medium text-foreground">{relatedStoryTitle}</span>
           </p>
@@ -96,7 +96,7 @@ export function DraftPreviewCard({
         >
           {pickLocalized(draft.title, lang)}
         </h3>
-        <p className={`mt-3 text-sm leading-relaxed text-zinc-700 ${clamp}`}>
+        <p className={`mt-3 text-sm leading-relaxed [color:var(--text-muted)] ${clamp}`}>
           {preview}
         </p>
         <Link

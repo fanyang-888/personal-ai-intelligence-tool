@@ -31,8 +31,8 @@ function RoleTabs({
   const { t } = useI18n();
   const base =
     "rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600";
-  const active = "bg-white text-foreground shadow-sm";
-  const idle = "text-zinc-600 hover:text-foreground";
+  const active = "[background:var(--surface)] text-foreground shadow-sm";
+  const idle = "[color:var(--text-muted)] hover:text-foreground";
 
   const labels: Record<string, string> = {
     audiencePm: t.cluster.audiencePm,
@@ -42,7 +42,7 @@ function RoleTabs({
 
   return (
     <div className="mb-6" role="radiogroup" aria-label="Personalize for role">
-      <div className="inline-flex rounded-lg border border-zinc-200 bg-zinc-100/80 p-1 gap-0.5">
+      <div className="inline-flex rounded-lg border [border-color:var(--border)] [background:var(--surface2)] p-1 gap-0.5">
         {ROLES.map(({ value: v, labelKey }) => (
           <button
             key={String(v)}

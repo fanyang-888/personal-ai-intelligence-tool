@@ -29,11 +29,11 @@ export function AIBasicCard() {
 
   return (
     <section aria-label={labels.sectionTitle}>
-      <h2 className="mb-4 text-lg font-semibold text-zinc-900">
+      <h2 className="mb-4 text-lg font-semibold text-foreground">
         {labels.sectionTitle}
       </h2>
 
-      <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+      <div className="rounded-xl border [border-color:var(--border)] [background:var(--surface)] p-5 shadow-sm">
         {/* Concept name */}
         <p className="mb-3 inline-block rounded-md bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-800">
           {lang === "zh" ? basic.concept_zh : basic.concept}
@@ -41,30 +41,30 @@ export function AIBasicCard() {
 
         {/* Definition */}
         <div className="mb-3">
-          <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+          <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide [color:var(--text-muted)]">
             {labels.definition}
           </p>
-          <p className="text-sm leading-relaxed text-zinc-800">
+          <p className="text-sm leading-relaxed text-foreground">
             {lang === "zh" ? basic.definition_zh : basic.definition}
           </p>
         </div>
 
         {/* Why it matters */}
         <div className="mb-3">
-          <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+          <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide [color:var(--text-muted)]">
             {labels.whyItMatters}
           </p>
-          <p className="text-sm leading-relaxed text-zinc-800">
+          <p className="text-sm leading-relaxed text-foreground">
             {lang === "zh" ? basic.whyItMatters_zh : basic.whyItMatters}
           </p>
         </div>
 
         {/* Example */}
         <div className="mb-4">
-          <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+          <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide [color:var(--text-muted)]">
             {labels.example}
           </p>
-          <p className="text-sm leading-relaxed text-zinc-600 italic">
+          <p className="text-sm leading-relaxed [color:var(--text-muted)] italic">
             {lang === "zh" ? basic.example_zh : basic.example}
           </p>
         </div>

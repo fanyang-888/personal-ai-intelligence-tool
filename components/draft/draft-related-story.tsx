@@ -51,7 +51,7 @@ export function DraftRelatedStory({
         <ul className="mt-3 flex flex-wrap gap-2" aria-label={t.draft.relatedStorySection}>
           {clusterTags.map((tag, i) => (
             <li key={`${i}-${tag}`}>
-              <span className="inline-block rounded-full border border-zinc-200 bg-white px-2.5 py-0.5 text-xs font-medium text-zinc-700">
+              <span className="inline-block rounded-full border [border-color:var(--border)] [background:var(--surface)] px-2.5 py-0.5 text-xs font-medium [color:var(--text-muted)]">
                 {tag}
               </span>
             </li>
@@ -76,14 +76,14 @@ export function DraftRelatedStory({
       {expanded ? (
         <div id={panelId} className="mt-3">
           {clusterSummaryExcerpt ? (
-            <p className="text-sm leading-relaxed text-zinc-700">
+            <p className="text-sm leading-relaxed [color:var(--text-muted)]">
               {clusterSummaryExcerpt}
             </p>
           ) : null}
           {!clusterExists ? (
             <p
               className={
-                clusterSummaryExcerpt ? "mt-3 text-sm text-zinc-600" : "text-sm text-zinc-600"
+                clusterSummaryExcerpt ? "mt-3 text-sm [color:var(--text-muted)]" : "text-sm [color:var(--text-muted)]"
               }
             >
               {t.draft.clusterNotInCatalog}

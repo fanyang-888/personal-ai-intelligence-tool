@@ -37,7 +37,7 @@ function FilterBar({
           id="filter-theme"
           value={theme}
           onChange={(e) => onThemeChange(e.target.value)}
-          className="w-full rounded border border-zinc-300 px-3 py-2 text-sm"
+          className="w-full rounded border [border-color:var(--border)] px-3 py-2 text-sm"
         >
           <option value="">{t.archive.allThemes}</option>
           {themes.map((th) => (
@@ -55,7 +55,7 @@ function FilterBar({
           id="filter-source"
           value={sourceId}
           onChange={(e) => onSourceChange(e.target.value)}
-          className="w-full rounded border border-zinc-300 px-3 py-2 text-sm"
+          className="w-full rounded border [border-color:var(--border)] px-3 py-2 text-sm"
         >
           <option value="">{t.archive.allSources}</option>
           {sources.map((s) => (
@@ -73,7 +73,7 @@ function FilterBar({
           id="filter-channel"
           value={channel}
           onChange={(e) => onChannelChange(e.target.value)}
-          className="w-full rounded border border-zinc-300 px-3 py-2 text-sm"
+          className="w-full rounded border [border-color:var(--border)] px-3 py-2 text-sm"
         >
           <option value="">{t.archive.allChannels}</option>
           {SOURCE_CHANNELS_ALL.map((ch) => (

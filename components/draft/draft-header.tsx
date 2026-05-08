@@ -27,10 +27,10 @@ export function DraftHeader({
     : t.draft.draftForStoryPageTitle(displayStoryTitle);
 
   return (
-    <header className="mb-8 border-b border-zinc-100 pb-8">
+    <header className="mb-8 border-b [border-color:var(--border)] pb-8">
       <h1 className={uiPageTitle}>{pageTitle}</h1>
       <div className={`mt-2 ${uiMetaTextSm}`}>
-        <span className="font-medium text-zinc-500">{t.draft.workingTitleLabel}: </span>
+        <span className="font-medium [color:var(--text-muted)]">{t.draft.workingTitleLabel}: </span>
         <BilingualAssistSubline value={draft.title} lang={lang} />
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -38,7 +38,7 @@ export function DraftHeader({
           {t.draft.linkedInDraftType}
         </span>
         {draft.generatedAt ? (
-          <span className="text-xs text-zinc-500">
+          <span className="text-xs [color:var(--text-muted)]">
             {t.draft.generatedPrefix}{" "}
             {formatShortDateTime(draft.generatedAt, lang)}
           </span>

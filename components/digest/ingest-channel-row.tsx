@@ -39,7 +39,7 @@ export function IngestChannelRow({
       {extraTypeCount > 0 ? (
         <li className="shrink-0">
           <span
-            className="inline-flex items-center rounded-md border border-dashed border-zinc-300 bg-zinc-50 px-2 py-0.5 text-xs font-medium tabular-nums text-zinc-500"
+            className="inline-flex items-center rounded-md border border-dashed [border-color:var(--border)] [background:var(--surface2)] px-2 py-0.5 text-xs font-medium tabular-nums [color:var(--text-muted)]"
             title={t.digest.formatMoreChannelTypesHidden(extraTypeCount)}
           >
             +{extraTypeCount}

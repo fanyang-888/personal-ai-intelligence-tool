@@ -8,13 +8,13 @@ const statusKeyClass: Record<string, string> = {
   escalating: "border-amber-300/60  bg-amber-50  text-amber-800",
   peaking:    "border-rose-300/60   bg-rose-50   text-rose-800",
   ongoing:    "border-blue-300/60   bg-blue-50   text-blue-800",
-  fading:     "border-zinc-200      bg-zinc-50   text-zinc-500",
+  fading:     "[border-color:var(--border)] [background:var(--surface2)] [color:var(--text-muted)]",
 };
 
 const variantClass: Record<StoryBadgeVariant, string> = {
-  status: "border-emerald-600/25 bg-emerald-50/60 text-zinc-800",
-  metric: "border-zinc-200 bg-zinc-100 text-zinc-600",
-  tag:    "border-zinc-200 bg-zinc-50  text-zinc-600",
+  status: "border-emerald-600/25 bg-emerald-50/60 text-foreground",
+  metric: "[border-color:var(--border)] [background:var(--surface2)] [color:var(--text-muted)]",
+  tag:    "[border-color:var(--border)] [background:var(--surface2)] [color:var(--text-muted)]",
 };
 
 type StoryBadgeProps = {

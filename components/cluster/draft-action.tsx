@@ -23,7 +23,7 @@ export function DraftAction({
   if (variant === "prominent") {
     return (
       <section
-        className={`rounded-lg border border-zinc-200 border-l-4 border-l-emerald-600 bg-emerald-50/40 p-4 shadow-sm sm:p-5 ${className}`}
+        className={`rounded-lg border [border-color:var(--border)] border-l-4 border-l-emerald-600 bg-emerald-50/40 p-4 shadow-sm sm:p-5 ${className}`}
         aria-labelledby="cluster-draft-prominent-heading"
       >
         <h2
@@ -34,7 +34,7 @@ export function DraftAction({
         </h2>
         {draftId ? (
           <>
-            <p className="mt-2 text-sm leading-relaxed text-zinc-700">
+            <p className="mt-2 text-sm leading-relaxed [color:var(--text-muted)]">
               {t.cluster.draftProminentLead}
             </p>
             <Link
@@ -45,7 +45,7 @@ export function DraftAction({
             </Link>
           </>
         ) : (
-          <p className="mt-2 text-sm text-zinc-600">{t.cluster.noDraftLinked}</p>
+          <p className="mt-2 text-sm [color:var(--text-muted)]">{t.cluster.noDraftLinked}</p>
         )}
       </section>
     );
@@ -55,7 +55,7 @@ export function DraftAction({
     if (!draftId) return null;
     return (
       <section
-        className={`rounded-lg border border-zinc-200 bg-white p-4 shadow-sm ${className}`}
+        className={`rounded-lg border [border-color:var(--border)] [background:var(--surface)] p-4 shadow-sm ${className}`}
         aria-labelledby="cluster-draft-compact-heading"
       >
         <div className="flex flex-wrap items-center gap-2">
@@ -72,7 +72,7 @@ export function DraftAction({
             {t.cluster.draftStickyBadge}
           </span>
         </div>
-        <p className="mt-1 text-xs text-zinc-600">{t.cluster.draftCompactLead}</p>
+        <p className="mt-1 text-xs [color:var(--text-muted)]">{t.cluster.draftCompactLead}</p>
         <Link
           href={`/draft/${draftId}`}
           className={`mt-3 inline-flex ${uiTextLinkPrimary}`}
@@ -84,17 +84,17 @@ export function DraftAction({
   }
 
   return (
-    <section className={`rounded border border-zinc-200 p-4 ${className}`}>
+    <section className={`rounded border [border-color:var(--border)] p-4 ${className}`}>
       <SectionTitle>{t.cluster.draftSectionTitle}</SectionTitle>
       {draftId ? (
         <>
-          <p className="mb-3 text-sm text-zinc-600">{t.cluster.draftSectionLead}</p>
+          <p className="mb-3 text-sm [color:var(--text-muted)]">{t.cluster.draftSectionLead}</p>
           <Link href={`/draft/${draftId}`} className={uiTextLinkPrimary}>
             {t.cluster.openDraft}
           </Link>
         </>
       ) : (
-        <p className="text-sm text-zinc-600">{t.cluster.noDraftLinked}</p>
+        <p className="text-sm [color:var(--text-muted)]">{t.cluster.noDraftLinked}</p>
       )}
     </section>
   );

@@ -20,7 +20,7 @@ export function DiscoverArchiveCta() {
       <SectionTitle id="discover-archive-heading">
         {t.discover.title}
       </SectionTitle>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-600">
+      <p className="mt-2 text-sm leading-relaxed [color:var(--text-muted)]">
         {t.discover.bodyBeforeEmphasis}
         <span className="font-medium text-foreground">{t.discover.bodyEmphasis}</span>
         {t.discover.bodyAfterEmphasis}

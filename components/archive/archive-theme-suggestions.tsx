@@ -20,14 +20,14 @@ export function ArchiveThemeSuggestions({
 
   return (
     <div className="text-center">
-      <p className="text-sm text-zinc-600">{t.archive.suggestThemesLead}</p>
+      <p className="text-sm [color:var(--text-muted)]">{t.archive.suggestThemesLead}</p>
       <div className="mt-3 flex flex-wrap justify-center gap-2">
         {themes.map((th) => (
           <button
             key={th}
             type="button"
             onClick={() => onPickTheme(th)}
-            className="rounded-full border border-zinc-300 bg-white px-3 py-1.5 text-sm text-zinc-700 transition-colors hover:border-emerald-600/50 hover:bg-emerald-50/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+            className="rounded-full border [border-color:var(--border)] [background:var(--surface)] px-3 py-1.5 text-sm [color:var(--text-muted)] transition-colors hover:border-emerald-600/50 hover:bg-emerald-50/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
           >
             {themeSelectLabel(th, lang)}
           </button>

@@ -50,7 +50,7 @@ export function FeaturedStoryCard({
         {pickLocalized(cluster.title, lang)}
       </h2>
       {cluster.subtitle ? (
-        <p className="mt-2 text-sm text-zinc-500">
+        <p className="mt-2 text-sm [color:var(--text-muted)]">
           {pickLocalized(cluster.subtitle, lang)}
         </p>
       ) : null}
@@ -65,7 +65,7 @@ export function FeaturedStoryCard({
 
       {sourcesLine ? (
         <p className={`mt-3 ${uiMetaText}`}>
-          <span className="font-medium text-zinc-600">
+          <span className="font-medium [color:var(--text-muted)]">
             {t.digest.sourcesPrefix}{" "}
           </span>
           {sourcesLine}
@@ -84,8 +84,8 @@ export function FeaturedStoryCard({
         {pickLocalized(cluster.summary, lang)}
       </p>
 
-      <p className="mt-4 text-sm font-medium text-zinc-600 line-clamp-2 sm:line-clamp-none">
-        <span className="text-zinc-500">{t.digest.whyItMattersPrefix} </span>
+      <p className="mt-4 text-sm font-medium [color:var(--text-muted)] line-clamp-2 sm:line-clamp-none">
+        <span className="[color:var(--text-muted)]">{t.digest.whyItMattersPrefix} </span>
         {pickLocalized(cluster.whyItMatters, lang)}
       </p>
 
@@ -118,7 +118,7 @@ export function FeaturedStoryCard({
             {t.digest.openDraft}
           </Link>
         ) : (
-          <span className="text-sm text-zinc-500">{t.digest.noDraftLinked}</span>
+          <span className="text-sm [color:var(--text-muted)]">{t.digest.noDraftLinked}</span>
         )}
       </ActionRow>
     </ResultCardFrame>
