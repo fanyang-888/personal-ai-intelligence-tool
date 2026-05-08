@@ -6,6 +6,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
+from starlette.middleware.base import BaseHTTPMiddleware
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
@@ -67,6 +68,25 @@ app = FastAPI(
 # Attach rate limiter
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# ---------------------------------------------------------------------------
+# Request body size limit — reject oversized payloads before they hit handlers
+# ---------------------------------------------------------------------------
+_MAX_REQUEST_BODY = 100 * 1024  # 100 KB
+
+
+class RequestSizeLimitMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        content_length = request.headers.get("content-length")
+        if content_length and int(content_length) > _MAX_REQUEST_BODY:
+            return JSONResponse(
+                {"error": "Request body too large"},
+                status_code=413,
+            )
+        return await call_next(request)
+
+
+app.add_middleware(RequestSizeLimitMiddleware)
 
 # ---------------------------------------------------------------------------
 # CORS — allow the Next.js frontend (local dev + Vercel deploy)

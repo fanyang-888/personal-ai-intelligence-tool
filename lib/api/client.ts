@@ -41,28 +41,25 @@ export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
   });
 }
 
-/** Read the admin JWT from the non-httpOnly cookie set after admin login. */
-function getAdminJwt(): string | null {
-  if (typeof document === "undefined") return null;
-  const match = document.cookie.match(/(?:^|;\s*)admin_jwt=([^;]+)/);
-  return match ? decodeURIComponent(match[1]) : null;
-}
-
 /**
- * Same as apiFetch but attaches the admin JWT as a Bearer token.
- * Use this for all /api/admin/* endpoints that require authentication.
+ * Fetch a protected /api/admin/* endpoint via the Next.js server-side proxy.
+ * The proxy reads the httpOnly admin_jwt cookie and attaches the Bearer token —
+ * JS never has direct access to the JWT (XSS-safe).
+ *
+ * Pass the FastAPI path as the first argument, e.g. "/api/admin/stats".
+ * Additional query params in `path` are forwarded automatically.
  */
-export async function apiFetchAdmin<T>(
-  path: string,
-  options?: RequestInit,
-): Promise<T> {
-  const token = getAdminJwt();
-  return apiFetch<T>(path, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options?.headers as Record<string, string> | undefined),
-    },
+export async function apiFetchAdmin<T>(path: string): Promise<T> {
+  // Split path and query string
+  const [pathname, qs] = path.split("?");
+  const proxyUrl = `/api/admin-proxy?path=${encodeURIComponent(pathname)}${qs ? `&${qs}` : ""}`;
+
+  const res = await fetch(proxyUrl, {
+    headers: { "Content-Type": "application/json" },
   });
+  if (!res.ok) {
+    const text = await res.text().catch(() => "Unknown error");
+    throw new ApiError(res.status, text);
+  }
+  return res.json() as Promise<T>;
 }
