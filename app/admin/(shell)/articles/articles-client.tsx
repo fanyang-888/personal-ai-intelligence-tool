@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import { apiFetch } from "@/lib/api/client";
+import { apiFetchAdmin } from "@/lib/api/client";
 import { useI18n } from "@/lib/i18n";
 
 type ArticleRow = {
@@ -46,7 +46,7 @@ function ArticlesInner() {
     setLoading(true);
     const qs = new URLSearchParams({ limit: "200", offset: "0" });
     if (sourceId) qs.set("source_id", sourceId);
-    apiFetch<ArticleRow[]>(`/api/admin/articles?${qs}`)
+    apiFetchAdmin<ArticleRow[]>(`/api/admin/articles?${qs}`)
       .then(setArticles)
       .catch((e) => setError((e as Error).message))
       .finally(() => setLoading(false));

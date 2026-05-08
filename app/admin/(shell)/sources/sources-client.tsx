@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { apiFetch } from "@/lib/api/client";
+import { apiFetchAdmin } from "@/lib/api/client";
 import { useI18n } from "@/lib/i18n";
 
 type SourceRow = {
@@ -45,7 +45,7 @@ export function SourcesClient() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    apiFetch<SourceRow[]>("/api/admin/sources")
+    apiFetchAdmin<SourceRow[]>("/api/admin/sources")
       .then(setSources)
       .catch((e) => setError((e as Error).message))
       .finally(() => setLoading(false));

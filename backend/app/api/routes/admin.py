@@ -81,7 +81,10 @@ class StatsResponse(BaseModel):
 
 
 @router.get("/stats", response_model=StatsResponse)
-def get_stats(db: Session = Depends(get_db)) -> StatsResponse:
+def get_stats(
+    db: Session = Depends(get_db),
+    _user: str = Depends(get_current_user),
+) -> StatsResponse:
     now = datetime.now(timezone.utc)
     cutoff_24h = now - timedelta(hours=24)
     cutoff_7d = now - timedelta(days=7)
@@ -163,7 +166,10 @@ class SourceRow(BaseModel):
 
 
 @router.get("/sources", response_model=list[SourceRow])
-def list_sources(db: Session = Depends(get_db)) -> list[SourceRow]:
+def list_sources(
+    db: Session = Depends(get_db),
+    _user: str = Depends(get_current_user),
+) -> list[SourceRow]:
     cutoff_7d = datetime.now(timezone.utc) - timedelta(days=7)
     sources = db.execute(select(Source).order_by(Source.name)).scalars().all()
     rows: list[SourceRow] = []
@@ -221,6 +227,7 @@ def list_articles(
     offset: int = Query(default=0),
     source_id: str | None = Query(default=None),
     db: Session = Depends(get_db),
+    _user: str = Depends(get_current_user),
 ) -> list[ArticleRow]:
     import uuid
     from sqlalchemy.orm import selectinload

@@ -2,8 +2,12 @@ import asyncio
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from app.api.routes import health
 from app.api.routes import digest, clusters, search, drafts, pipeline_runs, admin, auth, subscribe
@@ -11,6 +15,11 @@ from app.logging_config import configure_logging
 
 configure_logging()
 logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Rate limiter (shared across all routes that opt in)
+# ---------------------------------------------------------------------------
+limiter = Limiter(key_func=get_remote_address, default_limits=[])
 
 
 def _run_startup_migrations() -> None:
@@ -42,7 +51,22 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Personal AI Intelligence Tool API", version="0.1.0", lifespan=lifespan)
+import os as _os
+_is_production = _os.getenv("APP_ENV", "development") == "production"
+
+app = FastAPI(
+    title="Personal AI Intelligence Tool API",
+    version="0.1.0",
+    lifespan=lifespan,
+    # Disable interactive docs in production — reduces attack surface
+    docs_url=None if _is_production else "/docs",
+    redoc_url=None if _is_production else "/redoc",
+    openapi_url=None if _is_production else "/openapi.json",
+)
+
+# Attach rate limiter
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # ---------------------------------------------------------------------------
 # CORS — allow the Next.js frontend (local dev + Vercel deploy)

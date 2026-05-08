@@ -1,16 +1,17 @@
 """Auth routes: login + me.
 
-POST /api/auth/login   — exchange credentials for JWT
+POST /api/auth/login   — exchange credentials for JWT  (rate-limited: 5/minute per IP)
 GET  /api/auth/me      — verify token, return current user
 """
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
 from app.auth import create_access_token, get_current_user
 from app.config import settings
+from app.main import limiter
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -30,7 +31,8 @@ class MeResponse(BaseModel):
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(body: LoginRequest) -> TokenResponse:
+@limiter.limit("5/minute")
+def login(request: Request, body: LoginRequest) -> TokenResponse:
     """Validate credentials and return a JWT access token."""
     configured_password = settings.admin_password
     if configured_password is None:
@@ -40,6 +42,8 @@ def login(body: LoginRequest) -> TokenResponse:
     password_ok = body.password == configured_password.get_secret_value()
 
     if not (username_ok and password_ok):
+        # Use the same error for both bad username and bad password
+        # (don't reveal which one was wrong)
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     token = create_access_token(body.username)

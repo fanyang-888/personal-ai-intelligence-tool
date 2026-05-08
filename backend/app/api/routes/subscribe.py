@@ -1,14 +1,18 @@
-"""POST /api/subscribe — collect email subscribers."""
+"""POST /api/subscribe — collect email subscribers.
+
+Rate-limited: 5 requests/minute per IP to prevent spam.
+"""
 
 import re
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, field_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db import get_db
+from app.main import limiter
 from app.models.subscriber import Subscriber
 
 logger = logging.getLogger(__name__)
@@ -36,7 +40,12 @@ class SubscribeResponse(BaseModel):
 
 
 @router.post("/subscribe", response_model=SubscribeResponse, status_code=status.HTTP_200_OK)
-def subscribe(req: SubscribeRequest, db: Session = Depends(get_db)) -> SubscribeResponse:
+@limiter.limit("5/minute")
+def subscribe(
+    request: Request,
+    req: SubscribeRequest,
+    db: Session = Depends(get_db),
+) -> SubscribeResponse:
     existing = db.execute(
         select(Subscriber).where(Subscriber.email == req.email)
     ).scalar_one_or_none()

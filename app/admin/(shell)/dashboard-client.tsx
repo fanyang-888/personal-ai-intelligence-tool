@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { apiFetch } from "@/lib/api/client";
+import { apiFetchAdmin } from "@/lib/api/client";
 import { useI18n } from "@/lib/i18n";
 
 type PipelineRunSummary = {
@@ -131,7 +131,7 @@ export function DashboardClient() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    apiFetch<Stats>("/api/admin/stats")
+    apiFetchAdmin<Stats>("/api/admin/stats")
       .then(setStats)
       .catch((e) => setError((e as Error).message))
       .finally(() => setLoading(false));
