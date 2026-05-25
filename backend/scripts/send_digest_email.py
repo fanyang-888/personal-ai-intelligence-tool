@@ -45,24 +45,25 @@ def main(argv: list[str] | None = None) -> int:
         clusters = get_top_clusters(db, limit=args.limit)
         subscribers = list(db.execute(select(Subscriber)).scalars().all())
 
-    logger.info(
-        "send_digest_email: clusters=%d subscribers=%d dry_run=%s",
-        len(clusters),
-        len(subscribers),
-        args.dry_run,
-    )
+        logger.info(
+            "send_digest_email: clusters=%d subscribers=%d dry_run=%s",
+            len(clusters),
+            len(subscribers),
+            args.dry_run,
+        )
 
-    if args.dry_run:
-        print(f"\nDRY RUN — {len(subscribers)} subscriber(s), {len(clusters)} cluster(s)\n")
-        print("Clusters:")
-        for i, c in enumerate(clusters):
-            print(f"  {i+1}. {c.representative_title}")
-        print("\nRecipients:")
-        for s in subscribers:
-            print(f"  {s.email}")
-        return 0
+        if args.dry_run:
+            print(f"\nDRY RUN — {len(subscribers)} subscriber(s), {len(clusters)} cluster(s)\n")
+            print("Clusters:")
+            for i, c in enumerate(clusters):
+                print(f"  {i+1}. {c.representative_title}")
+            print("\nRecipients:")
+            for s in subscribers:
+                print(f"  {s.email}")
+            return 0
 
-    sent, failed = send_digest_email(clusters, subscribers)
+        sent, failed = send_digest_email(clusters, subscribers)
+
     logger.info("send_digest_email done: sent=%d failed=%d", sent, failed)
     return 0 if failed == 0 else 1
 
