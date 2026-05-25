@@ -89,6 +89,7 @@ class ClusterResponse(BaseModel):
     theme: str
     themes: list[str]
     tags: list[str]
+    topicTag: str | None = None
     storyStatus: str
     clusterScore: float | None
     freshnessLabel: str

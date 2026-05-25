@@ -40,6 +40,7 @@ class Cluster(Base):
     )
 
     tags: Mapped[list[Any]] = mapped_column(JSONB, nullable=False, default=list)
+    topic_tag: Mapped[str | None] = mapped_column(String(64), nullable=True)
     meta: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, default=dict)
 
     # ---------- LLM Summary (English) ----------

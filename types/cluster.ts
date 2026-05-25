@@ -18,6 +18,7 @@ export type Cluster = {
   theme: string;
   themes?: string[];
   tags?: string[];
+  topicTag?: string;
   storyStatus?: string;
   clusterScore?: number;
   freshnessLabel?: string;

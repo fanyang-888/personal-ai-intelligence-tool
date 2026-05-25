@@ -48,7 +48,7 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
           className="text-[10px] uppercase tracking-[0.12em]"
           style={{ color: "var(--sp-accent-dim)" }}
         >
-          {tags[0] ?? cluster.theme}
+          {cluster.topicTag ?? tags[0] ?? cluster.theme}
         </span>
       </div>
 

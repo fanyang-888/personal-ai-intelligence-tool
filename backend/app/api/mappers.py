@@ -74,6 +74,7 @@ def cluster_to_response(
         theme=cluster.type or "event",
         themes=themes,
         tags=tags,
+        topicTag=cluster.topic_tag,
         storyStatus=cluster.status or "new",
         clusterScore=cluster.cluster_score,
         freshnessLabel=freshness_label(cluster.last_seen_at),

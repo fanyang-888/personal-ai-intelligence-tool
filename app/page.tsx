@@ -19,6 +19,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { MobileClusterRow } from "@/components/digest/mobile-cluster-row";
+import { RoleSelectorBanner } from "@/components/digest/role-selector-banner";
 import { fetchTodayDigest, fetchTodayDraft } from "@/lib/api";
 import { apiClusterToCluster, apiDraftToDraft } from "@/lib/api/mappers";
 import type { Cluster } from "@/types/cluster";
@@ -87,6 +88,7 @@ export default function HomePage() {
 
       {/* ── Mobile layout (< sm) ── */}
       <div className="sm:hidden">
+        <RoleSelectorBanner />
         {/* Featured story */}
         {featured ? (
           <div
@@ -225,6 +227,7 @@ export default function HomePage() {
 
       {/* ── Desktop layout (sm+) ── */}
       <div className="hidden sm:block">
+        <RoleSelectorBanner />
         <div className="mb-10 grid gap-8 lg:grid-cols-[1fr_min(18rem,34%)] lg:items-start">
           <div className="min-w-0">
             {featured ? (

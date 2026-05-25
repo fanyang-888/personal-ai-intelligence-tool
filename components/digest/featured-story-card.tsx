@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { StoryBadge } from "@/components/digest/story-badge";
 import { IngestChannelRow } from "@/components/digest/ingest-channel-row";
@@ -26,6 +27,8 @@ export function FeaturedStoryCard({
   className = "",
 }: FeaturedStoryCardProps) {
   const { t, lang } = useI18n();
+  const [role, setRole] = useState<"pm" | "developer" | "studentJobSeeker">("pm");
+  const roleLabels = { pm: "PM", developer: "Dev", studentJobSeeker: "Student" } as const;
   const sourceCount = cluster.articleIds.length;
   const relevance = formatRelevancePercent(cluster.clusterScore);
   const status = cluster.storyStatus ?? t.digest.featuredFallback;
@@ -42,6 +45,14 @@ export function FeaturedStoryCard({
       statusKey={cluster.storyStatus ?? undefined}
       aria-labelledby="featured-story-title"
     >
+      {cluster.topicTag ? (
+        <span
+          className="mb-3 inline-block rounded-sm px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest"
+          style={{ background: "var(--sp-chip)", color: "var(--sp-accent-mid)" }}
+        >
+          {cluster.topicTag}
+        </span>
+      ) : null}
       <h2
         id="featured-story-title"
         className="text-2xl leading-tight tracking-tight sm:text-[1.65rem]"
@@ -84,10 +95,28 @@ export function FeaturedStoryCard({
         {pickLocalized(cluster.summary, lang)}
       </p>
 
-      <p className="mt-4 text-sm font-medium [color:var(--text-muted)] line-clamp-2 sm:line-clamp-none">
-        <span className="[color:var(--text-muted)]">{t.digest.whyItMattersPrefix} </span>
-        {pickLocalized(cluster.whyItMatters, lang)}
-      </p>
+      <div className="mt-4">
+        <div className="mb-2 flex gap-1">
+          {(["pm", "developer", "studentJobSeeker"] as const).map((r) => (
+            <button
+              key={r}
+              onClick={() => setRole(r)}
+              className="rounded px-2 py-0.5 text-[11px] font-medium transition-colors"
+              style={
+                role === r
+                  ? { background: "var(--sp-navy)", color: "#fff" }
+                  : { background: "var(--surface2)", color: "var(--text-muted)" }
+              }
+            >
+              {roleLabels[r]}
+            </button>
+          ))}
+        </div>
+        <p className="text-sm font-medium [color:var(--text-muted)] line-clamp-2 sm:line-clamp-none">
+          <span className="[color:var(--text-muted)]">{t.digest.whyItMattersPrefix} </span>
+          {pickLocalized(cluster.audience[role], lang) || pickLocalized(cluster.whyItMatters, lang)}
+        </p>
+      </div>
 
       {/* Mobile: full-width buttons */}
       <div className="mt-6 flex gap-3 sm:hidden">

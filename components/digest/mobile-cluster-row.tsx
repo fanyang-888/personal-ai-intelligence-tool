@@ -8,7 +8,7 @@ import type { Cluster } from "@/types/cluster";
 
 export function MobileClusterRow({ cluster }: { cluster: Cluster }) {
   const { lang } = useI18n();
-  const tag = cluster.tags?.[0] ?? cluster.theme ?? "";
+  const tag = cluster.topicTag ?? cluster.tags?.[0] ?? cluster.theme ?? "";
   const score = cluster.clusterScore ?? 0;
   const pct = Math.min(100, Math.max(0, score));
   const relevance = formatRelevancePercent(cluster.clusterScore);

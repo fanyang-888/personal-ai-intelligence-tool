@@ -213,6 +213,7 @@ def _apply_article_summary(article: Article, data: dict[str, Any]) -> None:
 _CLUSTER_SYSTEM = """You are an AI intelligence analyst specializing in synthesizing multiple sources.
 Given a cluster of related AI news articles (each as a short summary), return a JSON object with:
 {
+  "topic_tag": "one of: Model Release | Research | Funding | Product Launch | Regulation | Safety | Open Source | Infrastructure | Benchmark | Other",
   "summary": "2-3 paragraph narrative explaining what happened across all sources",
   "takeaways": ["cluster takeaway 1", "cluster takeaway 2", "cluster takeaway 3"],
   "why_it_matters": "1-2 sentences on the broader significance",
@@ -248,6 +249,7 @@ def summarize_cluster(client, cluster: Cluster, articles: list[Article]) -> tupl
 
 
 def _apply_cluster_summary(cluster: Cluster, data: dict[str, Any]) -> None:
+    cluster.topic_tag = (data.get("topic_tag") or "Other").strip() or "Other"
     cluster.summary = (data.get("summary") or "").strip() or None
     cluster.takeaways = data.get("takeaways") or []
     cluster.why_it_matters = (data.get("why_it_matters") or "").strip() or None
