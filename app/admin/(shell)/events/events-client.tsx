@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { apiFetch } from "@/lib/api/client";
+import { apiFetchAdmin } from "@/lib/api/client";
 import { useI18n } from "@/lib/i18n";
 
 type EventStats = {
@@ -10,26 +10,43 @@ type EventStats = {
   daily_totals: { date: string; count: number }[];
 };
 
+type ProductMetrics = {
+  weekly_engaged_readers: number;
+  returning_readers: number;
+  total_read_events_7d: number;
+  daily_active: { date: string; devices: number }[];
+};
+
 const L = {
   en: {
     title: "Events",
-    subtitle: "Redis click-tracking data · last 7 days",
+    subtitle: "Click-tracking + engagement · last 7 days",
     loading: "Loading…",
     loadFailed: "Failed to load:",
     noData: "No data yet",
     noEvents: "No event data returned.",
     times: "times",
     top3: "Top entities",
+    nsmTitle: "North Star — Weekly Engaged Readers",
+    nsmSubtitle: "Distinct devices that read a story · last 7 days",
+    wer: "Engaged readers",
+    returning: "Returning (2+ days)",
+    totalReads: "Story reads",
   },
   zh: {
     title: "事件统计",
-    subtitle: "Redis 点击追踪数据 · 最近 7 天",
+    subtitle: "点击追踪 + 互动数据 · 最近 7 天",
     loading: "加载中…",
     loadFailed: "加载失败：",
     noData: "暂无数据",
     noEvents: "暂无事件数据。",
     times: "次",
     top3: "Top 实体",
+    nsmTitle: "北极星 — 周活跃读者",
+    nsmSubtitle: "读过故事的去重设备 · 最近 7 天",
+    wer: "活跃读者",
+    returning: "回访 (2+ 天)",
+    totalReads: "阅读次数",
   },
 } as const;
 
@@ -54,11 +71,7 @@ function MiniBarChart({ daily }: { daily: { date: string; count: number }[] }) {
           <div
             key={i}
             className="group relative flex-1 rounded-sm"
-            style={{
-              height: "100%",
-              display: "flex",
-              alignItems: "flex-end",
-            }}
+            style={{ height: "100%", display: "flex", alignItems: "flex-end" }}
             title={`${d.date}: ${d.count}`}
           >
             <div
@@ -127,17 +140,51 @@ function EventCard({ stat, t }: { stat: EventStats; t: typeof L[keyof typeof L] 
   );
 }
 
+function MetricsPanel({ m, t }: { m: ProductMetrics; t: typeof L[keyof typeof L] }) {
+  const stats = [
+    { value: m.weekly_engaged_readers, label: t.wer },
+    { value: m.returning_readers, label: t.returning },
+    { value: m.total_read_events_7d, label: t.totalReads },
+  ];
+  return (
+    <div className="mb-8 rounded-xl border border-zinc-200 bg-white p-5">
+      <p className="text-sm font-medium text-zinc-700">{t.nsmTitle}</p>
+      <p className="mt-0.5 text-[11px] text-zinc-400">{t.nsmSubtitle}</p>
+      <div className="mt-4 grid grid-cols-3 gap-4">
+        {stats.map((s) => (
+          <div key={s.label}>
+            <p
+              className="text-3xl font-light"
+              style={{ color: "var(--sp-navy)", fontFamily: "'Fraunces', serif" }}
+            >
+              {s.value}
+            </p>
+            <p className="mt-1 text-[11px] text-zinc-500">{s.label}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function EventsClient() {
   const { lang } = useI18n();
   const t = L[lang];
 
   const [events, setEvents] = useState<EventStats[]>([]);
+  const [metrics, setMetrics] = useState<ProductMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    apiFetch<EventStats[]>("/api/admin/events")
-      .then(setEvents)
+    Promise.all([
+      apiFetchAdmin<EventStats[]>("/api/admin/events"),
+      apiFetchAdmin<ProductMetrics>("/api/admin/metrics").catch(() => null),
+    ])
+      .then(([ev, m]) => {
+        setEvents(ev);
+        setMetrics(m);
+      })
       .catch((e) => setError((e as Error).message))
       .finally(() => setLoading(false));
   }, []);
@@ -164,14 +211,19 @@ export function EventsClient() {
         <p className="text-sm text-red-600">
           {t.loadFailed} {error}
         </p>
-      ) : events.length === 0 ? (
-        <p className="text-sm text-zinc-500">{t.noEvents}</p>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {events.map((stat) => (
-            <EventCard key={stat.type} stat={stat} t={t} />
-          ))}
-        </div>
+        <>
+          {metrics ? <MetricsPanel m={metrics} t={t} /> : null}
+          {events.length === 0 ? (
+            <p className="text-sm text-zinc-500">{t.noEvents}</p>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {events.map((stat) => (
+                <EventCard key={stat.type} stat={stat} t={t} />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

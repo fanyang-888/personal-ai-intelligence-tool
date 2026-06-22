@@ -22,6 +22,7 @@ from app.db import get_db
 from app.models.article import Article
 from app.models.cluster import Cluster
 from app.models.draft import Draft
+from app.models.event import Event
 from app.models.pipeline_run import PipelineRun
 from app.models.source import Source
 
@@ -248,6 +249,82 @@ def get_event_stats(
     except Exception as exc:
         logger.warning("get_event_stats error: %s", exc)
     return results
+
+
+# ---------------------------------------------------------------------------
+# Product metrics — North Star (Weekly Engaged Readers) + retention
+# ---------------------------------------------------------------------------
+
+_READ_TYPES = ("cluster_viewed", "draft_viewed")
+
+
+class DailyActive(BaseModel):
+    date: str
+    devices: int
+
+
+class ProductMetrics(BaseModel):
+    weekly_engaged_readers: int   # NSM: distinct devices with a read event, last 7d
+    returning_readers: int        # devices that read on >= 2 distinct days, last 7d
+    total_read_events_7d: int
+    daily_active: list[DailyActive]  # distinct reading devices per day, last 7d
+
+
+@router.get("/metrics", response_model=ProductMetrics)
+def get_product_metrics(
+    db: Session = Depends(get_db),
+    _user: str = Depends(get_current_user),
+) -> ProductMetrics:
+    """North Star + retention metrics, computed from the durable events table."""
+    since = datetime.now(timezone.utc) - timedelta(days=7)
+    day = func.date(Event.created_at)
+
+    def _read_filter(stmt):
+        return (
+            stmt.where(Event.type.in_(_READ_TYPES))
+            .where(Event.created_at >= since)
+            .where(Event.device_id.isnot(None))
+        )
+
+    # NSM: distinct devices with >= 1 read event in the last 7 days
+    wer = db.execute(
+        _read_filter(select(func.count(func.distinct(Event.device_id))))
+    ).scalar_one()
+
+    # Total read events in the last 7 days (includes null-device legacy rows)
+    total_read = db.execute(
+        select(func.count())
+        .select_from(Event)
+        .where(Event.type.in_(_READ_TYPES))
+        .where(Event.created_at >= since)
+    ).scalar_one()
+
+    # Returning readers: devices active on >= 2 distinct days
+    per_device_days = (
+        _read_filter(select(Event.device_id, func.count(func.distinct(day)).label("days")))
+        .group_by(Event.device_id)
+        .subquery()
+    )
+    returning = db.execute(
+        select(func.count())
+        .select_from(per_device_days)
+        .where(per_device_days.c.days >= 2)
+    ).scalar_one()
+
+    # Daily active reading devices, last 7 days
+    rows = db.execute(
+        _read_filter(select(day.label("d"), func.count(func.distinct(Event.device_id))))
+        .group_by(day)
+        .order_by(day)
+    ).all()
+    daily = [DailyActive(date=str(r[0]), devices=int(r[1])) for r in rows]
+
+    return ProductMetrics(
+        weekly_engaged_readers=int(wer or 0),
+        returning_readers=int(returning or 0),
+        total_read_events_7d=int(total_read or 0),
+        daily_active=daily,
+    )
 
 
 # ---------------------------------------------------------------------------
