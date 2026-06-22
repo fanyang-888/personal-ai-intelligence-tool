@@ -20,6 +20,7 @@ import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { MobileClusterRow } from "@/components/digest/mobile-cluster-row";
 import { RoleSelectorBanner } from "@/components/digest/role-selector-banner";
+import { TopicFilter } from "@/components/shared/topic-filter";
 import { fetchTodayDigest, fetchTodayDraft } from "@/lib/api";
 import { apiClusterToCluster, apiDraftToDraft } from "@/lib/api/mappers";
 import type { Cluster } from "@/types/cluster";
@@ -34,6 +35,7 @@ export default function HomePage() {
   const [draftOfDay, setDraftOfDay] = useState<Draft | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -67,6 +69,21 @@ export default function HomePage() {
   const relatedStoryTitle = draftOfDay && featured
     ? pickLocalized(featured.title, lang)
     : undefined;
+
+  const topicOptions = Array.from(
+    new Set(
+      topClusters
+        .map((c) => c.topicTag)
+        .filter((tag): tag is string => Boolean(tag && tag.trim())),
+    ),
+  );
+
+  const filteredClusters =
+    selectedTopics.length === 0
+      ? topClusters
+      : topClusters.filter(
+          (c) => c.topicTag != null && selectedTopics.includes(c.topicTag),
+        );
 
   if (loading) {
     return <LoadingState layout="digest" />;
@@ -212,8 +229,9 @@ export default function HomePage() {
                 {t.home.viewAllInsights} →
               </Link>
             </p>
+            <TopicFilter tags={topicOptions} onChange={setSelectedTopics} />
             <div>
-              {topClusters.filter((c) => c.id !== featured?.id).map((c) => (
+              {filteredClusters.filter((c) => c.id !== featured?.id).map((c) => (
                 <MobileClusterRow key={c.id} cluster={c} />
               ))}
             </div>
@@ -259,10 +277,11 @@ export default function HomePage() {
 
         <SectionBlock>
           <SectionTitle>{t.home.topClusters}</SectionTitle>
-          {topClusters.length > 0 ? (
+          <TopicFilter tags={topicOptions} onChange={setSelectedTopics} />
+          {filteredClusters.length > 0 ? (
             <>
               <ul className="space-y-4">
-                {topClusters.map((c) => (
+                {filteredClusters.map((c) => (
                   <ClusterCard key={c.id} cluster={c} />
                 ))}
               </ul>
