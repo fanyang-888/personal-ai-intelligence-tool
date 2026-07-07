@@ -200,7 +200,9 @@ export function ArchivePageClient() {
 
     try {
       const apiType = mode === "clusters" ? "cluster" : "article";
-      const tags = topicKey ? topicTagsForGroup(topicKey) : [];
+      // topic_tag lives on clusters only — the backend ignores it for articles,
+      // so don't pretend to filter in articles mode
+      const tags = topicKey && mode === "clusters" ? topicTagsForGroup(topicKey) : [];
       const result = await fetchSearch({
         q: q || undefined,
         topicTags: tags.length ? tags : undefined,
@@ -225,7 +227,7 @@ export function ArchivePageClient() {
       else setLoading(false);
       setInitialLoaded(true);
     }
-  }, []);
+  }, [t, lang]);
 
   // Re-search when filters change (reset to page 1)
   useEffect(() => {
@@ -272,7 +274,9 @@ export function ArchivePageClient() {
         placeholder={t.archive.searchPlaceholder}
       />
       <ResultModeToggle value={resultMode} onChange={setResultMode} />
-      <FilterRow topic={topic} onTopicChange={handleTopicChange} />
+      {resultMode === "clusters" ? (
+        <FilterRow topic={topic} onTopicChange={handleTopicChange} />
+      ) : null}
 
       <SectionBlock>
         <div className="flex items-center justify-between gap-4 mb-3">
@@ -317,11 +321,11 @@ export function ArchivePageClient() {
             <LoadingState layout="archive" />
           ) : showAllEmpty ? (
             <EmptyState title={resultMode === "clusters" ? t.archive.emptyCatalog : t.archive.emptyCatalogArticles}>
-              <ArchiveThemeSuggestions onPickTopic={handleTopicChange} />
+              <ArchiveThemeSuggestions onPickTopic={handleTopicChange} activeTopic={topic} />
             </EmptyState>
           ) : showNoResults ? (
             <NoResultsState title={t.archive.noResultsTitle} message={t.archive.noResultsMessage}>
-              <ArchiveThemeSuggestions onPickTopic={handleTopicChange} />
+              <ArchiveThemeSuggestions onPickTopic={handleTopicChange} activeTopic={topic} />
             </NoResultsState>
           ) : (
             <>
