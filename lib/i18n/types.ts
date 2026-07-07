@@ -32,6 +32,7 @@ export type Translations = {
     emptyDraftDesc: string;
     topClusters: string;
     viewAllInsights: string;
+    categoryBarAria: string;
     emptyClustersTitle: string;
     emptyClustersDesc: string;
     goToArchive: string;
@@ -80,10 +81,10 @@ export type Translations = {
     emptyCatalog: string;
     noResultsTitle: string;
     noResultsMessage: string;
-    filterTheme: string;
+    filterCategory: string;
     filterSource: string;
     filterChannel: string;
-    allThemes: string;
+    allCategories: string;
     allSources: string;
     allChannels: string;
     loading: string;

@@ -45,7 +45,8 @@ export async function fetchCluster(id: string): Promise<ApiCluster> {
 export async function fetchSearch(params: {
   q?: string;
   source?: string;
-  theme?: string;
+  /** Canonical backend topic_tag values (already expanded from a topic group). */
+  topicTags?: string[];
   type?: "cluster" | "article" | "mixed";
   limit?: number;
   offset?: number;
@@ -54,7 +55,7 @@ export async function fetchSearch(params: {
   const qs = new URLSearchParams();
   if (params.q) qs.set("q", params.q);
   if (params.source) qs.set("source", params.source);
-  if (params.theme) qs.set("theme", params.theme);
+  if (params.topicTags?.length) qs.set("topic_tags", params.topicTags.join(","));
   if (params.type) qs.set("type", params.type);
   if (params.limit != null) qs.set("limit", String(params.limit));
   if (params.offset != null && params.offset > 0) qs.set("offset", String(params.offset));

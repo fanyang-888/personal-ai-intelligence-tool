@@ -1,10 +1,11 @@
-/** Query keys: q, theme, source (source id), channel (ingest: email|chat|web|feed) */
+/** Query keys: q, topic (topic group key), source (source id), channel (ingest: email|chat|web|feed) */
 
 import type { SourceChannel } from "@/types/source";
+import { isTopicGroupKey, type TopicGroupKey } from "@/lib/constants/topic-groups";
 
 export type ArchiveQuery = {
   q: string;
-  theme: string;
+  topic: string;
   sourceId: string;
   channel: string;
 };
@@ -21,12 +22,17 @@ function normalizeChannel(raw: string | null): string {
   return VALID_CHANNELS.includes(v as SourceChannel) ? v : "";
 }
 
+function normalizeTopic(raw: string | null): string {
+  const v = (raw ?? "").trim();
+  return isTopicGroupKey(v) ? v : "";
+}
+
 export function parseArchiveQuery(
   searchParams: Pick<URLSearchParams, "get">,
 ): ArchiveQuery {
   return {
     q: searchParams.get("q") ?? "",
-    theme: searchParams.get("theme") ?? "",
+    topic: normalizeTopic(searchParams.get("topic")),
     sourceId: searchParams.get("source") ?? "",
     channel: normalizeChannel(searchParams.get("channel")),
   };
@@ -36,7 +42,7 @@ export function serializeArchiveQuery(params: ArchiveQuery): string {
   const u = new URLSearchParams();
   const q = params.q.trim();
   if (q) u.set("q", q);
-  if (params.theme) u.set("theme", params.theme);
+  if (params.topic) u.set("topic", params.topic);
   if (params.sourceId) u.set("source", params.sourceId);
   if (params.channel) u.set("channel", params.channel);
   return u.toString();
@@ -51,8 +57,18 @@ export function archiveHref(params: ArchiveQuery): string {
 export function archiveChannelHref(channel: SourceChannel): string {
   return archiveHref({
     q: "",
-    theme: "",
+    topic: "",
     sourceId: "",
     channel,
+  });
+}
+
+/** Deep link from the homepage category bar: filter archive by topic group only. */
+export function archiveTopicHref(topic: TopicGroupKey): string {
+  return archiveHref({
+    q: "",
+    topic,
+    sourceId: "",
+    channel: "",
   });
 }

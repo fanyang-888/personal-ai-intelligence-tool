@@ -30,6 +30,7 @@ export type ApiCluster = {
   theme: string;
   themes: string[];
   tags: string[];
+  topicTag: string | null;
   storyStatus: string;
   clusterScore: number | null;
   freshnessLabel: string;
@@ -87,6 +88,7 @@ export type ApiArchiveClusterRow = {
   summary_zh: string | null;
   tags: string[];
   theme: string;
+  topicTag: string | null;
   storyStatus: string;
   clusterScore: number | null;
   lastSeenAt: string | null;

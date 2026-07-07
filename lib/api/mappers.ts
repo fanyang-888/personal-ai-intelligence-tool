@@ -22,6 +22,7 @@ export function apiClusterToCluster(c: ApiCluster): Cluster {
     theme: c.theme,
     themes: c.themes,
     tags: c.tags,
+    topicTag: c.topicTag ?? undefined,
     storyStatus: c.storyStatus,
     clusterScore: c.clusterScore ?? undefined,
     freshnessLabel: c.freshnessLabel,

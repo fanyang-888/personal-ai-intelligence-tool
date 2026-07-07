@@ -17,9 +17,9 @@ export function TopNavSearch() {
     e.preventDefault();
     const trimmed = q.trim();
     if (pathname === "/archive") {
-      const { theme, sourceId, channel } = parseArchiveQuery(searchParams);
+      const { topic, sourceId, channel } = parseArchiveQuery(searchParams);
       router.push(
-        archiveHref({ q: trimmed, theme, sourceId, channel }),
+        archiveHref({ q: trimmed, topic, sourceId, channel }),
       );
       return;
     }
