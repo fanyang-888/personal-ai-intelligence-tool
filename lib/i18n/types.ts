@@ -50,14 +50,6 @@ export type Translations = {
     srOnlyFreshness: string;
     srOnlyRelevance: string;
     formatChannelBadgeAria: (count: number, channelLabel: string) => string;
-    formatChannelArchiveLinkAria: (
-      count: number,
-      channelLabel: string,
-    ) => string;
-    formatChannelArchiveLinkTitle: (
-      count: number,
-      channelLabel: string,
-    ) => string;
   };
   formatSourceCount: (n: number) => string;
   draftPreview: {
@@ -82,25 +74,14 @@ export type Translations = {
     noResultsTitle: string;
     noResultsMessage: string;
     filterCategory: string;
-    filterSource: string;
-    filterChannel: string;
     allCategories: string;
-    allSources: string;
-    allChannels: string;
     loading: string;
-    resultModeClusters: string;
-    resultModeArticles: string;
-    resultModeGroupAria: string;
-    publishedLabel: string;
-    relatedCluster: string;
-    emptyCatalogArticles: string;
     suggestThemesLead: string;
     sortBestMatch: string;
     sortNewest: string;
     loadingMore: string;
     loadMore: (remaining: number) => string;
     resultCountStories: (n: number) => string;
-    resultCountArticles: (n: number) => string;
     freshnessMinutes: (m: number) => string;
     freshnessHours: (h: number) => string;
     freshnessDays: (d: number) => string;

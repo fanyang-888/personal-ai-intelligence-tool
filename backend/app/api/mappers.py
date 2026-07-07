@@ -5,7 +5,6 @@ from __future__ import annotations
 from app.api.schemas import (
     ArticleInCluster,
     AudienceBlocks,
-    ArchiveArticleRow,
     ArchiveClusterRow,
     ClusterResponse,
     DraftResponse,
@@ -15,7 +14,6 @@ from app.api.schemas import (
     localized,
     localized_bilingual,
 )
-from app.models.article import Article
 from app.models.cluster import Cluster
 from app.models.draft import Draft
 
@@ -152,6 +150,9 @@ def draft_to_response(draft: Draft, role: str | None = None) -> DraftResponse:
 
 
 def cluster_to_archive_row(cluster: Cluster) -> ArchiveClusterRow:
+    source_names = sorted(
+        {a.organization_name for a in (cluster.articles or []) if a.organization_name}
+    )
     return ArchiveClusterRow(
         id=str(cluster.id),
         type="cluster",
@@ -166,16 +167,5 @@ def cluster_to_archive_row(cluster: Cluster) -> ArchiveClusterRow:
         clusterScore=cluster.cluster_score,
         lastSeenAt=format_dt(cluster.last_seen_at),
         sourceCount=cluster.source_count or 0,
-    )
-
-
-def article_to_archive_row(article: Article) -> ArchiveArticleRow:
-    return ArchiveArticleRow(
-        id=str(article.id),
-        type="article",
-        title=article.title or "",
-        excerpt=article.excerpt or article.short_summary,
-        sourceName=article.organization_name,
-        publishedAt=format_dt(article.published_at),
-        url=article.url or "",
+        sourceNames=source_names,
     )

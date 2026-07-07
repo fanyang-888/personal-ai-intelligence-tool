@@ -9,7 +9,7 @@ import {
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { fetchSearch } from "@/lib/api";
-import type { ArchiveResultRow, ArchiveClusterRow, ArchiveArticleRow } from "@/lib/mappers/archive";
+import type { ArchiveResultRow, ArchiveClusterRow } from "@/lib/mappers/archive";
 import { archiveHref, parseArchiveQuery } from "@/lib/utils/archive-url";
 import { topicTagsForGroup } from "@/lib/constants/topic-groups";
 import { useI18n } from "@/lib/i18n";
@@ -17,10 +17,6 @@ import { ArchiveResultCard } from "@/components/archive/archive-result-card";
 import { ArchiveThemeSuggestions } from "@/components/archive/archive-theme-suggestions";
 import { SearchBar } from "@/components/archive/search-bar";
 import { FilterRow } from "@/components/archive/filter-bar";
-import {
-  ResultModeToggle,
-  type ArchiveResultMode,
-} from "@/components/archive/result-mode-toggle";
 import { PageHeader } from "@/components/shared/page-header";
 import { SectionBlock } from "@/components/shared/section-block";
 import { SectionTitle } from "@/components/shared/section-title";
@@ -30,12 +26,10 @@ import { LoadingState } from "@/components/shared/loading-state";
 
 function DateGroupedList({
   rows,
-  resultMode,
   keyword,
   lang,
 }: {
   rows: ArchiveResultRow[];
-  resultMode: ArchiveResultMode;
   keyword: string;
   lang: string;
 }) {
@@ -52,9 +46,9 @@ function DateGroupedList({
   }
 
   return (
-    <div className={resultMode === "clusters" ? "space-y-4" : "space-y-2.5"}>
+    <div className="space-y-4">
       {groups.map((group, gi) => (
-        <div key={group.dateKey}>
+        <div key={`${group.dateKey}-${gi}`}>
           {/* Date divider */}
           <div className={`flex items-center gap-3 ${gi === 0 ? "mb-3" : "mt-6 mb-3"}`}>
             <span
@@ -65,7 +59,7 @@ function DateGroupedList({
             </span>
             <div className="h-px flex-1" style={{ background: "var(--sp-border)" }} />
           </div>
-          <ul className={resultMode === "clusters" ? "space-y-4" : "space-y-2.5"}>
+          <ul className="space-y-4">
             {group.items.map((row) => (
               <ArchiveResultCard key={row.id} row={row} highlightQuery={keyword} />
             ))}
@@ -89,8 +83,20 @@ function toDateKey(dateStr: string | null): string {
 
 type ArchiveT = ReturnType<typeof useI18n>["t"];
 
+/** "arXiv · TechCrunch · The Verge +2" — names capped at 3, falls back to a count. */
+function formatSourceLabels(
+  sourceNames: string[],
+  sourceCount: number,
+  t: ArchiveT,
+): string {
+  if (sourceNames.length === 0) return t.archive.sourceCountLabel(sourceCount);
+  const shown = sourceNames.slice(0, 3).join(" · ");
+  const extra = sourceNames.length - 3;
+  return extra > 0 ? `${shown} +${extra}` : shown;
+}
+
 function toClusterRow(
-  c: { id: string; title: string; title_zh: string | null; summary: string | null; summary_zh: string | null; tags: string[]; theme: string; topicTag: string | null; storyStatus: string; clusterScore: number | null; lastSeenAt: string | null; sourceCount: number },
+  c: { id: string; title: string; title_zh: string | null; summary: string | null; summary_zh: string | null; tags: string[]; theme: string; topicTag: string | null; storyStatus: string; clusterScore: number | null; lastSeenAt: string | null; sourceCount: number; sourceNames: string[] },
   t: ArchiveT,
   lang: string,
 ): ArchiveClusterRow {
@@ -109,30 +115,9 @@ function toClusterRow(
     theme: c.theme,
     themeLabel: c.topicTag ?? c.theme,
     summarySnippet: (isZh ? (c.summary_zh ?? c.summary ?? "") : (c.summary ?? "")).slice(0, 160),
-    sourceLabels: t.archive.sourceCountLabel(c.sourceCount),
+    sourceLabels: formatSourceLabels(c.sourceNames ?? [], c.sourceCount, t),
     freshnessLabel,
     dateKey: toDateKey(c.lastSeenAt),
-  };
-}
-
-function toArticleRow(
-  a: { id: string; title: string; excerpt: string | null; sourceName: string | null; publishedAt: string | null; url: string },
-  lang: string,
-): ArchiveArticleRow {
-  return {
-    kind: "article",
-    id: a.id,
-    sourceName: a.sourceName ?? (lang === "zh" ? "未知来源" : "Unknown"),
-    title: a.title,
-    url: a.url,
-    excerptSnippet: (a.excerpt ?? "").slice(0, 160),
-    clusterId: "",
-    clusterTitle: "",
-    themeLabel: "",
-    publishedLabel: a.publishedAt
-      ? new Intl.DateTimeFormat(lang === "zh" ? "zh-CN" : "en-US", { dateStyle: "medium" }).format(new Date(a.publishedAt))
-      : "",
-    dateKey: toDateKey(a.publishedAt),
   };
 }
 
@@ -158,9 +143,6 @@ export function ArchivePageClient() {
 
   const [keyword, setKeyword] = useState("");
   const [topic, setTopic] = useState("");
-  const [sourceId, setSourceId] = useState("");
-  const [channel, setChannel] = useState("");
-  const [resultMode, setResultMode] = useState<ArchiveResultMode>("clusters");
   const [sortBy, setSortBy] = useState<SortBy>("score");
 
   const [rows, setRows] = useState<ArchiveResultRow[]>([]);
@@ -175,17 +157,15 @@ export function ArchivePageClient() {
     startTransition(() => {
       setKeyword(p.q);
       setTopic(p.topic);
-      setSourceId(p.sourceId);
-      setChannel(p.channel);
     });
   }, [spKey]);
 
   // URL debounce
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const latestFiltersRef = useRef({ topic: "", sourceId: "", channel: "" });
+  const latestFiltersRef = useRef({ topic: "" });
   useEffect(() => {
-    latestFiltersRef.current = { topic, sourceId, channel };
-  }, [topic, sourceId, channel]);
+    latestFiltersRef.current = { topic };
+  }, [topic]);
   useEffect(() => () => { if (debounceRef.current) clearTimeout(debounceRef.current); }, []);
 
   // Search debounce
@@ -194,8 +174,6 @@ export function ArchivePageClient() {
   const doSearch = useCallback(async (
     q: string,
     topicKey: string,
-    src: string,
-    mode: ArchiveResultMode,
     sort: SortBy,
     offset: number,
     append: boolean,
@@ -204,25 +182,17 @@ export function ArchivePageClient() {
     else setLoading(true);
 
     try {
-      const apiType = mode === "clusters" ? "cluster" : "article";
       const tags = topicKey ? topicTagsForGroup(topicKey) : [];
       const result = await fetchSearch({
         q: q || undefined,
         topicTags: tags.length ? tags : undefined,
-        source: src || undefined,
-        type: apiType,
         limit: PAGE_SIZE,
         offset,
         sortBy: sort,
       });
 
-      if (mode === "clusters") {
-        const newRows = result.clusters.map(c => toClusterRow(c, t, lang));
-        setRows(prev => append ? [...prev, ...newRows] : newRows);
-      } else {
-        const newRows = result.articles.map(a => toArticleRow(a, lang));
-        setRows(prev => append ? [...prev, ...newRows] : newRows);
-      }
+      const newRows = result.clusters.map(c => toClusterRow(c, t, lang));
+      setRows(prev => append ? [...prev, ...newRows] : newRows);
       setTotal(result.total);
     } catch {
       if (!append) setRows([]);
@@ -231,35 +201,33 @@ export function ArchivePageClient() {
       else setLoading(false);
       setInitialLoaded(true);
     }
-  }, []);
+  }, [t, lang]);
 
   // Re-search when filters change (reset to page 1)
   useEffect(() => {
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     searchDebounceRef.current = setTimeout(() => {
-      doSearch(keyword, topic, sourceId, resultMode, sortBy, 0, false);
+      doSearch(keyword, topic, sortBy, 0, false);
     }, keyword ? SEARCH_DEBOUNCE_MS : 0);
     return () => { if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current); };
-  }, [keyword, topic, sourceId, resultMode, sortBy, doSearch]);
+  }, [keyword, topic, sortBy, doSearch]);
 
   const handleLoadMore = useCallback(() => {
-    doSearch(keyword, topic, sourceId, resultMode, sortBy, rows.length, true);
-  }, [keyword, topic, sourceId, resultMode, sortBy, rows.length, doSearch]);
+    doSearch(keyword, topic, sortBy, rows.length, true);
+  }, [keyword, topic, sortBy, rows.length, doSearch]);
 
   const scheduleKeywordUrlSync = useCallback((nextQ: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      const { topic: tp, sourceId: s, channel: ch } = latestFiltersRef.current;
-      router.replace(archiveHref({ q: nextQ, topic: tp, sourceId: s, channel: ch }));
+      const { topic: tp } = latestFiltersRef.current;
+      router.replace(archiveHref({ q: nextQ, topic: tp }));
     }, KEYWORD_URL_DEBOUNCE_MS);
   }, [router]);
 
   function handleKeywordChange(value: string) { setKeyword(value); scheduleKeywordUrlSync(value); }
-  function handleTopicChange(k: string) { if (debounceRef.current) clearTimeout(debounceRef.current); setTopic(k); router.replace(archiveHref({ q: keyword, topic: k, sourceId, channel })); }
-  function handleSourceChange(id: string) { if (debounceRef.current) clearTimeout(debounceRef.current); setSourceId(id); router.replace(archiveHref({ q: keyword, topic, sourceId: id, channel })); }
-  function handleChannelChange(ch: string) { if (debounceRef.current) clearTimeout(debounceRef.current); setChannel(ch); router.replace(archiveHref({ q: keyword, topic, sourceId, channel: ch })); }
+  function handleTopicChange(k: string) { if (debounceRef.current) clearTimeout(debounceRef.current); setTopic(k); router.replace(archiveHref({ q: keyword, topic: k })); }
 
-  const hasActiveFilters = Boolean(keyword.trim() || topic || sourceId || channel);
+  const hasActiveFilters = Boolean(keyword.trim() || topic);
   const showNoResults = rows.length === 0 && hasActiveFilters && !loading && initialLoaded;
   const showAllEmpty = rows.length === 0 && !hasActiveFilters && !loading && initialLoaded;
   const hasMore = rows.length < total && rows.length > 0;
@@ -279,16 +247,7 @@ export function ArchivePageClient() {
         label={t.archive.searchLabel}
         placeholder={t.archive.searchPlaceholder}
       />
-      <ResultModeToggle value={resultMode} onChange={setResultMode} />
-      <FilterRow
-        topic={topic}
-        sourceId={sourceId}
-        channel={channel}
-        sources={[]}
-        onTopicChange={handleTopicChange}
-        onSourceChange={handleSourceChange}
-        onChannelChange={handleChannelChange}
-      />
+      <FilterRow topic={topic} onTopicChange={handleTopicChange} />
 
       <SectionBlock>
         <div className="flex items-center justify-between gap-4 mb-3">
@@ -296,9 +255,7 @@ export function ArchivePageClient() {
             <SectionTitle>{t.archive.results}</SectionTitle>
             {initialLoaded && !loading && total > 0 && (
               <span className="text-sm [color:var(--text-muted)]">
-                {resultMode === "clusters"
-                  ? t.archive.resultCountStories(total)
-                  : t.archive.resultCountArticles(total)}
+                {t.archive.resultCountStories(total)}
               </span>
             )}
           </div>
@@ -332,16 +289,16 @@ export function ArchivePageClient() {
           {loading ? (
             <LoadingState layout="archive" />
           ) : showAllEmpty ? (
-            <EmptyState title={resultMode === "clusters" ? t.archive.emptyCatalog : t.archive.emptyCatalogArticles}>
-              <ArchiveThemeSuggestions onPickTopic={handleTopicChange} />
+            <EmptyState title={t.archive.emptyCatalog}>
+              <ArchiveThemeSuggestions onPickTopic={handleTopicChange} activeTopic={topic} />
             </EmptyState>
           ) : showNoResults ? (
             <NoResultsState title={t.archive.noResultsTitle} message={t.archive.noResultsMessage}>
-              <ArchiveThemeSuggestions onPickTopic={handleTopicChange} />
+              <ArchiveThemeSuggestions onPickTopic={handleTopicChange} activeTopic={topic} />
             </NoResultsState>
           ) : (
             <>
-              <DateGroupedList rows={rows} resultMode={resultMode} keyword={keyword} lang={lang} />
+              <DateGroupedList rows={rows} keyword={keyword} lang={lang} />
 
               {hasMore && (
                 <div className="mt-6 flex justify-center">

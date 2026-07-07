@@ -12,18 +12,4 @@ export type ArchiveClusterRow = {
   dateKey: string; // YYYY-MM-DD for grouping
 };
 
-export type ArchiveArticleRow = {
-  kind: "article";
-  id: string;
-  sourceName: string;
-  title: string;
-  url: string;
-  excerptSnippet: string;
-  clusterId: string;
-  clusterTitle: string;
-  themeLabel: string;
-  publishedLabel: string;
-  dateKey: string; // YYYY-MM-DD for grouping
-};
-
-export type ArchiveResultRow = ArchiveClusterRow | ArchiveArticleRow;
+export type ArchiveResultRow = ArchiveClusterRow;

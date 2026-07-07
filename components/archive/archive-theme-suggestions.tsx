@@ -5,10 +5,13 @@ import { TOPIC_GROUPS, topicGroupLabel } from "@/lib/constants/topic-groups";
 
 type ArchiveTopicSuggestionsProps = {
   onPickTopic: (topicKey: string) => void;
+  /** Currently selected topic — omitted from the chips (clicking it would be a no-op). */
+  activeTopic?: string;
 };
 
 export function ArchiveThemeSuggestions({
   onPickTopic,
+  activeTopic,
 }: ArchiveTopicSuggestionsProps) {
   const { t, lang } = useI18n();
 
@@ -16,7 +19,7 @@ export function ArchiveThemeSuggestions({
     <div className="text-center">
       <p className="text-sm [color:var(--text-muted)]">{t.archive.suggestThemesLead}</p>
       <div className="mt-3 flex flex-wrap justify-center gap-2">
-        {TOPIC_GROUPS.map((g) => (
+        {TOPIC_GROUPS.filter((g) => g.key !== activeTopic).map((g) => (
           <button
             key={g.key}
             type="button"
