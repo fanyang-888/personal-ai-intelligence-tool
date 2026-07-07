@@ -14,7 +14,7 @@ import { AIBasicCard } from "@/components/digest/ai-basic-card";
 import { SubscribeBar } from "@/components/shared/subscribe-bar";
 import { SippyHero } from "@/components/layout/sipply-hero";
 import { SectionBlock } from "@/components/shared/section-block";
-import { SectionTitle } from "@/components/shared/section-title";
+import { CategoryBar } from "@/components/shared/category-bar";
 import { EmptyState } from "@/components/shared/empty-state";
 import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
@@ -210,25 +210,19 @@ export default function HomePage() {
           </Link>
         ) : null}
 
-        {/* More stories label */}
+        {/* Category bar + more stories */}
         {topClusters.length > 1 ? (
           <>
-            <p
-              className="mb-1 flex items-center justify-between"
-              style={{
-                fontFamily: "'IBM Plex Mono', monospace",
-                fontSize: 9,
-                fontWeight: 500,
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-                color: "var(--text-dim)",
-              }}
-            >
-              <span>{t.home.topClusters}</span>
-              <Link href="/archive" style={{ color: "var(--accent)", fontSize: 9, letterSpacing: "0.05em", textTransform: "none" }}>
-                {t.home.viewAllInsights} →
-              </Link>
-            </p>
+            <CategoryBar
+              trailing={
+                <Link
+                  href="/archive"
+                  style={{ color: "var(--accent)", fontSize: 10, textDecoration: "none", whiteSpace: "nowrap" }}
+                >
+                  {t.home.viewAllInsights} →
+                </Link>
+              }
+            />
             <TopicFilter tags={topicOptions} onChange={setSelectedTopics} />
             <div>
               {filteredClusters.filter((c) => c.id !== featured?.id).map((c) => (
@@ -276,7 +270,7 @@ export default function HomePage() {
         </div>
 
         <SectionBlock>
-          <SectionTitle>{t.home.topClusters}</SectionTitle>
+          <CategoryBar />
           <TopicFilter tags={topicOptions} onChange={setSelectedTopics} />
           {filteredClusters.length > 0 ? (
             <>
