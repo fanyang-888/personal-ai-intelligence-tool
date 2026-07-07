@@ -50,10 +50,6 @@ export const en: Translations = {
     srOnlyRelevance: "Relevance",
     formatChannelBadgeAria: (c, label) =>
       `${c === 1 ? "1 source" : `${c} sources`} from ${label}`,
-    formatChannelArchiveLinkAria: (c, label) =>
-      `${c === 1 ? "1 source" : `${c} sources`} from ${label}. Open archive filtered by ${label}`,
-    formatChannelArchiveLinkTitle: (c, label) =>
-      `${c === 1 ? "1 source" : `${c} sources`} from ${label} — filter archive`,
   },
   draftPreview: {
     sectionTitle: "Draft of the Day",
@@ -79,13 +75,9 @@ export const en: Translations = {
     emptyCatalogArticles: "No articles in catalog",
     noResultsTitle: "No results",
     noResultsMessage:
-      "Try a different keyword, theme, source, or channel.",
+      "Try a different keyword or category.",
     filterCategory: "Category",
-    filterSource: "Source",
-    filterChannel: "Channel",
     allCategories: "All categories",
-    allSources: "All sources",
-    allChannels: "All channels",
     loading: "Loading archive…",
     resultModeClusters: "Clusters",
     resultModeArticles: "Articles",

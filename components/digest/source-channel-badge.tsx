@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
 import type { SourceChannel } from "@/types/source";
 
@@ -85,45 +84,15 @@ const badgeClass =
 type SourceChannelBadgeProps = {
   channel: SourceChannel;
   count: number;
-  /** When set, badge navigates to archive filtered by this channel (metadata affordance, not primary CTA). */
-  href?: string;
 };
 
 /**
  * Distinct from {@link StoryBadge}: icon + numeric count for ingest channel transparency.
  */
-export function SourceChannelBadge({
-  channel,
-  count,
-  href,
-}: SourceChannelBadgeProps) {
+export function SourceChannelBadge({ channel, count }: SourceChannelBadgeProps) {
   const { t } = useI18n();
   const label = t.channels[channel];
   const aria = t.digest.formatChannelBadgeAria(count, label);
-  const inner = (
-    <>
-      <ChannelIcon channel={channel} />
-      <span aria-hidden className="[color:var(--text-muted)]">
-        {label}
-      </span>
-      <span aria-hidden className="min-w-[1ch] text-foreground">
-        ×{count}
-      </span>
-    </>
-  );
-
-  if (href) {
-    return (
-      <Link
-        href={href}
-        className={`${badgeClass} cursor-pointer transition-colors hover:[border-color:var(--border)] hover:[background:var(--surface2)]`}
-        aria-label={t.digest.formatChannelArchiveLinkAria(count, label)}
-        title={t.digest.formatChannelArchiveLinkTitle(count, label)}
-      >
-        {inner}
-      </Link>
-    );
-  }
 
   return (
     <span
@@ -132,7 +101,13 @@ export function SourceChannelBadge({
       role="img"
       aria-label={aria}
     >
-      {inner}
+      <ChannelIcon channel={channel} />
+      <span aria-hidden className="[color:var(--text-muted)]">
+        {label}
+      </span>
+      <span aria-hidden className="min-w-[1ch] text-foreground">
+        ×{count}
+      </span>
     </span>
   );
 }
