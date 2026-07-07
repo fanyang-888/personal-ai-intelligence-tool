@@ -17,7 +17,7 @@ router = APIRouter(prefix="/api/search", tags=["search"])
 def search(
     q: str = Query(default="", description="Search keyword"),
     source: str = Query(default="", description="Filter by source name"),
-    theme: str = Query(default="", description="Filter by theme/tag"),
+    topic_tags: str = Query(default="", description="Comma-separated topic_tag values, e.g. 'Model Release,Research'"),
     result_type: str = Query(default="cluster", alias="type", description="cluster | article | mixed"),
     limit: int = Query(default=20, le=100),
     offset: int = Query(default=0, ge=0),
@@ -42,10 +42,9 @@ def search(
                     Cluster.summary.ilike(kw),
                 )
             )
-        if theme:
-            base_cluster_q = base_cluster_q.where(
-                Cluster.tags.cast(type_=None).astext.ilike(f"%{theme}%")
-            )
+        tag_list = [t.strip() for t in topic_tags.split(",") if t.strip()]
+        if tag_list:
+            base_cluster_q = base_cluster_q.where(Cluster.topic_tag.in_(tag_list))
 
         # Count total matching rows (before pagination)
         count_q = select(func.count()).select_from(base_cluster_q.subquery())

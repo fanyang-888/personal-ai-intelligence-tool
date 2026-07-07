@@ -1,27 +1,25 @@
 "use client";
 
 import { useI18n } from "@/lib/i18n";
-import { themeSelectLabel } from "@/lib/i18n/theme-display";
+import { TOPIC_GROUPS, topicGroupLabel } from "@/lib/constants/topic-groups";
 import { SOURCE_CHANNELS_ALL } from "@/lib/utils/cluster-sources";
 
 type FilterBarProps = {
-  theme: string;
+  topic: string;
   sourceId: string;
   channel: string;
-  themes: string[];
   sources: { id: string; name: string }[];
-  onThemeChange: (theme: string) => void;
+  onTopicChange: (topic: string) => void;
   onSourceChange: (sourceId: string) => void;
   onChannelChange: (channel: string) => void;
 };
 
 function FilterBar({
-  theme,
+  topic,
   sourceId,
   channel,
-  themes,
   sources,
-  onThemeChange,
+  onTopicChange,
   onSourceChange,
   onChannelChange,
 }: FilterBarProps) {
@@ -30,19 +28,19 @@ function FilterBar({
   return (
     <div className="mb-6 flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end">
       <div className="min-w-0 flex-1 lg:min-w-[10rem]">
-        <label htmlFor="filter-theme" className="mb-1 block text-sm font-medium">
-          {t.archive.filterTheme}
+        <label htmlFor="filter-category" className="mb-1 block text-sm font-medium">
+          {t.archive.filterCategory}
         </label>
         <select
-          id="filter-theme"
-          value={theme}
-          onChange={(e) => onThemeChange(e.target.value)}
+          id="filter-category"
+          value={topic}
+          onChange={(e) => onTopicChange(e.target.value)}
           className="w-full rounded border [border-color:var(--border)] px-3 py-2 text-sm"
         >
-          <option value="">{t.archive.allThemes}</option>
-          {themes.map((th) => (
-            <option key={th} value={th}>
-              {themeSelectLabel(th, lang)}
+          <option value="">{t.archive.allCategories}</option>
+          {TOPIC_GROUPS.map((g) => (
+            <option key={g.key} value={g.key}>
+              {topicGroupLabel(g, lang)}
             </option>
           ))}
         </select>
