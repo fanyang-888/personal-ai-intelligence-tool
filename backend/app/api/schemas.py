@@ -147,6 +147,7 @@ class ArchiveClusterRow(BaseModel):
     summary_zh: str | None = None
     tags: list[str]
     theme: str
+    topicTag: str | None = None
     storyStatus: str
     clusterScore: float | None
     lastSeenAt: str | None

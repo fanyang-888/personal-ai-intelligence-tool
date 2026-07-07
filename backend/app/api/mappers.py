@@ -161,6 +161,7 @@ def cluster_to_archive_row(cluster: Cluster) -> ArchiveClusterRow:
         summary_zh=getattr(cluster, "summary_zh", None),
         tags=cluster.tags or [],
         theme=cluster.type or "event",
+        topicTag=cluster.topic_tag,
         storyStatus=cluster.status or "new",
         clusterScore=cluster.cluster_score,
         lastSeenAt=format_dt(cluster.last_seen_at),
