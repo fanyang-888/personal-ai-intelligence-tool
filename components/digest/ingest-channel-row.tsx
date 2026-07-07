@@ -2,7 +2,6 @@
 
 import { SourceChannelBadge } from "@/components/digest/source-channel-badge";
 import { useI18n } from "@/lib/i18n";
-import { archiveChannelHref } from "@/lib/utils/archive-url";
 import type { SourceChannel } from "@/types/source";
 
 type ChannelCount = { channel: SourceChannel; count: number };
@@ -29,11 +28,7 @@ export function IngestChannelRow({
     >
       {visibleChannels.map(({ channel, count }) => (
         <li key={channel} className="shrink-0">
-          <SourceChannelBadge
-            channel={channel}
-            count={count}
-            href={archiveChannelHref(channel)}
-          />
+          <SourceChannelBadge channel={channel} count={count} />
         </li>
       ))}
       {extraTypeCount > 0 ? (

@@ -1,12 +1,5 @@
 import type { SourceChannel } from "@/types/source";
 
-export const SOURCE_CHANNELS_ALL: SourceChannel[] = [
-  "email",
-  "chat",
-  "web",
-  "feed",
-];
-
 export type SourceChannelCount = { channel: SourceChannel; count: number };
 
 /** When more than `maxTypes` distinct channels, show first N + "+M" overflow. */

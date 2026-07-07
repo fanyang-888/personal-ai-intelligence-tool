@@ -48,10 +48,6 @@ export const zh: Translations = {
     srOnlyRelevance: "相关度",
     formatChannelBadgeAria: (c, label) =>
       `${c === 1 ? "1 个来源" : `${c} 个来源`}，渠道 ${label}`,
-    formatChannelArchiveLinkAria: (c, label) =>
-      `${c === 1 ? "1 个来源" : `${c} 个来源`}，渠道 ${label}。打开按该渠道筛选的资料库`,
-    formatChannelArchiveLinkTitle: (c, label) =>
-      `${c === 1 ? "1 个来源" : `${c} 个来源`}（${label}）— 筛选资料库`,
   },
   draftPreview: {
     sectionTitle: "今日草稿",
@@ -75,13 +71,9 @@ export const zh: Translations = {
     emptyCatalog: "目录中暂无集群",
     emptyCatalogArticles: "目录中暂无文章",
     noResultsTitle: "无匹配结果",
-    noResultsMessage: "请尝试其他关键词、主题、来源或渠道。",
+    noResultsMessage: "请尝试其他关键词或分类。",
     filterCategory: "分类",
-    filterSource: "来源",
-    filterChannel: "渠道",
     allCategories: "全部分类",
-    allSources: "全部来源",
-    allChannels: "全部渠道",
     loading: "正在加载资料库…",
     resultModeClusters: "集群",
     resultModeArticles: "文章",

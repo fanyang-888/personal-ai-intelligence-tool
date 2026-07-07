@@ -50,14 +50,6 @@ export type Translations = {
     srOnlyFreshness: string;
     srOnlyRelevance: string;
     formatChannelBadgeAria: (count: number, channelLabel: string) => string;
-    formatChannelArchiveLinkAria: (
-      count: number,
-      channelLabel: string,
-    ) => string;
-    formatChannelArchiveLinkTitle: (
-      count: number,
-      channelLabel: string,
-    ) => string;
   };
   formatSourceCount: (n: number) => string;
   draftPreview: {
@@ -82,11 +74,7 @@ export type Translations = {
     noResultsTitle: string;
     noResultsMessage: string;
     filterCategory: string;
-    filterSource: string;
-    filterChannel: string;
     allCategories: string;
-    allSources: string;
-    allChannels: string;
     loading: string;
     resultModeClusters: string;
     resultModeArticles: string;
