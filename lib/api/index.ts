@@ -46,7 +46,6 @@ export async function fetchSearch(params: {
   q?: string;
   /** Canonical backend topic_tag values (already expanded from a topic group). */
   topicTags?: string[];
-  type?: "cluster" | "article" | "mixed";
   limit?: number;
   offset?: number;
   sortBy?: "score" | "date";
@@ -54,7 +53,6 @@ export async function fetchSearch(params: {
   const qs = new URLSearchParams();
   if (params.q) qs.set("q", params.q);
   if (params.topicTags?.length) qs.set("topic_tags", params.topicTags.join(","));
-  if (params.type) qs.set("type", params.type);
   if (params.limit != null) qs.set("limit", String(params.limit));
   if (params.offset != null && params.offset > 0) qs.set("offset", String(params.offset));
   if (params.sortBy && params.sortBy !== "score") qs.set("sort_by", params.sortBy);

@@ -152,21 +152,10 @@ class ArchiveClusterRow(BaseModel):
     clusterScore: float | None
     lastSeenAt: str | None
     sourceCount: int
-
-
-class ArchiveArticleRow(BaseModel):
-    id: str
-    type: str = "article"
-    title: str
-    excerpt: str | None
-    sourceName: str | None
-    publishedAt: str | None
-    url: str
+    sourceNames: list[str] = []
 
 
 class SearchResponse(BaseModel):
     query: str
-    resultType: str   # "cluster" | "article" | "mixed"
     clusters: list[ArchiveClusterRow]
-    articles: list[ArchiveArticleRow]
     total: int

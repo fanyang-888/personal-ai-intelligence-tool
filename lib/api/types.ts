@@ -73,9 +73,7 @@ export type ApiDraft = {
 
 export type ApiSearchResponse = {
   query: string;
-  resultType: string;
   clusters: ApiArchiveClusterRow[];
-  articles: ApiArchiveArticleRow[];
   total: number;
 };
 
@@ -93,14 +91,5 @@ export type ApiArchiveClusterRow = {
   clusterScore: number | null;
   lastSeenAt: string | null;
   sourceCount: number;
-};
-
-export type ApiArchiveArticleRow = {
-  id: string;
-  type: "article";
-  title: string;
-  excerpt: string | null;
-  sourceName: string | null;
-  publishedAt: string | null;
-  url: string;
+  sourceNames: string[];
 };

@@ -13,13 +13,7 @@ type ArchiveResultCardProps = {
   highlightQuery?: string;
 };
 
-function ClusterArchiveCard({
-  row,
-  highlightQuery,
-}: {
-  row: Extract<ArchiveResultRow, { kind: "cluster" }>;
-  highlightQuery?: string;
-}) {
+export function ArchiveResultCard({ row, highlightQuery }: ArchiveResultCardProps) {
   const { t } = useI18n();
 
   return (
@@ -46,59 +40,4 @@ function ClusterArchiveCard({
       </p>
     </ResultCardFrame>
   );
-}
-
-function ArticleArchiveCard({
-  row,
-  highlightQuery,
-}: {
-  row: Extract<ArchiveResultRow, { kind: "article" }>;
-  highlightQuery?: string;
-}) {
-  const { t } = useI18n();
-
-  return (
-    <ResultCardFrame as="li" variant="archiveArticle">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <span className="text-xs font-semibold uppercase tracking-wide [color:var(--text-muted)]">
-          {row.sourceName}
-        </span>
-        {row.publishedLabel ? (
-          <span className={uiMetaText}>
-            {t.archive.publishedLabel} · {row.publishedLabel}
-          </span>
-        ) : null}
-      </div>
-      <h3 className="mt-1.5 text-sm font-semibold leading-snug text-foreground">
-        <a
-          href={row.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="underline-offset-4 hover:underline"
-        >
-          {row.title}
-        </a>
-      </h3>
-      <p className="mt-1.5 text-sm leading-relaxed [color:var(--text-muted)]">
-        <HighlightMatch text={row.excerptSnippet} query={highlightQuery ?? ""} />
-      </p>
-      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs [color:var(--text-muted)]">
-        <Badge>{row.themeLabel}</Badge>
-        <span className="[color:var(--text-muted)]">·</span>
-        <Link
-          href={`/cluster/${row.clusterId}`}
-          className="[color:var(--text-muted)] underline-offset-2 hover:text-foreground hover:underline"
-        >
-          {t.archive.relatedCluster}: {row.clusterTitle}
-        </Link>
-      </div>
-    </ResultCardFrame>
-  );
-}
-
-export function ArchiveResultCard({ row, highlightQuery }: ArchiveResultCardProps) {
-  if (row.kind === "cluster") {
-    return <ClusterArchiveCard row={row} highlightQuery={highlightQuery} />;
-  }
-  return <ArticleArchiveCard row={row} highlightQuery={highlightQuery} />;
 }

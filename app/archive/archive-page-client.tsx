@@ -9,7 +9,7 @@ import {
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { fetchSearch } from "@/lib/api";
-import type { ArchiveResultRow, ArchiveClusterRow, ArchiveArticleRow } from "@/lib/mappers/archive";
+import type { ArchiveResultRow, ArchiveClusterRow } from "@/lib/mappers/archive";
 import { archiveHref, parseArchiveQuery } from "@/lib/utils/archive-url";
 import { topicTagsForGroup } from "@/lib/constants/topic-groups";
 import { useI18n } from "@/lib/i18n";
@@ -17,10 +17,6 @@ import { ArchiveResultCard } from "@/components/archive/archive-result-card";
 import { ArchiveThemeSuggestions } from "@/components/archive/archive-theme-suggestions";
 import { SearchBar } from "@/components/archive/search-bar";
 import { FilterRow } from "@/components/archive/filter-bar";
-import {
-  ResultModeToggle,
-  type ArchiveResultMode,
-} from "@/components/archive/result-mode-toggle";
 import { PageHeader } from "@/components/shared/page-header";
 import { SectionBlock } from "@/components/shared/section-block";
 import { SectionTitle } from "@/components/shared/section-title";
@@ -30,12 +26,10 @@ import { LoadingState } from "@/components/shared/loading-state";
 
 function DateGroupedList({
   rows,
-  resultMode,
   keyword,
   lang,
 }: {
   rows: ArchiveResultRow[];
-  resultMode: ArchiveResultMode;
   keyword: string;
   lang: string;
 }) {
@@ -52,7 +46,7 @@ function DateGroupedList({
   }
 
   return (
-    <div className={resultMode === "clusters" ? "space-y-4" : "space-y-2.5"}>
+    <div className="space-y-4">
       {groups.map((group, gi) => (
         <div key={`${group.dateKey}-${gi}`}>
           {/* Date divider */}
@@ -65,7 +59,7 @@ function DateGroupedList({
             </span>
             <div className="h-px flex-1" style={{ background: "var(--sp-border)" }} />
           </div>
-          <ul className={resultMode === "clusters" ? "space-y-4" : "space-y-2.5"}>
+          <ul className="space-y-4">
             {group.items.map((row) => (
               <ArchiveResultCard key={row.id} row={row} highlightQuery={keyword} />
             ))}
@@ -89,8 +83,20 @@ function toDateKey(dateStr: string | null): string {
 
 type ArchiveT = ReturnType<typeof useI18n>["t"];
 
+/** "arXiv · TechCrunch · The Verge +2" — names capped at 3, falls back to a count. */
+function formatSourceLabels(
+  sourceNames: string[],
+  sourceCount: number,
+  t: ArchiveT,
+): string {
+  if (sourceNames.length === 0) return t.archive.sourceCountLabel(sourceCount);
+  const shown = sourceNames.slice(0, 3).join(" · ");
+  const extra = sourceNames.length - 3;
+  return extra > 0 ? `${shown} +${extra}` : shown;
+}
+
 function toClusterRow(
-  c: { id: string; title: string; title_zh: string | null; summary: string | null; summary_zh: string | null; tags: string[]; theme: string; topicTag: string | null; storyStatus: string; clusterScore: number | null; lastSeenAt: string | null; sourceCount: number },
+  c: { id: string; title: string; title_zh: string | null; summary: string | null; summary_zh: string | null; tags: string[]; theme: string; topicTag: string | null; storyStatus: string; clusterScore: number | null; lastSeenAt: string | null; sourceCount: number; sourceNames: string[] },
   t: ArchiveT,
   lang: string,
 ): ArchiveClusterRow {
@@ -109,30 +115,9 @@ function toClusterRow(
     theme: c.theme,
     themeLabel: c.topicTag ?? c.theme,
     summarySnippet: (isZh ? (c.summary_zh ?? c.summary ?? "") : (c.summary ?? "")).slice(0, 160),
-    sourceLabels: t.archive.sourceCountLabel(c.sourceCount),
+    sourceLabels: formatSourceLabels(c.sourceNames ?? [], c.sourceCount, t),
     freshnessLabel,
     dateKey: toDateKey(c.lastSeenAt),
-  };
-}
-
-function toArticleRow(
-  a: { id: string; title: string; excerpt: string | null; sourceName: string | null; publishedAt: string | null; url: string },
-  lang: string,
-): ArchiveArticleRow {
-  return {
-    kind: "article",
-    id: a.id,
-    sourceName: a.sourceName ?? (lang === "zh" ? "未知来源" : "Unknown"),
-    title: a.title,
-    url: a.url,
-    excerptSnippet: (a.excerpt ?? "").slice(0, 160),
-    clusterId: "",
-    clusterTitle: "",
-    themeLabel: "",
-    publishedLabel: a.publishedAt
-      ? new Intl.DateTimeFormat(lang === "zh" ? "zh-CN" : "en-US", { dateStyle: "medium" }).format(new Date(a.publishedAt))
-      : "",
-    dateKey: toDateKey(a.publishedAt),
   };
 }
 
@@ -158,7 +143,6 @@ export function ArchivePageClient() {
 
   const [keyword, setKeyword] = useState("");
   const [topic, setTopic] = useState("");
-  const [resultMode, setResultMode] = useState<ArchiveResultMode>("clusters");
   const [sortBy, setSortBy] = useState<SortBy>("score");
 
   const [rows, setRows] = useState<ArchiveResultRow[]>([]);
@@ -190,7 +174,6 @@ export function ArchivePageClient() {
   const doSearch = useCallback(async (
     q: string,
     topicKey: string,
-    mode: ArchiveResultMode,
     sort: SortBy,
     offset: number,
     append: boolean,
@@ -199,26 +182,17 @@ export function ArchivePageClient() {
     else setLoading(true);
 
     try {
-      const apiType = mode === "clusters" ? "cluster" : "article";
-      // topic_tag lives on clusters only — the backend ignores it for articles,
-      // so don't pretend to filter in articles mode
-      const tags = topicKey && mode === "clusters" ? topicTagsForGroup(topicKey) : [];
+      const tags = topicKey ? topicTagsForGroup(topicKey) : [];
       const result = await fetchSearch({
         q: q || undefined,
         topicTags: tags.length ? tags : undefined,
-        type: apiType,
         limit: PAGE_SIZE,
         offset,
         sortBy: sort,
       });
 
-      if (mode === "clusters") {
-        const newRows = result.clusters.map(c => toClusterRow(c, t, lang));
-        setRows(prev => append ? [...prev, ...newRows] : newRows);
-      } else {
-        const newRows = result.articles.map(a => toArticleRow(a, lang));
-        setRows(prev => append ? [...prev, ...newRows] : newRows);
-      }
+      const newRows = result.clusters.map(c => toClusterRow(c, t, lang));
+      setRows(prev => append ? [...prev, ...newRows] : newRows);
       setTotal(result.total);
     } catch {
       if (!append) setRows([]);
@@ -233,14 +207,14 @@ export function ArchivePageClient() {
   useEffect(() => {
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
     searchDebounceRef.current = setTimeout(() => {
-      doSearch(keyword, topic, resultMode, sortBy, 0, false);
+      doSearch(keyword, topic, sortBy, 0, false);
     }, keyword ? SEARCH_DEBOUNCE_MS : 0);
     return () => { if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current); };
-  }, [keyword, topic, resultMode, sortBy, doSearch]);
+  }, [keyword, topic, sortBy, doSearch]);
 
   const handleLoadMore = useCallback(() => {
-    doSearch(keyword, topic, resultMode, sortBy, rows.length, true);
-  }, [keyword, topic, resultMode, sortBy, rows.length, doSearch]);
+    doSearch(keyword, topic, sortBy, rows.length, true);
+  }, [keyword, topic, sortBy, rows.length, doSearch]);
 
   const scheduleKeywordUrlSync = useCallback((nextQ: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -273,10 +247,7 @@ export function ArchivePageClient() {
         label={t.archive.searchLabel}
         placeholder={t.archive.searchPlaceholder}
       />
-      <ResultModeToggle value={resultMode} onChange={setResultMode} />
-      {resultMode === "clusters" ? (
-        <FilterRow topic={topic} onTopicChange={handleTopicChange} />
-      ) : null}
+      <FilterRow topic={topic} onTopicChange={handleTopicChange} />
 
       <SectionBlock>
         <div className="flex items-center justify-between gap-4 mb-3">
@@ -284,9 +255,7 @@ export function ArchivePageClient() {
             <SectionTitle>{t.archive.results}</SectionTitle>
             {initialLoaded && !loading && total > 0 && (
               <span className="text-sm [color:var(--text-muted)]">
-                {resultMode === "clusters"
-                  ? t.archive.resultCountStories(total)
-                  : t.archive.resultCountArticles(total)}
+                {t.archive.resultCountStories(total)}
               </span>
             )}
           </div>
@@ -320,7 +289,7 @@ export function ArchivePageClient() {
           {loading ? (
             <LoadingState layout="archive" />
           ) : showAllEmpty ? (
-            <EmptyState title={resultMode === "clusters" ? t.archive.emptyCatalog : t.archive.emptyCatalogArticles}>
+            <EmptyState title={t.archive.emptyCatalog}>
               <ArchiveThemeSuggestions onPickTopic={handleTopicChange} activeTopic={topic} />
             </EmptyState>
           ) : showNoResults ? (
@@ -329,7 +298,7 @@ export function ArchivePageClient() {
             </NoResultsState>
           ) : (
             <>
-              <DateGroupedList rows={rows} resultMode={resultMode} keyword={keyword} lang={lang} />
+              <DateGroupedList rows={rows} keyword={keyword} lang={lang} />
 
               {hasMore && (
                 <div className="mt-6 flex justify-center">
