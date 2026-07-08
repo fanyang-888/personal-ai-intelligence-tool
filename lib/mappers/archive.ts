@@ -8,6 +8,7 @@ export type ArchiveClusterRow = {
   themeLabel: string;
   summarySnippet: string;
   sourceLabels: string;
+  clusterScore?: number;
   freshnessLabel?: string;
   dateKey: string; // YYYY-MM-DD for grouping
 };

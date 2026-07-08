@@ -13,57 +13,74 @@ import type { ArchiveResultRow, ArchiveClusterRow } from "@/lib/mappers/archive"
 import { archiveHref, parseArchiveQuery } from "@/lib/utils/archive-url";
 import { topicTagsForGroup } from "@/lib/constants/topic-groups";
 import { useI18n } from "@/lib/i18n";
-import { ArchiveResultCard } from "@/components/archive/archive-result-card";
+import { ArchiveTimelineRow } from "@/components/archive/archive-timeline-row";
 import { ArchiveThemeSuggestions } from "@/components/archive/archive-theme-suggestions";
-import { SearchBar } from "@/components/archive/search-bar";
-import { FilterRow } from "@/components/archive/filter-bar";
-import { PageHeader } from "@/components/shared/page-header";
+import { ArchiveToolbar } from "@/components/archive/archive-toolbar";
 import { SectionBlock } from "@/components/shared/section-block";
-import { SectionTitle } from "@/components/shared/section-title";
 import { EmptyState } from "@/components/shared/empty-state";
 import { NoResultsState } from "@/components/shared/no-results-state";
 import { LoadingState } from "@/components/shared/loading-state";
 
-function DateGroupedList({
+function TimelineList({
   rows,
   keyword,
   lang,
+  storyCountLabel,
 }: {
   rows: ArchiveResultRow[];
   keyword: string;
   lang: string;
+  storyCountLabel: (n: number) => string;
 }) {
-  // Build groups: [{dateKey, label, items}]
-  const groups: { dateKey: string; label: string; items: ArchiveResultRow[] }[] = [];
+  // Build groups: [{dateKey, marker, items}]
+  const groups: { dateKey: string; marker: DayMarker; items: ArchiveResultRow[] }[] = [];
   for (const row of rows) {
     const key = row.dateKey;
     const last = groups[groups.length - 1];
     if (last && last.dateKey === key) {
       last.items.push(row);
     } else {
-      groups.push({ dateKey: key, label: formatDateGroupLabel(key, lang), items: [row] });
+      groups.push({ dateKey: key, marker: formatDayMarker(key, lang), items: [row] });
     }
   }
 
   return (
-    <div className="space-y-4">
+    <div className="relative sm:ml-[118px] sm:border-l-2 sm:pl-8 sm:[border-color:var(--border)]">
       {groups.map((group, gi) => (
         <div key={`${group.dateKey}-${gi}`}>
-          {/* Date divider */}
-          <div className={`flex items-center gap-3 ${gi === 0 ? "mb-3" : "mt-6 mb-3"}`}>
+          <div className={`relative mb-2.5 ${gi === 0 ? "" : "mt-8"}`}>
+            {/* rail dot + left date label (sm+) */}
             <span
-              className="text-[11px] font-medium uppercase tracking-[0.1em] shrink-0"
-              style={{ color: "var(--sp-accent-mid)" }}
+              className="absolute top-[5px] hidden h-3 w-3 rounded-full [background:var(--accent)] sm:-left-[39px] sm:block"
+              style={{ boxShadow: "0 0 0 3px var(--bg)" }}
+            />
+            <span
+              className="absolute top-0 hidden w-24 text-right sm:-left-[150px] sm:block"
+              style={{ fontFamily: "'IBM Plex Mono', monospace" }}
             >
-              {group.label}
+              <span className="block text-[15px] font-medium leading-tight [color:var(--accent)]">
+                {group.marker.primary}
+              </span>
+              <span className="text-[10px] uppercase tracking-[0.08em] [color:var(--text-muted)]">
+                {group.marker.secondary}
+              </span>
             </span>
-            <div className="h-px flex-1" style={{ background: "var(--sp-border)" }} />
+            {/* inline date (mobile) + story count */}
+            <span className="flex items-baseline gap-2">
+              <span
+                className="text-[13px] font-medium [color:var(--accent)] sm:hidden"
+                style={{ fontFamily: "'IBM Plex Mono', monospace" }}
+              >
+                {group.marker.primary} · {group.marker.secondary}
+              </span>
+              <span className="text-[11px] [color:var(--text-dim)]">
+                {storyCountLabel(group.items.length)}
+              </span>
+            </span>
           </div>
-          <ul className="space-y-4">
-            {group.items.map((row) => (
-              <ArchiveResultCard key={row.id} row={row} highlightQuery={keyword} />
-            ))}
-          </ul>
+          {group.items.map((row) => (
+            <ArchiveTimelineRow key={row.id} row={row} highlightQuery={keyword} />
+          ))}
         </div>
       ))}
     </div>
@@ -116,24 +133,30 @@ function toClusterRow(
     themeLabel: c.topicTag ?? c.theme,
     summarySnippet: (isZh ? (c.summary_zh ?? c.summary ?? "") : (c.summary ?? "")).slice(0, 160),
     sourceLabels: formatSourceLabels(c.sourceNames ?? [], c.sourceCount, t),
+    clusterScore: c.clusterScore ?? undefined,
     freshnessLabel,
     dateKey: toDateKey(c.lastSeenAt),
   };
 }
 
-function formatDateGroupLabel(dateKey: string, lang: string): string {
-  if (dateKey === "unknown") return lang === "zh" ? "未知日期" : "Unknown date";
+type DayMarker = { primary: string; secondary: string };
+
+function formatDayMarker(dateKey: string, lang: string): DayMarker {
+  if (dateKey === "unknown") {
+    return { primary: lang === "zh" ? "未知日期" : "Unknown", secondary: "" };
+  }
   const d = new Date(dateKey + "T12:00:00Z");
   if (lang === "zh") {
-    const month = d.getUTCMonth() + 1;
-    const day = d.getUTCDate();
     const weekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
-    const wd = weekdays[d.getUTCDay()];
-    return `${month}月${day}日 · ${wd}`;
+    return {
+      primary: `${d.getUTCMonth() + 1}月${d.getUTCDate()}日`,
+      secondary: weekdays[d.getUTCDay()],
+    };
   }
-  return new Intl.DateTimeFormat("en-US", {
-    month: "long", day: "numeric", weekday: "short", timeZone: "UTC",
-  }).format(d);
+  return {
+    primary: new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" }).format(d),
+    secondary: new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: "UTC" }).format(d),
+  };
 }
 
 export function ArchivePageClient() {
@@ -143,7 +166,8 @@ export function ArchivePageClient() {
 
   const [keyword, setKeyword] = useState("");
   const [topic, setTopic] = useState("");
-  const [sortBy, setSortBy] = useState<SortBy>("score");
+  // Timeline layout browses chronologically by default; "Best match" is for keyword search
+  const [sortBy, setSortBy] = useState<SortBy>("date");
 
   const [rows, setRows] = useState<ArchiveResultRow[]>([]);
   const [total, setTotal] = useState(0);
@@ -234,25 +258,26 @@ export function ArchivePageClient() {
 
   return (
     <div>
-      <PageHeader
-        title={t.archive.title}
-        description={t.archive.description}
-        descriptionCompact
-      />
+      <div className="mb-4">
+        <h1
+          className="text-4xl"
+          style={{ fontFamily: "'Fraunces', serif", fontWeight: 300, color: "var(--sp-navy)" }}
+        >
+          {t.archive.title}
+        </h1>
+        <p className="mt-1.5 text-sm [color:var(--text-muted)]">{t.archive.description}</p>
+      </div>
 
-      <SearchBar
-        value={keyword}
-        onChange={handleKeywordChange}
-        id="archive-search"
-        label={t.archive.searchLabel}
-        placeholder={t.archive.searchPlaceholder}
+      <ArchiveToolbar
+        topic={topic}
+        onTopicChange={handleTopicChange}
+        keyword={keyword}
+        onKeywordChange={handleKeywordChange}
       />
-      <FilterRow topic={topic} onTopicChange={handleTopicChange} />
 
       <SectionBlock>
-        <div className="flex items-center justify-between gap-4 mb-3">
-          <div className="flex items-baseline gap-2">
-            <SectionTitle>{t.archive.results}</SectionTitle>
+        <div className="flex items-center justify-between gap-4 mb-4">
+          <div>
             {initialLoaded && !loading && total > 0 && (
               <span className="text-sm [color:var(--text-muted)]">
                 {t.archive.resultCountStories(total)}
@@ -298,7 +323,12 @@ export function ArchivePageClient() {
             </NoResultsState>
           ) : (
             <>
-              <DateGroupedList rows={rows} keyword={keyword} lang={lang} />
+              <TimelineList
+                rows={rows}
+                keyword={keyword}
+                lang={lang}
+                storyCountLabel={t.archive.resultCountStories}
+              />
 
               {hasMore && (
                 <div className="mt-6 flex justify-center">
