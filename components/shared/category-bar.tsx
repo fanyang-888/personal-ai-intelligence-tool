@@ -1,38 +1,57 @@
 "use client";
 
-import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 import { useI18n } from "@/lib/i18n";
 import {
   TOPIC_GROUPS,
   TRENDING_LABEL,
   topicGroupLabel,
+  type TopicGroupKey,
 } from "@/lib/constants/topic-groups";
-import { archiveTopicHref } from "@/lib/utils/archive-url";
 
+export type CategoryKey = "trending" | TopicGroupKey;
+
+// No border shorthand here — active/inactive only swap borderBottomColor,
+// so every border property stays longhand (React warns on mixing them).
 const itemStyle: CSSProperties = {
   fontFamily: "'IBM Plex Mono', monospace",
   fontSize: 10,
   fontWeight: 500,
   letterSpacing: "0.1em",
   textTransform: "uppercase",
-  textDecoration: "none",
   whiteSpace: "nowrap",
   flexShrink: 0,
+  background: "none",
+  borderTopStyle: "none",
+  borderLeftStyle: "none",
+  borderRightStyle: "none",
+  borderBottomWidth: 2,
+  borderBottomStyle: "solid",
+  borderBottomColor: "transparent",
+  marginBottom: -1,
+  cursor: "pointer",
+  padding: 0,
 };
 
 type CategoryBarProps = {
+  active: CategoryKey;
+  onSelect: (key: CategoryKey) => void;
   /** Optional last scrolling item (e.g. the mobile "view all" link). */
   trailing?: ReactNode;
 };
 
 /**
  * CNN-style horizontal category bar for the homepage top-clusters section.
- * "Trending" is the active item (today's top stories below); the topic
- * groups deep-link into the archive pre-filtered by that group.
+ * Tabs switch the story list in place: "Trending" shows today's top stories,
+ * a topic group shows that group's most recent stories from the archive.
  */
-export function CategoryBar({ trailing }: CategoryBarProps) {
+export function CategoryBar({ active, onSelect, trailing }: CategoryBarProps) {
   const { t, lang } = useI18n();
+
+  const items: { key: CategoryKey; label: string }[] = [
+    { key: "trending", label: lang === "zh" ? TRENDING_LABEL.zh : TRENDING_LABEL.en },
+    ...TOPIC_GROUPS.map((g) => ({ key: g.key as CategoryKey, label: topicGroupLabel(g, lang) })),
+  ];
 
   return (
     <nav
@@ -40,29 +59,33 @@ export function CategoryBar({ trailing }: CategoryBarProps) {
       className="mb-3 flex items-center gap-5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       style={{ borderBottom: "1px solid var(--border)" }}
     >
-      <Link
-        href="/"
-        aria-current="page"
-        className="pb-2"
-        style={{
-          ...itemStyle,
-          color: "var(--accent)",
-          borderBottom: "2px solid var(--accent)",
-          marginBottom: -1,
-        }}
-      >
-        {lang === "zh" ? TRENDING_LABEL.zh : TRENDING_LABEL.en}
-      </Link>
-      {TOPIC_GROUPS.map((g) => (
-        <Link
-          key={g.key}
-          href={archiveTopicHref(g.key)}
-          className="pb-2 transition-colors [color:var(--text-muted)] hover:[color:var(--accent)]"
-          style={itemStyle}
-        >
-          {topicGroupLabel(g, lang)}
-        </Link>
-      ))}
+      {items.map(({ key, label }) => {
+        const isActive = key === active;
+        return (
+          <button
+            key={key}
+            type="button"
+            aria-current={isActive ? "true" : undefined}
+            onClick={() => onSelect(key)}
+            className={
+              isActive
+                ? "pb-2"
+                : "pb-2 transition-colors [color:var(--text-muted)] hover:[color:var(--accent)]"
+            }
+            style={
+              isActive
+                ? {
+                    ...itemStyle,
+                    color: "var(--accent)",
+                    borderBottomColor: "var(--accent)",
+                  }
+                : itemStyle
+            }
+          >
+            {label}
+          </button>
+        );
+      })}
       {trailing ? (
         <span className="ml-auto pb-2 pl-2" style={{ flexShrink: 0 }}>
           {trailing}
