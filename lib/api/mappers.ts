@@ -7,7 +7,7 @@ import type { Article } from "@/types/article";
 import type { Cluster } from "@/types/cluster";
 import type { Draft } from "@/types/draft";
 import type { LocalizedString } from "@/types/localized";
-import type { ApiCluster, ApiDraft } from "./types";
+import type { ApiArchiveClusterRow, ApiCluster, ApiDraft } from "./types";
 
 /** Build a bilingual LocalizedString. zh defaults to "" (falls back to en in pickLocalized). */
 function ls(en: string, zh?: string | null): LocalizedString {
@@ -54,6 +54,36 @@ export function apiClusterToCluster(c: ApiCluster): Cluster {
     })),
     relatedClusterIds: c.relatedClusterIds,
     draftId: c.draftId ?? undefined,
+  };
+}
+
+/**
+ * Build a card-renderable Cluster from an archive search row.
+ * Fields the digest cards never read (takeaways, audience, …) get empty
+ * defaults; articleIds is sized so `.length` reports the source count.
+ */
+export function archiveRowToCluster(
+  row: ApiArchiveClusterRow,
+  freshnessLabel?: string,
+): Cluster {
+  return {
+    id: row.id,
+    clusterType: "event",
+    title: ls(row.title, row.title_zh),
+    theme: row.theme,
+    tags: row.tags,
+    topicTag: row.topicTag ?? undefined,
+    storyStatus: row.storyStatus,
+    clusterScore: row.clusterScore ?? undefined,
+    freshnessLabel,
+    firstSeenAt: row.lastSeenAt ?? "",
+    lastSeenAt: row.lastSeenAt ?? "",
+    summary: ls(row.summary ?? "", row.summary_zh),
+    takeaways: [],
+    whyItMatters: ls(""),
+    audience: { pm: ls(""), developer: ls(""), studentJobSeeker: ls("") },
+    articleIds: new Array<string>(Math.max(row.sourceCount, 0)).fill(""),
+    relatedClusterIds: [],
   };
 }
 

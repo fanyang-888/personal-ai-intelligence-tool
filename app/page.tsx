@@ -14,17 +14,31 @@ import { AIBasicCard } from "@/components/digest/ai-basic-card";
 import { SubscribeBar } from "@/components/shared/subscribe-bar";
 import { SippyHero } from "@/components/layout/sipply-hero";
 import { SectionBlock } from "@/components/shared/section-block";
-import { CategoryBar } from "@/components/shared/category-bar";
+import { CategoryBar, type CategoryKey } from "@/components/shared/category-bar";
 import { EmptyState } from "@/components/shared/empty-state";
 import { LoadingState } from "@/components/shared/loading-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { MobileClusterRow } from "@/components/digest/mobile-cluster-row";
 import { RoleSelectorBanner } from "@/components/digest/role-selector-banner";
 import { TopicFilter } from "@/components/shared/topic-filter";
-import { fetchTodayDigest, fetchTodayDraft } from "@/lib/api";
-import { apiClusterToCluster, apiDraftToDraft } from "@/lib/api/mappers";
+import { fetchSearch, fetchTodayDigest, fetchTodayDraft } from "@/lib/api";
+import { apiClusterToCluster, apiDraftToDraft, archiveRowToCluster } from "@/lib/api/mappers";
+import { topicTagsForGroup, type TopicGroupKey } from "@/lib/constants/topic-groups";
+import { archiveTopicHref } from "@/lib/utils/archive-url";
 import type { Cluster } from "@/types/cluster";
 import type { Draft } from "@/types/draft";
+
+const CATEGORY_PAGE_SIZE = 12;
+
+type HomeT = ReturnType<typeof useI18n>["t"];
+
+function freshnessLabelFrom(lastSeenAt: string | null, t: HomeT): string | undefined {
+  if (!lastSeenAt) return undefined;
+  const diff = (Date.now() - new Date(lastSeenAt).getTime()) / 60000;
+  if (diff < 60) return t.archive.freshnessMinutes(Math.round(diff));
+  if (diff < 1440) return t.archive.freshnessHours(Math.round(diff / 60));
+  return t.archive.freshnessDays(Math.round(diff / 1440));
+}
 
 export default function HomePage() {
   const { t, lang } = useI18n();
@@ -36,6 +50,44 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+
+  const [activeCategory, setActiveCategory] = useState<CategoryKey>("trending");
+  const [categoryCache, setCategoryCache] = useState<Partial<Record<TopicGroupKey, Cluster[]>>>({});
+  const [categoryLoading, setCategoryLoading] = useState(false);
+
+  // Freshness labels are baked per-language — refetch category lists on toggle
+  useEffect(() => {
+    setCategoryCache({});
+  }, [lang]);
+
+  // Fetch a category's recent stories on first visit to that tab
+  useEffect(() => {
+    if (activeCategory === "trending" || categoryCache[activeCategory]) return;
+    let cancelled = false;
+    setCategoryLoading(true);
+    fetchSearch({
+      topicTags: topicTagsForGroup(activeCategory),
+      limit: CATEGORY_PAGE_SIZE,
+      sortBy: "date",
+    })
+      .then((res) => {
+        if (cancelled) return;
+        const clusters = res.clusters.map((row) =>
+          archiveRowToCluster(row, freshnessLabelFrom(row.lastSeenAt, t)),
+        );
+        setCategoryCache((prev) => ({ ...prev, [activeCategory]: clusters }));
+      })
+      .catch(() => {
+        if (!cancelled) setCategoryCache((prev) => ({ ...prev, [activeCategory]: [] }));
+      })
+      .finally(() => {
+        if (!cancelled) setCategoryLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [activeCategory, categoryCache, t]);
+
+  const categoryClusters =
+    activeCategory === "trending" ? null : categoryCache[activeCategory] ?? null;
 
   useEffect(() => {
     let cancelled = false;
@@ -214,21 +266,41 @@ export default function HomePage() {
         {topClusters.length > 1 ? (
           <>
             <CategoryBar
+              active={activeCategory}
+              onSelect={setActiveCategory}
               trailing={
                 <Link
-                  href="/archive"
+                  href={activeCategory === "trending" ? "/archive" : archiveTopicHref(activeCategory)}
                   style={{ color: "var(--accent)", fontSize: 10, textDecoration: "none", whiteSpace: "nowrap" }}
                 >
                   {t.home.viewAllInsights} →
                 </Link>
               }
             />
-            <TopicFilter tags={topicOptions} onChange={setSelectedTopics} />
-            <div>
-              {filteredClusters.filter((c) => c.id !== featured?.id).map((c) => (
-                <MobileClusterRow key={c.id} cluster={c} />
-              ))}
-            </div>
+            {activeCategory === "trending" ? (
+              <>
+                <TopicFilter tags={topicOptions} onChange={setSelectedTopics} />
+                <div>
+                  {filteredClusters.filter((c) => c.id !== featured?.id).map((c) => (
+                    <MobileClusterRow key={c.id} cluster={c} />
+                  ))}
+                </div>
+              </>
+            ) : categoryLoading ? (
+              <div className="space-y-3 py-2">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="h-16 animate-pulse rounded-lg [background:var(--surface2)]" />
+                ))}
+              </div>
+            ) : categoryClusters && categoryClusters.length > 0 ? (
+              <div>
+                {categoryClusters.map((c) => (
+                  <MobileClusterRow key={c.id} cluster={c} />
+                ))}
+              </div>
+            ) : (
+              <EmptyState title={t.archive.noResultsTitle} />
+            )}
           </>
         ) : null}
 
@@ -270,25 +342,57 @@ export default function HomePage() {
         </div>
 
         <SectionBlock>
-          <CategoryBar />
-          <TopicFilter tags={topicOptions} onChange={setSelectedTopics} />
-          {filteredClusters.length > 0 ? (
+          <CategoryBar active={activeCategory} onSelect={setActiveCategory} />
+          {activeCategory === "trending" ? (
+            <>
+              <TopicFilter tags={topicOptions} onChange={setSelectedTopics} />
+              {filteredClusters.length > 0 ? (
+                <>
+                  <ul className="space-y-4">
+                    {filteredClusters.map((c) => (
+                      <ClusterCard key={c.id} cluster={c} />
+                    ))}
+                  </ul>
+                  <div className="mt-6">
+                    <Link href="/archive" className={uiTextLinkPrimary}>
+                      {t.home.viewAllInsights}
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <EmptyState
+                  title={t.home.emptyClustersTitle}
+                  description={t.home.emptyClustersDesc}
+                  action={
+                    <Link href="/archive" className={uiTextLinkPrimary}>
+                      {t.home.goToArchive}
+                    </Link>
+                  }
+                />
+              )}
+            </>
+          ) : categoryLoading ? (
+            <div className="space-y-4">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="h-28 animate-pulse rounded-xl [background:var(--surface2)]" />
+              ))}
+            </div>
+          ) : categoryClusters && categoryClusters.length > 0 ? (
             <>
               <ul className="space-y-4">
-                {filteredClusters.map((c) => (
+                {categoryClusters.map((c) => (
                   <ClusterCard key={c.id} cluster={c} />
                 ))}
               </ul>
               <div className="mt-6">
-                <Link href="/archive" className={uiTextLinkPrimary}>
+                <Link href={archiveTopicHref(activeCategory)} className={uiTextLinkPrimary}>
                   {t.home.viewAllInsights}
                 </Link>
               </div>
             </>
           ) : (
             <EmptyState
-              title={t.home.emptyClustersTitle}
-              description={t.home.emptyClustersDesc}
+              title={t.archive.noResultsTitle}
               action={
                 <Link href="/archive" className={uiTextLinkPrimary}>
                   {t.home.goToArchive}
