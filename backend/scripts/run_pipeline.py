@@ -7,6 +7,11 @@ Railway Cron service (see railway.cron.toml) but also works locally:
     cd backend/
     python -m scripts.run_pipeline
     python -m scripts.run_pipeline --triggered-by manual
+    python -m scripts.run_pipeline --triggered-by manual --force-email
+
+The pipeline runs several times a day, but the digest email goes out only
+once: on the cron run that starts at DIGEST_EMAIL_HOUR_UTC (default 20, the
+last run of the day). Other runs record send_digest_email as "skipped".
 
 Exit code 0 = all stages succeeded.
 Exit code 1 = one or more stages failed (details in logs).
@@ -28,6 +33,14 @@ from typing import Any, Callable
 # Hard wall-clock timeout for the entire pipeline run.
 # Default: 90 minutes.  Override via PIPELINE_TIMEOUT_MINUTES env var.
 _PIPELINE_TIMEOUT_SECONDS = int(os.getenv("PIPELINE_TIMEOUT_MINUTES", "90")) * 60
+
+# Must match one of the hours in railway.cron.toml's cronSchedule, or no email is ever sent.
+_DIGEST_EMAIL_HOUR_UTC = int(os.getenv("DIGEST_EMAIL_HOUR_UTC", "20"))
+
+
+def _is_digest_email_run(started_at: datetime, triggered_by: str) -> bool:
+    """Only the scheduled run at the email hour sends; manual runs never do unless forced."""
+    return triggered_by == "cron" and started_at.hour == _DIGEST_EMAIL_HOUR_UTC
 
 
 def _install_timeout(timeout_sec: int) -> None:
@@ -119,12 +132,16 @@ def _run_stage(name: str, fn: Callable[[], int]) -> tuple[bool, float]:
     return False, elapsed
 
 
-def main(triggered_by: str = "cron") -> int:
+def main(triggered_by: str = "cron", force_email: bool = False) -> int:
     # Arm the hard timeout FIRST — this caps the entire run regardless of what hangs
     _install_timeout(_PIPELINE_TIMEOUT_SECONDS)
+    # Decide on the email from the start time, not the (much later) email-stage time
+    started_at = datetime.now(timezone.utc)
+    send_email = force_email or _is_digest_email_run(started_at, triggered_by)
     logger.info(
-        "========== daily pipeline starting  timeout=%dm ==========",
+        "========== daily pipeline starting  timeout=%dm  send_email=%s ==========",
         _PIPELINE_TIMEOUT_SECONDS // 60,
+        send_email,
     )
     t_total = time.monotonic()
 
@@ -185,8 +202,9 @@ def main(triggered_by: str = "cron") -> int:
         ("translate_clusters",    lambda: translate_clusters.main(["--batch-size", "50"])),
         ("generate_draft",        lambda: generate_draft.main([])),
         ("translate_drafts",      lambda: translate_drafts.main(["--batch-size", "20"])),
-        ("send_digest_email",     lambda: send_digest_email.main([])),
     ]
+    if send_email:
+        stages.append(("send_digest_email", lambda: send_digest_email.main([])))
 
     failures: list[str] = []
     for name, fn in stages:
@@ -198,6 +216,14 @@ def main(triggered_by: str = "cron") -> int:
         if not ok:
             failures.append(name)
             # Continue — later stages can still run on already-processed rows.
+
+    if not send_email:
+        logger.info(
+            "pipeline  stage=%-22s  status=SKIPPED   (email only on the %02d:00 UTC cron run)",
+            "send_digest_email",
+            _DIGEST_EMAIL_HOUR_UTC,
+        )
+        stage_results["send_digest_email"] = {"status": "skipped", "elapsed_sec": 0}
 
     elapsed_total = time.monotonic() - t_total
     final_status = "failed" if failures else "success"
@@ -234,8 +260,13 @@ def _cli_main() -> None:
         default="cron",
         help='Label stored in pipeline_runs.triggered_by (default: "cron")',
     )
+    parser.add_argument(
+        "--force-email",
+        action="store_true",
+        help="Send the digest email on this run regardless of the hour",
+    )
     args = parser.parse_args()
-    sys.exit(main(triggered_by=args.triggered_by))
+    sys.exit(main(triggered_by=args.triggered_by, force_email=args.force_email))
 
 
 if __name__ == "__main__":

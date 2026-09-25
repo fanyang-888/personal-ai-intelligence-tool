@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { apiFetch } from "@/lib/api/client";
 import { useI18n } from "@/lib/i18n";
 
-type StageResult = { status: "ok" | "failed"; elapsed_sec: number };
+type StageResult = { status: "ok" | "failed" | "skipped"; elapsed_sec: number };
 
 type PipelineRun = {
   id: string;
@@ -19,7 +19,7 @@ type PipelineRun = {
 const STAGE_ORDER = [
   "ingest_full_articles","filter_articles","score_articles","cluster_articles",
   "update_cluster_status","dedup_clusters","summarize","translate_clusters",
-  "generate_draft","translate_drafts",
+  "generate_draft","translate_drafts","send_digest_email",
 ];
 
 const STAGE_LABEL: Record<string, string> = {
@@ -27,6 +27,13 @@ const STAGE_LABEL: Record<string, string> = {
   cluster_articles: "Cluster", update_cluster_status: "Status", dedup_clusters: "Dedup",
   summarize: "Summarize", translate_clusters: "Translate clusters",
   generate_draft: "Draft", translate_drafts: "Translate drafts",
+  send_digest_email: "Email",
+};
+
+const STAGE_CHIP: Record<StageResult["status"], { cls: string; icon: string }> = {
+  ok: { cls: "border-emerald-200 bg-emerald-50 text-emerald-800", icon: "✓" },
+  failed: { cls: "border-red-200 bg-red-50 text-red-700", icon: "✗" },
+  skipped: { cls: "border-zinc-200 bg-zinc-100 text-zinc-500", icon: "–" },
 };
 
 function fmt(sec: number) {
@@ -83,11 +90,13 @@ function RunRow({ run, lang }: { run: PipelineRun; lang: "en" | "zh" }) {
               {STAGE_ORDER.map((key) => {
                 const s = stages[key];
                 if (!s) return null;
-                const ok = s.status === "ok";
+                const chip = STAGE_CHIP[s.status] ?? STAGE_CHIP.failed;
                 return (
-                  <span key={key} className={`inline-flex items-center gap-1 rounded border px-2 py-0.5 text-xs ${ok ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-red-200 bg-red-50 text-red-700"}`}>
-                    {ok ? "✓" : "✗"} {STAGE_LABEL[key] ?? key}
-                    <span className="font-mono text-[10px] opacity-70">{fmt(s.elapsed_sec)}</span>
+                  <span key={key} className={`inline-flex items-center gap-1 rounded border px-2 py-0.5 text-xs ${chip.cls}`}>
+                    {chip.icon} {STAGE_LABEL[key] ?? key}
+                    {s.status === "skipped" ? null : (
+                      <span className="font-mono text-[10px] opacity-70">{fmt(s.elapsed_sec)}</span>
+                    )}
                   </span>
                 );
               })}
