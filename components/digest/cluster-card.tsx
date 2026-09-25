@@ -6,6 +6,7 @@ import { IngestChannelRow } from "@/components/digest/ingest-channel-row";
 import { MetaRow } from "@/components/shared/meta-row";
 import { ResultCardFrame } from "@/components/shared/result-card-frame";
 import { useI18n } from "@/lib/i18n";
+import { usePreferredRole } from "@/lib/preferred-role";
 import { pickLocalized } from "@/lib/utils/localized-string";
 import { uiMetaText, uiTextLinkPrimary } from "@/lib/ui/classes";
 import {
@@ -22,6 +23,9 @@ type ClusterCardProps = {
 
 export function ClusterCard({ cluster }: ClusterCardProps) {
   const { t, lang } = useI18n();
+  const [role] = usePreferredRole();
+  // Empty for clusters built from archive rows (category tabs), which carry no audience copy
+  const roleWhy = role ? pickLocalized(cluster.audience[role], lang) : "";
   const tags = cluster.tags?.length ? cluster.tags : [cluster.theme];
   const sourceCount = cluster.articleIds.length;
   const status = cluster.storyStatus ?? t.digest.featuredFallback;
@@ -70,6 +74,16 @@ export function ClusterCard({ cluster }: ClusterCardProps) {
       <p className="mt-2 line-clamp-2 text-sm leading-relaxed [color:var(--text-muted)] sm:line-clamp-3">
         {pickLocalized(cluster.summary, lang)}
       </p>
+
+      {roleWhy ? (
+        <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-foreground">
+          <span className="font-medium [color:var(--accent)]">
+            {t.cluster.whyItMattersForYou}
+            {lang === "zh" ? "：" : ": "}
+          </span>
+          {roleWhy}
+        </p>
+      ) : null}
 
       {sourcesLine ? (
         <p className={`mt-2 ${uiMetaText}`}>

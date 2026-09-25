@@ -1,31 +1,34 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useI18n } from "@/lib/i18n";
-
-const STORAGE_KEY = "sipply_preferred_role";
-
-const ROLES = [
-  { key: "pm", en: "Product Manager", zh: "产品经理" },
-  { key: "developer", en: "Developer / Engineer", zh: "开发者 / 工程师" },
-  { key: "studentJobSeeker", en: "Student / Job Seeker", zh: "学生 / 求职者" },
-] as const;
+import { ROLES, roleLabel, usePreferredRole } from "@/lib/preferred-role";
 
 export function RoleSelectorBanner() {
   const { lang } = useI18n();
-  const [show, setShow] = useState(false);
+  const [role, setRole] = usePreferredRole();
+  const [editing, setEditing] = useState(false);
 
-  useEffect(() => {
-    // Only show if no role has been set yet
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) setShow(true);
-  }, []);
-
-  if (!show) return null;
-
-  function select(key: string) {
-    localStorage.setItem(STORAGE_KEY, key);
-    setShow(false);
+  if (role && !editing) {
+    return (
+      <p className="mb-6 flex flex-wrap items-center gap-x-2 text-sm [color:var(--text-muted)]">
+        <span>
+          {lang === "zh" ? "已为" : "Personalised for"}{" "}
+          <strong className="font-semibold" style={{ color: "var(--sp-navy)" }}>
+            {roleLabel(role, lang)}
+          </strong>
+          {lang === "zh" ? "定制" : ""}
+        </span>
+        <span aria-hidden>·</span>
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          className="underline-offset-4 hover:underline [color:var(--accent)]"
+        >
+          {lang === "zh" ? "更换" : "Change"}
+        </button>
+      </p>
+    );
   }
 
   return (
@@ -39,12 +42,21 @@ export function RoleSelectorBanner() {
       <div className="flex flex-wrap gap-2">
         {ROLES.map((r) => (
           <button
-            key={r.key}
-            onClick={() => select(r.key)}
+            key={r}
+            type="button"
+            aria-pressed={r === role}
+            onClick={() => {
+              setRole(r);
+              setEditing(false);
+            }}
             className="rounded-lg border px-3 py-1.5 text-sm transition-colors hover:border-[var(--sp-accent-mid)]"
-            style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}
+            style={
+              r === role
+                ? { borderColor: "var(--accent)", color: "var(--accent)", fontWeight: 600 }
+                : { borderColor: "var(--border)", color: "var(--text-muted)" }
+            }
           >
-            {lang === "zh" ? r.zh : r.en}
+            {roleLabel(r, lang)}
           </button>
         ))}
       </div>

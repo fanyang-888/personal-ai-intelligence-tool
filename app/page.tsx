@@ -24,6 +24,7 @@ import { TopicFilter } from "@/components/shared/topic-filter";
 import { fetchSearch, fetchTodayDigest, fetchTodayDraft } from "@/lib/api";
 import { apiClusterToCluster, apiDraftToDraft, archiveRowToCluster } from "@/lib/api/mappers";
 import { topicTagsForGroup, type TopicGroupKey } from "@/lib/constants/topic-groups";
+import { usePreferredRole } from "@/lib/preferred-role";
 import { archiveTopicHref } from "@/lib/utils/archive-url";
 import type { Cluster } from "@/types/cluster";
 import type { Draft } from "@/types/draft";
@@ -42,6 +43,7 @@ function freshnessLabelFrom(lastSeenAt: string | null, t: HomeT): string | undef
 
 export default function HomePage() {
   const { t, lang } = useI18n();
+  const [role] = usePreferredRole();
   const dateLabel = formatDigestDate(new Date(), lang);
 
   const [featured, setFeatured] = useState<Cluster | null>(null);
@@ -196,6 +198,15 @@ export default function HomePage() {
             >
               {pickLocalized(featured.summary, lang)}
             </p>
+            {role && pickLocalized(featured.audience[role], lang) ? (
+              <p className="mb-3 line-clamp-3 leading-relaxed" style={{ fontSize: 13, color: "var(--text)" }}>
+                <span style={{ color: "var(--accent)", fontWeight: 500 }}>
+                  {t.cluster.whyItMattersForYou}
+                  {lang === "zh" ? "：" : ": "}
+                </span>
+                {pickLocalized(featured.audience[role], lang)}
+              </p>
+            ) : null}
             <div className="flex items-center justify-between">
               <div className="flex gap-1.5 flex-wrap">
                 {(featured.tags ?? []).slice(0, 2).map((tag) => (
