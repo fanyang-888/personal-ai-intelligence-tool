@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { formatDigestDate } from "@/lib/utils/format-date";
 import { useI18n } from "@/lib/i18n";
@@ -23,8 +23,9 @@ import { RoleSelectorBanner } from "@/components/digest/role-selector-banner";
 import { TopicFilter } from "@/components/shared/topic-filter";
 import { fetchSearch, fetchTodayDigest, fetchTodayDraft } from "@/lib/api";
 import { apiClusterToCluster, apiDraftToDraft, archiveRowToCluster } from "@/lib/api/mappers";
+import { getDeviceId } from "@/lib/api/track";
 import { topicTagsForGroup, type TopicGroupKey } from "@/lib/constants/topic-groups";
-import { usePreferredRole } from "@/lib/preferred-role";
+import { readPreferredRole, usePreferredRole, type Role } from "@/lib/preferred-role";
 import { archiveTopicHref } from "@/lib/utils/archive-url";
 import type { Cluster } from "@/types/cluster";
 import type { Draft } from "@/types/draft";
@@ -52,6 +53,9 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [personalized, setPersonalized] = useState(false);
+  // Role the current list was ranked for; undefined until the first load finishes
+  const rankedForRoleRef = useRef<Role | null | undefined>(undefined);
 
   const [activeCategory, setActiveCategory] = useState<CategoryKey>("trending");
   const [categoryCache, setCategoryCache] = useState<Partial<Record<TopicGroupKey, Cluster[]>>>({});
@@ -99,8 +103,10 @@ export default function HomePage() {
         setLoading(true);
         setError(null);
 
+        // Read the role directly: the role hook still reports null during hydration
+        const role = readPreferredRole();
         const [digest, draft] = await Promise.all([
-          fetchTodayDigest(),
+          fetchTodayDigest({ deviceId: getDeviceId(), role }),
           fetchTodayDraft().catch(() => null),
         ]);
 
@@ -108,7 +114,9 @@ export default function HomePage() {
 
         setFeatured(digest.featured ? apiClusterToCluster(digest.featured) : null);
         setTopClusters(digest.topClusters.map(apiClusterToCluster));
+        setPersonalized(Boolean(digest.personalized));
         setDraftOfDay(draft ? apiDraftToDraft(draft) : null);
+        rankedForRoleRef.current = role;
       } catch (e) {
         if (!cancelled) setError((e as Error).message ?? "Failed to load digest");
       } finally {
@@ -119,6 +127,30 @@ export default function HomePage() {
     load();
     return () => { cancelled = true; };
   }, []);
+
+  // Re-rank today's list in place (no loading screen) when the reader switches role
+  useEffect(() => {
+    if (rankedForRoleRef.current === undefined || rankedForRoleRef.current === role) return;
+    let cancelled = false;
+    fetchTodayDigest({ deviceId: getDeviceId(), role })
+      .then((digest) => {
+        if (cancelled) return;
+        rankedForRoleRef.current = role;
+        setTopClusters(digest.topClusters.map(apiClusterToCluster));
+        setPersonalized(Boolean(digest.personalized));
+      })
+      .catch(() => {
+        // keep the current order
+      });
+    return () => { cancelled = true; };
+  }, [role]);
+
+  const personalizedNote =
+    activeCategory === "trending" && personalized ? (
+      <p className="mb-3 text-xs [color:var(--text-muted)]">
+        <span className="[color:var(--accent)]">✦</span> {t.home.personalizedNote}
+      </p>
+    ) : null;
 
   const relatedStoryTitle = draftOfDay && featured
     ? pickLocalized(featured.title, lang)
@@ -290,6 +322,7 @@ export default function HomePage() {
             />
             {activeCategory === "trending" ? (
               <>
+                {personalizedNote}
                 <TopicFilter tags={topicOptions} onChange={setSelectedTopics} />
                 <div>
                   {filteredClusters.filter((c) => c.id !== featured?.id).map((c) => (
@@ -356,6 +389,7 @@ export default function HomePage() {
           <CategoryBar active={activeCategory} onSelect={setActiveCategory} />
           {activeCategory === "trending" ? (
             <>
+              {personalizedNote}
               <TopicFilter tags={topicOptions} onChange={setSelectedTopics} />
               {filteredClusters.length > 0 ? (
                 <>

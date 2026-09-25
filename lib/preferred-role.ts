@@ -29,7 +29,8 @@ export function roleLabel(role: Role, lang: Lang, short = false): string {
   return short ? l.enShort : l.en;
 }
 
-function readRole(): Role | null {
+/** Synchronous read for non-React callers (e.g. building a request); prefer usePreferredRole in components. */
+export function readPreferredRole(): Role | null {
   try {
     const value = localStorage.getItem(STORAGE_KEY);
     return isRole(value) ? value : null;
@@ -61,7 +62,7 @@ function subscribe(onChange: () => void): () => void {
  * null until chosen (and always null during server render).
  */
 export function usePreferredRole(): [Role | null, (role: Role) => void] {
-  const role = useSyncExternalStore(subscribe, readRole, () => null);
+  const role = useSyncExternalStore(subscribe, readPreferredRole, () => null);
   const setRole = useCallback((next: Role) => writePreferredRole(next), []);
   return [role, setRole];
 }

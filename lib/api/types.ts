@@ -53,6 +53,8 @@ export type ApiDigest = {
   featured: ApiCluster | null;
   topClusters: ApiCluster[];
   draftId: string | null;
+  /** True when topClusters were re-ordered for this reader. Absent from older cached payloads. */
+  personalized?: boolean;
 };
 
 export type ApiDraft = {

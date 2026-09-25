@@ -33,6 +33,7 @@ export type Translations = {
     topClusters: string;
     viewAllInsights: string;
     categoryBarAria: string;
+    personalizedNote: string;
     emptyClustersTitle: string;
     emptyClustersDesc: string;
     goToArchive: string;

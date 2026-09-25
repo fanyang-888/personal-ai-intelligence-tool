@@ -28,6 +28,7 @@ export const zh: Translations = {
     topClusters: "热门故事集群",
     viewAllInsights: "查看全部每日洞察",
     categoryBarAria: "按分类浏览",
+    personalizedNote: "已根据你的阅读记录和角色调整顺序",
     emptyClustersTitle: "数据尚不足",
     emptyClustersDesc:
       "还需要更多信号才能生成今日集群。请稍后再来，或前往资料库浏览。",
