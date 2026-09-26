@@ -285,6 +285,24 @@ python -m scripts.summarize
 python -m scripts.generate_draft
 ```
 
+### Tests
+
+CI (`.github/workflows/ci.yml`) runs on every pull request and push to `main`: backend migrations are applied to an empty Postgres, then `pytest`; the frontend runs `npm run typecheck` and `npm test`.
+
+```bash
+# Frontend — typecheck + unit tests (vitest)
+npm run typecheck
+npm test
+
+# Backend — pure unit tests run anywhere; DB tests need a local Postgres at alembic head
+cd backend/
+pip install -r requirements-dev.txt
+DATABASE_URL=postgresql+psycopg://pait:pait@localhost:5432/pait_test alembic upgrade head
+TEST_DATABASE_URL=postgresql+psycopg://pait:pait@localhost:5432/pait_test pytest
+```
+
+DB tests run inside a transaction that is rolled back, and refuse to run against any host other than localhost. Without `TEST_DATABASE_URL` they are skipped.
+
 ---
 
 ## Deployment

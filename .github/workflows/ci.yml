@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend — migrations + pytest
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: pait
+          POSTGRES_PASSWORD: pait
+          POSTGRES_DB: pait_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U pait"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://pait:pait@localhost:5432/pait_test
+      TEST_DATABASE_URL: postgresql+psycopg://pait:pait@localhost:5432/pait_test
+      APP_ENV: test
+      SOURCE_FETCH_USER_AGENT: sipply-ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: backend/.python-version
+          cache: pip
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - name: Migrations apply cleanly to an empty database
+        run: alembic upgrade head
+      - run: pytest
+
+  frontend:
+    name: Frontend — typecheck + vitest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
