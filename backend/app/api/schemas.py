@@ -112,6 +112,8 @@ class DigestResponse(BaseModel):
     featured: ClusterResponse | None
     topClusters: list[ClusterResponse]
     draftId: str | None
+    # True when topClusters were re-ordered for this reader (history and/or role)
+    personalized: bool = False
 
 
 # ---------------------------------------------------------------------------

@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { StoryBadge } from "@/components/digest/story-badge";
 import { IngestChannelRow } from "@/components/digest/ingest-channel-row";
 import { ActionRow } from "@/components/shared/action-row";
 import { ResultCardFrame } from "@/components/shared/result-card-frame";
 import { useI18n } from "@/lib/i18n";
+import { ROLES, roleLabel, usePreferredRole } from "@/lib/preferred-role";
 import { pickLocalized } from "@/lib/utils/localized-string";
 import { uiMetaText, uiTextLinkPrimary } from "@/lib/ui/classes";
 import {
@@ -27,8 +27,8 @@ export function FeaturedStoryCard({
   className = "",
 }: FeaturedStoryCardProps) {
   const { t, lang } = useI18n();
-  const [role, setRole] = useState<"pm" | "developer" | "studentJobSeeker">("pm");
-  const roleLabels = { pm: "PM", developer: "Dev", studentJobSeeker: "Student" } as const;
+  const [preferredRole, setRole] = usePreferredRole();
+  const role = preferredRole ?? "pm";
   const sourceCount = cluster.articleIds.length;
   const relevance = formatRelevancePercent(cluster.clusterScore);
   const status = cluster.storyStatus ?? t.digest.featuredFallback;
@@ -97,9 +97,11 @@ export function FeaturedStoryCard({
 
       <div className="mt-4">
         <div className="mb-2 flex gap-1">
-          {(["pm", "developer", "studentJobSeeker"] as const).map((r) => (
+          {ROLES.map((r) => (
             <button
               key={r}
+              type="button"
+              aria-pressed={role === r}
               onClick={() => setRole(r)}
               className="rounded px-2 py-0.5 text-[11px] font-medium transition-colors"
               style={
@@ -108,7 +110,7 @@ export function FeaturedStoryCard({
                   : { background: "var(--surface2)", color: "var(--text-muted)" }
               }
             >
-              {roleLabels[r]}
+              {roleLabel(r, lang, true)}
             </button>
           ))}
         </div>

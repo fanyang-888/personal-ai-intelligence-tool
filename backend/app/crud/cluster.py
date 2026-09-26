@@ -11,6 +11,10 @@ from sqlalchemy.orm import Session
 from app.models.article import Article
 from app.models.cluster import Cluster
 
+# Homepage ranking decay per day of age; app.services.personalization reuses it
+# to recompute the same base score, so keep a single source.
+RANKING_DECAY_RATE = 0.15
+
 
 def create_cluster(
     db: Session,
@@ -70,7 +74,7 @@ def get_top_clusters(
     db: Session,
     limit: int = 10,
     window_days: int = 14,
-    decay_rate: float = 0.15,
+    decay_rate: float = RANKING_DECAY_RATE,
 ) -> list[Cluster]:
     """Return translated top clusters ranked by recency-weighted score.
 

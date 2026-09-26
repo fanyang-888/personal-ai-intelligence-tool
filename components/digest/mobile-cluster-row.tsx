@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
+import { usePreferredRole } from "@/lib/preferred-role";
 import { pickLocalized } from "@/lib/utils/localized-string";
 import { formatRelevancePercent } from "@/lib/utils/cluster-sources";
 import type { Cluster } from "@/types/cluster";
 
 export function MobileClusterRow({ cluster }: { cluster: Cluster }) {
-  const { lang } = useI18n();
+  const { t, lang } = useI18n();
+  const [role] = usePreferredRole();
+  const roleWhy = role ? pickLocalized(cluster.audience[role], lang) : "";
   const tag = cluster.topicTag ?? cluster.tags?.[0] ?? cluster.theme ?? "";
   const score = cluster.clusterScore ?? 0;
   const pct = Math.min(100, Math.max(0, score));
@@ -42,6 +45,15 @@ export function MobileClusterRow({ cluster }: { cluster: Cluster }) {
         >
           {pickLocalized(cluster.title, lang)}
         </p>
+        {roleWhy ? (
+          <p className="mb-1.5 line-clamp-2 leading-snug" style={{ fontSize: 12, color: "var(--text-muted)" }}>
+            <span style={{ color: "var(--accent)" }}>
+              {t.cluster.whyItMattersForYou}
+              {lang === "zh" ? "：" : ": "}
+            </span>
+            {roleWhy}
+          </p>
+        ) : null}
         <div
           className="flex items-center gap-1.5"
           style={{ fontSize: 11, color: "var(--text-muted)" }}

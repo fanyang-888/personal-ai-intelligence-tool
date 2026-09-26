@@ -29,6 +29,7 @@ export const en: Translations = {
     topClusters: "Top Story Clusters",
     viewAllInsights: "View all daily insights",
     categoryBarAria: "Browse by category",
+    personalizedNote: "Reordered to match what you read and your role",
     emptyClustersTitle: "Waiting for more data",
     emptyClustersDesc:
       "We need a bit more signal to synthesize today's clusters. Check back soon or browse the archive.",

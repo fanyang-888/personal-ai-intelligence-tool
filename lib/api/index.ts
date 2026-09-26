@@ -15,8 +15,16 @@ import type {
 // Digest
 // ---------------------------------------------------------------------------
 
-export async function fetchTodayDigest(): Promise<ApiDigest> {
-  return apiFetch<ApiDigest>("/api/digest/today");
+/** Pass the reader to get topClusters re-ranked by their reading history and role. */
+export async function fetchTodayDigest(reader?: {
+  deviceId?: string;
+  role?: string | null;
+}): Promise<ApiDigest> {
+  const qs = new URLSearchParams();
+  if (reader?.deviceId) qs.set("device_id", reader.deviceId);
+  if (reader?.role) qs.set("role", reader.role);
+  const q = qs.toString();
+  return apiFetch<ApiDigest>(`/api/digest/today${q ? `?${q}` : ""}`);
 }
 
 // ---------------------------------------------------------------------------
