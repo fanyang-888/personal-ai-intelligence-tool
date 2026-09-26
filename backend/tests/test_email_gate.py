@@ -1,0 +1,79 @@
+"""The digest email goes out once a day, on the 20:00 UTC cron run only.
+
+Drives the real run_pipeline.main() with every stage and the pipeline_runs
+bookkeeping stubbed out, and a faked start time.
+"""
+
+from __future__ import annotations
+
+from datetime import datetime, timezone
+
+import pytest
+
+import scripts.run_pipeline as rp
+
+
+@pytest.fixture
+def run(monkeypatch):
+    executed: list[str] = []
+    recorded: dict = {}
+
+    def fake_stage(name, fn):
+        executed.append(name)
+        return True, 0.01
+
+    def fake_finish(run_id, *, status, stage_results, total_elapsed_sec):
+        recorded.update(stage_results)
+
+    monkeypatch.setattr(rp, "_run_stage", fake_stage)
+    monkeypatch.setattr(rp, "_create_run", lambda triggered_by: "run-id")
+    monkeypatch.setattr(rp, "_finish_run", fake_finish)
+    monkeypatch.setattr(rp, "_install_timeout", lambda sec: None)
+
+    def _run(hour: int, triggered_by: str = "cron", force: bool = False):
+        class FakeDateTime(datetime):
+            @classmethod
+            def now(cls, tz=None):
+                return datetime(2026, 9, 25, hour, 0, 30, tzinfo=timezone.utc)
+
+        monkeypatch.setattr(rp, "datetime", FakeDateTime)
+        executed.clear()
+        recorded.clear()
+        code = rp.main(triggered_by=triggered_by, force_email=force)
+        return code, executed, recorded
+
+    return _run
+
+
+@pytest.mark.parametrize("hour", [2, 8, 14])
+def test_earlier_cron_runs_skip_the_email(run, hour):
+    code, executed, recorded = run(hour)
+    assert code == 0
+    assert "send_digest_email" not in executed
+    assert recorded["send_digest_email"]["status"] == "skipped"
+
+
+def test_last_cron_run_sends_the_email(run):
+    code, executed, recorded = run(20)
+    assert code == 0
+    assert executed[-1] == "send_digest_email"
+    assert recorded["send_digest_email"]["status"] == "ok"
+
+
+def test_manual_run_at_the_email_hour_does_not_send(run):
+    _, executed, recorded = run(20, triggered_by="manual")
+    assert "send_digest_email" not in executed
+    assert recorded["send_digest_email"]["status"] == "skipped"
+
+
+def test_force_email_sends_on_any_run(run):
+    _, executed, _ = run(9, triggered_by="manual", force=True)
+    assert "send_digest_email" in executed
+
+
+def test_content_stages_run_every_time(run):
+    _, skipped_run, _ = run(2)
+    content_stages = list(skipped_run)
+    _, email_run, _ = run(20)
+    assert [s for s in email_run if s != "send_digest_email"] == content_stages
+    assert len(content_stages) == 10

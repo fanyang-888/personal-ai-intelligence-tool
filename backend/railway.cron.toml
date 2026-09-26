@@ -3,5 +3,7 @@ builder = "NIXPACKS"
 
 [deploy]
 startCommand = "python -m scripts.run_pipeline"
+# Pipeline refreshes content 4x/day; the digest email goes out only on the
+# 20:00 UTC run (DIGEST_EMAIL_HOUR_UTC). Keep that hour in this schedule.
 cronSchedule = "0 2,8,14,20 * * *"
 restartPolicyType = "NEVER"
